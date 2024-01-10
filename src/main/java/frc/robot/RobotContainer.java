@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.autos.*;
@@ -23,7 +25,7 @@ import frc.robot.subsystems.*;
 public class RobotContainer {
     /* Controllers */
     private final Joystick driver = new Joystick(0);
-    private final Joystick operator = new Joystick(1);
+    // private CommandXboxController m_oppController = new CommandXboxController(1);
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -35,11 +37,12 @@ public class RobotContainer {
     private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
 
     // Opperator Buttons
-    private final JoystickButton Motor1 = new JoystickButton(operator, XboxController.Button.kA.value);
-    private final JoystickButton Motor2 = new JoystickButton(operator, XboxController.Button.kB.value);
+    private final JoystickButton ShootButton = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
+    private final JoystickButton IntakeButton = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
 
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
+    private final KitbotShooter s_KitbotShooter = new KitbotShooter();
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -52,6 +55,8 @@ public class RobotContainer {
                         () -> -driver.getRawAxis(strafeAxis),
                         () -> -driver.getRawAxis(rotationAxis),
                         () -> robotCentric.getAsBoolean()));
+        
+        s_KitbotShooter.setDefaultCommand(s_KitbotShooter.Stop());
 
         // Configure the button bindings
         configureButtonBindings();
@@ -68,6 +73,10 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+
+        ShootButton.whileTrue(new RepeatCommand(s_KitbotShooter.Shoot()));
+        // ShootButton.whileFalse(s_KitbotShooter.Stop());
+        IntakeButton.whileTrue(new RepeatCommand(s_KitbotShooter.Intake()));
     }
 
     /**

@@ -32,9 +32,9 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
 
-  private CommandXboxController m_oppController = new CommandXboxController(1);
-  private DoubleSupplier m_leftStickSupplier, m_rightStickSupplier;
-  private CANSparkMax m_motor1, m_motor2;
+  
+  // private DoubleSupplier m_leftStickSupplier, m_rightStickSupplier;
+  // private CANSparkMax m_motor1, m_motor2;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -48,8 +48,8 @@ public class Robot extends TimedRobot {
     // and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    m_motor1 = new CANSparkMax(1, MotorType.kBrushless);
-    m_motor2 = new CANSparkMax(2, MotorType.kBrushless);
+    // m_motor1 = new CANSparkMax(1, MotorType.kBrushless);
+    // m_motor2 = new CANSparkMax(2, MotorType.kBrushless);
   }
 
   /**
@@ -73,8 +73,8 @@ public class Robot extends TimedRobot {
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    m_leftStickSupplier = () -> m_oppController.getLeftY();
-    m_rightStickSupplier = () -> m_oppController.getRightY();
+    // m_leftStickSupplier = () -> m_oppController.getLeftY();
+    // m_rightStickSupplier = () -> m_oppController.getRightY();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
@@ -119,8 +119,8 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    m_motor1.set(m_leftStickSupplier.getAsDouble());
-    m_motor2.set(m_rightStickSupplier.getAsDouble());
+    // m_motor1.set(m_leftStickSupplier.getAsDouble());
+    // m_motor2.set(m_rightStickSupplier.getAsDouble());
   }
 
   @Override
