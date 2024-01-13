@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
@@ -39,6 +40,7 @@ public class RobotContainer {
     // Opperator Buttons
     private final JoystickButton ShootButton = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
     private final JoystickButton IntakeButton = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton getVal = new JoystickButton(driver, XboxController.Button.kA.value);
 
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
@@ -73,11 +75,12 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-
-        ShootButton.whileTrue(new RepeatCommand(s_KitbotShooter.Shoot()));
+        ShootButton.whileTrue(s_KitbotShooter.ShooterDelay());
         // ShootButton.whileFalse(s_KitbotShooter.Stop());
         IntakeButton.whileTrue(new RepeatCommand(s_KitbotShooter.Intake()));
+        // getVal.whileTrue(new InstantCommand(()-> KitbotShooter.setDelay(SmartDashboard.getNumber("ShooterSpeed", 5))));
     }
+
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
