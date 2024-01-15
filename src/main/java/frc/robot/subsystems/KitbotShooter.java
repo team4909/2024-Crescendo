@@ -25,15 +25,15 @@ public class KitbotShooter extends SubsystemBase {
   private final double OutSpeed = -1;
   private final double StopSpeed = 0;
   private double m_duration;
-  private double delay;
+  private double defaultDelay = .3;
 
   private CANSparkMax WheelInner = new CANSparkMax(2, com.revrobotics.CANSparkLowLevel.MotorType.kBrushed);
   private CANSparkMax WheelOuter = new CANSparkMax(1, com.revrobotics.CANSparkLowLevel.MotorType.kBrushed);
 
   /** Creates a new KitbotShooter. */
   public KitbotShooter() {
-    SmartDashboard.putNumber("ShooterDelay", 5);
-    delay = SmartDashboard.getNumber("shooterDelay", 5);
+    SmartDashboard.putNumber("ShooterDelay", defaultDelay);
+    // delay = SmartDashboard.getNumber("shooterDelay", 5);
   }
 
   @Override
@@ -59,10 +59,6 @@ public class KitbotShooter extends SubsystemBase {
     }, this);
   }
 
-  // public static void setDelay(double d){
-  //   delay = d;
-  // }
-
   public Command Intake() {
     return new InstantCommand(() -> {
       System.out.println("InSpeed");
@@ -72,35 +68,13 @@ public class KitbotShooter extends SubsystemBase {
     }, this);
   }
 
-  public Command WaitDelay(double seconds) {
-    m_duration = seconds;
-    SendableRegistry.setName(this, getName() + ": " + seconds + " seconds");
-    return null;
-  }
-
-  // public Command ShooterSpeed() {
-  //   return new InstantCommand(() -> {
-  //     SmartDashboard.putNumber("ShooterSpeed", SmartDashboard.getNumber("ShooterSpeed", 0));
-  //     WheelInner.set(SmartDashboard.getNumber("ShooterSpeed", 0));
-  //     WheelOuter.set(SmartDashboard.getNumber("ShooterSpeed", 0));
-  //   }, this);
-  // }
-
-  // public Command ShooterDelay() {
-  //   return new SequentialCommandGroup(
-  // //       WheelOuter.set(OutSpeed),
-  // //       (SmartDashboard.getNumber("ShooterDelay", 0)),
-  // //       WheelInner.set(OutSpeed));
-  // // }
-
   public Command ShooterDelay() {
     return Commands.sequence(
       this.runOnce(() -> {
         WheelOuter.set(OutSpeed);
-        System.out.println(SmartDashboard.getNumber("ShooterDelay", 5));
+        System.out.println(SmartDashboard.getNumber("ShooterDelay", defaultDelay));
       }), 
-      // Commands.waitSeconds((delay)),
-      new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", 5)),
+      new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay)),
       new RepeatCommand(new InstantCommand(() -> WheelInner.set(OutSpeed))));
   }
 }

@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.autos.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
@@ -25,7 +25,7 @@ import frc.robot.subsystems.*;
  */
 public class RobotContainer {
     /* Controllers */
-    private final Joystick driver = new Joystick(0);
+    private final CommandXboxController driver = new CommandXboxController(0);
     // private CommandXboxController m_oppController = new CommandXboxController(1);
 
     /* Drive Controls */
@@ -34,14 +34,15 @@ public class RobotContainer {
     private final int rotationAxis = XboxController.Axis.kRightX.value;
 
     /* Driver Buttons */
-    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
-    private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final Trigger zeroGyro = driver.y();
+    
+    private final Trigger robotCentric = driver.leftBumper();
 
     // Opperator Buttons
-    private final JoystickButton ShootButton = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
-    private final JoystickButton IntakeButton = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
-    private final JoystickButton getVal = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final Trigger ShootButton = driver.rightTrigger();
+    private final Trigger IntakeButton = driver.leftTrigger();
 
+    
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
     private final KitbotShooter s_KitbotShooter = new KitbotShooter();
@@ -50,6 +51,10 @@ public class RobotContainer {
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
+
+        // var jt = new JoystickTrigger(driver, XboxController.Axis.kRightTrigger.value);
+        // CommandXboxController m_oppController = new CommandXboxController(1);
+
         s_Swerve.setDefaultCommand(
                 new TeleopSwerve(
                         s_Swerve,
@@ -76,9 +81,7 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         ShootButton.whileTrue(s_KitbotShooter.ShooterDelay());
-        // ShootButton.whileFalse(s_KitbotShooter.Stop());
         IntakeButton.whileTrue(new RepeatCommand(s_KitbotShooter.Intake()));
-        // getVal.whileTrue(new InstantCommand(()-> KitbotShooter.setDelay(SmartDashboard.getNumber("ShooterSpeed", 5))));
     }
 
 
