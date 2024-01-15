@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -34,15 +36,14 @@ public class RobotContainer {
     private final int rotationAxis = XboxController.Axis.kRightX.value;
 
     /* Driver Buttons */
-    private final Trigger zeroGyro = driver.y();
-    
+    private final Trigger zeroGyro = driver.start();
+
     private final Trigger robotCentric = driver.leftBumper();
 
     // Opperator Buttons
     private final Trigger ShootButton = driver.rightTrigger();
     private final Trigger IntakeButton = driver.leftTrigger();
 
-    
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
     private final KitbotShooter s_KitbotShooter = new KitbotShooter();
@@ -52,7 +53,8 @@ public class RobotContainer {
      */
     public RobotContainer() {
 
-        // var jt = new JoystickTrigger(driver, XboxController.Axis.kRightTrigger.value);
+        // var jt = new JoystickTrigger(driver,
+        // XboxController.Axis.kRightTrigger.value);
         // CommandXboxController m_oppController = new CommandXboxController(1);
 
         s_Swerve.setDefaultCommand(
@@ -62,7 +64,7 @@ public class RobotContainer {
                         () -> -driver.getRawAxis(strafeAxis),
                         () -> -driver.getRawAxis(rotationAxis),
                         () -> robotCentric.getAsBoolean()));
-        
+
         s_KitbotShooter.setDefaultCommand(s_KitbotShooter.Stop());
 
         // Configure the button bindings
@@ -84,7 +86,6 @@ public class RobotContainer {
         IntakeButton.whileTrue(new RepeatCommand(s_KitbotShooter.Intake()));
     }
 
-
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *
@@ -92,6 +93,7 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
-        return new exampleAuto(s_Swerve);
+        // return new exampleAuto(s_Swerve);
+        return new PathPlannerAuto("Auto1");
     }
 }
