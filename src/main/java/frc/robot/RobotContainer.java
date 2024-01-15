@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.wpilibj.GenericHID;
@@ -53,6 +54,8 @@ public class RobotContainer {
      */
     public RobotContainer() {
 
+        NamedCommands.registerCommand("ShooterDelay", s_KitbotShooter.ShooterDelay().withTimeout(1));
+        NamedCommands.registerCommand("Stop", s_KitbotShooter.Stop());
         // var jt = new JoystickTrigger(driver,
         // XboxController.Axis.kRightTrigger.value);
         // CommandXboxController m_oppController = new CommandXboxController(1);
@@ -94,6 +97,7 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
         // return new exampleAuto(s_Swerve);
-        return new PathPlannerAuto("Auto1");
+        // return new PathPlannerAuto("Auto1");
+        return new PathPlannerAuto("preloaded note and taxi");
     }
 }

@@ -70,11 +70,11 @@ public class KitbotShooter extends SubsystemBase {
 
   public Command ShooterDelay() {
     return Commands.sequence(
-      this.runOnce(() -> {
-        WheelOuter.set(OutSpeed);
-        System.out.println(SmartDashboard.getNumber("ShooterDelay", defaultDelay));
-      }), 
-      new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay)),
-      new RepeatCommand(new InstantCommand(() -> WheelInner.set(OutSpeed))));
+        this.runOnce(() -> {
+          WheelOuter.set(OutSpeed);
+          // System.out.println(SmartDashboard.getNumber("ShooterDelay", defaultDelay));
+        }),
+        new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay)),
+        new RepeatCommand(new InstantCommand(() -> WheelInner.set(OutSpeed))));
   }
 }
