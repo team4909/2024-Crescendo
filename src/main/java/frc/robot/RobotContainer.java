@@ -38,8 +38,10 @@ public class RobotContainer {
 
     /* Driver Buttons */
     private final Trigger zeroGyro = driver.start();
-
-    private final Trigger robotCentric = driver.leftBumper();
+    private final Trigger robotCentric = driver.povUp();
+    private final Trigger Intake = driver.x();
+    private final Trigger Spit = driver.y();
+    private final Trigger Stop = driver.b();
 
     // Opperator Buttons
     private final Trigger ShootButton = driver.rightTrigger();
@@ -48,6 +50,7 @@ public class RobotContainer {
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
     private final Rev_1Shooter s_KitbotShooter = new Rev_1Shooter();
+    private final Rev_1Intake s_Intake = new Rev_1Intake();
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -87,6 +90,9 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         ShootButton.whileTrue(s_KitbotShooter.ShooterDelay());
         IntakeButton.whileTrue(new RepeatCommand(s_KitbotShooter.Intake()));
+        Intake.whileTrue(s_Intake.Intake());
+        Spit.whileTrue(s_Intake.Spit());
+        Stop.whileTrue(s_Intake.Stop());
     }
 
     /**
