@@ -47,7 +47,7 @@ public class RobotContainer {
 
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
-    private final KitbotShooter s_KitbotShooter = new KitbotShooter();
+    private final Rev_1Shooter s_KitbotShooter = new Rev_1Shooter();
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
