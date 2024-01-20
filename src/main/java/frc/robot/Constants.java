@@ -19,26 +19,26 @@ public final class Constants {
 
                 public static final COTSFalconSwerveConstants chosenModule = // TODO: This must be tuned to specific
                                                                              // robot
-                                COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L3);
+                                COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L2);
 
                 /* Drivetrain Constants */
                 public static final double wheelCircumference = chosenModule.wheelCircumference;
-                public static final double wheelBase = Units.inchesToMeters(20 - 2 - wheelCircumference / Math.PI); // TODO:
-                                                                                                                    // This
-                                                                                                                    // must
-                                                                                                                    // be
-                                                                                                                    // tuned
-                                                                                                                    // to
-                                                                                                                    // specific
-                                                                                                                    // robot
-                public static final double trackWidth = Units.inchesToMeters(20 - 2 - wheelCircumference / Math.PI); // TODO:
-                                                                                                                     // This
-                                                                                                                     // must
-                                                                                                                     // be
-                                                                                                                     // tuned
-                                                                                                                     // to
-                                                                                                                     // specific
-                                                                                                                     // robot
+                public static final double wheelBase = Units.inchesToMeters(16); // TODO:
+                                                                                 // This
+                                                                                 // must
+                                                                                 // be
+                                                                                 // tuned
+                                                                                 // to
+                                                                                 // specific
+                                                                                 // robot
+                public static final double trackWidth = Units.inchesToMeters(21); // TODO:
+                                                                                  // This
+                                                                                  // must
+                                                                                  // be
+                                                                                  // tuned
+                                                                                  // to
+                                                                                  // specific
+                                                                                  // robot
 
                 /*
                  * Swerve Kinematics
@@ -117,7 +117,7 @@ public final class Constants {
                         public static final int driveMotorID = 4;
                         public static final int angleMotorID = 3;
                         public static final int canCoderID = 12;
-                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(123.22);
+                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(134.2);
                         public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID,
                                         angleMotorID,
                                         canCoderID, angleOffset);
@@ -128,7 +128,7 @@ public final class Constants {
                         public static final int driveMotorID = 6;
                         public static final int angleMotorID = 5;
                         public static final int canCoderID = 13;
-                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(249.25);
+                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(71.45);
                         public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID,
                                         angleMotorID,
                                         canCoderID, angleOffset);
@@ -139,7 +139,7 @@ public final class Constants {
                         public static final int driveMotorID = 2;
                         public static final int angleMotorID = 1;
                         public static final int canCoderID = 11;
-                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(50.88);
+                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(260.6);
                         public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID,
                                         angleMotorID,
                                         canCoderID, angleOffset);
@@ -147,10 +147,10 @@ public final class Constants {
 
                 /* Back Right Module - Module 3 */
                 public static final class Mod3 { // TODO: This must be tuned to specific robot
-                        public static final int driveMotorID = 8;
-                        public static final int angleMotorID = 7;
+                        public static final int driveMotorID = 7;
+                        public static final int angleMotorID = 8;
                         public static final int canCoderID = 14;
-                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(119.44);
+                        public static final Rotation2d angleOffset = Rotation2d.fromDegrees(244.4);
                         public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID,
                                         angleMotorID,
                                         canCoderID, angleOffset);

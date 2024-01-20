@@ -16,8 +16,8 @@ public class Rev_1Intake extends SubsystemBase {
   private final double StopSpeed = 0;
   private double defaultFrontRollerSpeed = 1;
   private double defaultBackRollerSpeed = 1;
-  private double defaultFrontRollerSpeedSpit = 1;
-  private double defaultBackRollerSpeedSpit = 1;
+  private double defaultFrontRollerSpeedSpit = -1;
+  private double defaultBackRollerSpeedSpit = -1;
 
   private CANSparkMax frontRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
   private CANSparkMax backRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
