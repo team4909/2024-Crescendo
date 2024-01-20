@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Rev_1Shooter extends SubsystemBase {
 
-  private final double InSpeed = -1;
+  private final double InSpeed = -.1;
   private final double OutSpeed = 1;
   private final double StopSpeed = 0;
   private double defaultDelay = .3;
@@ -41,11 +41,11 @@ public class Rev_1Shooter extends SubsystemBase {
     return new InstantCommand(() -> {
       System.out.println("OutSpeed");
       SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
-      TopFeeder.set(OutSpeed);
+
       TopShooter.set(OutSpeed);
-      BottomFeeder.set(OutSpeed);
+
       BottomShooter.set(OutSpeed);
-    }, this);
+    }, this).repeatedly();
   }
 
   public Command Stop() {
@@ -83,6 +83,13 @@ public class Rev_1Shooter extends SubsystemBase {
           BottomFeeder.set(InSpeed);
 
         })));
+  }
+
+  public Command Feeder() {
+    return new InstantCommand(() -> {
+      TopFeeder.set(InSpeed);
+      BottomFeeder.set(InSpeed);
+    }, this).repeatedly();
   }
 
 }

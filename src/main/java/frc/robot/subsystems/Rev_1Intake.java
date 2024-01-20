@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.FaultID;
 import com.revrobotics.CANSparkBase.IdleMode;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -15,10 +16,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Rev_1Intake extends SubsystemBase {
   // private final double Speed = 1;
   private final double StopSpeed = 0;
-  private double defaultFrontRollerSpeed = 1;
-  private double defaultBackRollerSpeed = 1;
-  private double defaultFrontRollerSpeedSpit = -1;
-  private double defaultBackRollerSpeedSpit = -1;
+  private double defaultFrontRollerSpeed = -1;
+  private double defaultBackRollerSpeed = -.6;
+  private double defaultFrontRollerSpeedSpit = .65;
+  private double defaultBackRollerSpeedSpit = .65;
 
   private CANSparkMax frontRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
   private CANSparkMax backRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
@@ -31,6 +32,8 @@ public class Rev_1Intake extends SubsystemBase {
 
     frontRoller.setIdleMode(IdleMode.kBrake);
     backRoller.setIdleMode(IdleMode.kBrake);
+
+    // frontRoller.getFault(FaultID.)
   }
 
   @Override

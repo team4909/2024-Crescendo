@@ -48,7 +48,8 @@ public class RobotContainer {
     private final Trigger Intake = driver.x();
     private final Trigger Spit = driver.y();
     private final Trigger Stop = driver.b();
-
+    private final Trigger Feeder = driver.rightBumper();
+    private final Trigger Shoot = driver.leftBumper();
     // Opperator Buttons
     private final Trigger ShootButton = driver.rightTrigger();
     private final Trigger IntakeButton = driver.leftTrigger();
@@ -101,7 +102,9 @@ public class RobotContainer {
         Spit.whileTrue(s_Intake.Spit());
         Stop.whileTrue(s_Intake.Stop());
         final double defaultStopDistance = 0;
-
+        Shoot.onTrue(s_Shooter.Shoot());
+        Feeder.onTrue(s_Shooter.Feeder());
+        Stop.onTrue(s_Shooter.Stop());
         SmartDashboard.putNumber("StopDistance", defaultStopDistance);
 
         driver.a().onTrue(
