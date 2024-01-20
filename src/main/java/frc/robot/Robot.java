@@ -11,9 +11,12 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+
+import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -32,7 +35,6 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
 
-  
   // private DoubleSupplier m_leftStickSupplier, m_rightStickSupplier;
   // private CANSparkMax m_motor1, m_motor2;
 
@@ -75,6 +77,14 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
     // m_leftStickSupplier = () -> m_oppController.getLeftY();
     // m_rightStickSupplier = () -> m_oppController.getRightY();
+
+    // -----------------------------------------
+    // SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
+    // SmartDashboard.putString("Distance/mode",
+    // mytimeofflight.getRangingMode().toString());
+    // SmartDashboard.putData("Distance/1", mytimeofflight);
+    // SmartDashboard.putString("Distance/status",
+    // mytimeofflight.getStatus().toString());
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
@@ -133,4 +143,5 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
   }
+
 }

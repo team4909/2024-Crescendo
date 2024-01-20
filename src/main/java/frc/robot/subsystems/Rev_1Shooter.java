@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -16,15 +17,15 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Rev_1Shooter extends SubsystemBase {
 
-  private final double InSpeed = 0.45;
-  private final double OutSpeed = -1;
+  private final double InSpeed = -1;
+  private final double OutSpeed = 1;
   private final double StopSpeed = 0;
   private double defaultDelay = .3;
 
-  private CANSparkMax Feeder = new CANSparkMax(4, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
-  private CANSparkMax Shooter = new CANSparkMax(3, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
-  private CANSparkMax Feeder1 = new CANSparkMax(2, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
-  private CANSparkMax Shooter2 = new CANSparkMax(1, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
+  private CANSparkMax TopFeeder = new CANSparkMax(4, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
+  private CANSparkMax TopShooter = new CANSparkMax(3, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
+  private CANSparkMax BottomFeeder = new CANSparkMax(8, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
+  private CANSparkMax BottomShooter = new CANSparkMax(7, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
 
   /** Creates a new Rev_1Shooter. */
   public Rev_1Shooter() {
@@ -40,10 +41,10 @@ public class Rev_1Shooter extends SubsystemBase {
     return new InstantCommand(() -> {
       System.out.println("OutSpeed");
       SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
-      Feeder.set(OutSpeed);
-      Shooter.set(OutSpeed);
-      Feeder1.set(OutSpeed);
-      Shooter2.set(OutSpeed);
+      TopFeeder.set(OutSpeed);
+      TopShooter.set(OutSpeed);
+      BottomFeeder.set(OutSpeed);
+      BottomShooter.set(OutSpeed);
     }, this);
   }
 
@@ -51,10 +52,10 @@ public class Rev_1Shooter extends SubsystemBase {
     return new InstantCommand(() -> {
       // System.out.println("StopSpeed");
       SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
-      Feeder.set(StopSpeed);
-      Shooter.set(StopSpeed);
-      Feeder1.set(OutSpeed);
-      Shooter2.set(OutSpeed);
+      TopFeeder.set(StopSpeed);
+      TopShooter.set(StopSpeed);
+      BottomFeeder.set(StopSpeed);
+      BottomShooter.set(StopSpeed);
     }, this);
   }
 
@@ -62,20 +63,26 @@ public class Rev_1Shooter extends SubsystemBase {
     return new InstantCommand(() -> {
       System.out.println("InSpeed");
       SmartDashboard.putNumber("ShooterSpeed", InSpeed);
-      Feeder.set(InSpeed);
-      Shooter.set(InSpeed);
-      Feeder1.set(OutSpeed);
-      Shooter2.set(OutSpeed);
+      TopFeeder.set(InSpeed);
+      TopShooter.set(InSpeed);
+      BottomFeeder.set(OutSpeed);
+      BottomShooter.set(OutSpeed);
     }, this);
   }
 
   public Command ShooterDelay() {
     return Commands.sequence(
         this.runOnce(() -> {
-          Shooter.set(OutSpeed);
+          TopShooter.set(OutSpeed);
+          BottomShooter.set(OutSpeed);
           // System.out.println(SmartDashboard.getNumber("ShooterDelay", defaultDelay));
         }),
         new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay)),
-        new RepeatCommand(new InstantCommand(() -> Feeder.set(OutSpeed))));
+        new RepeatCommand(new InstantCommand(() -> {
+          TopFeeder.set(InSpeed);
+          BottomFeeder.set(InSpeed);
+
+        })));
   }
+
 }
