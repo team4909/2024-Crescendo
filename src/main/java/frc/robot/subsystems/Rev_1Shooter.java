@@ -23,6 +23,8 @@ public class Rev_1Shooter extends SubsystemBase {
 
   private CANSparkMax Feeder = new CANSparkMax(4, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
   private CANSparkMax Shooter = new CANSparkMax(3, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
+  private CANSparkMax Feeder1 = new CANSparkMax(2, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
+  private CANSparkMax Shooter2 = new CANSparkMax(1, com.revrobotics.CANSparkLowLevel.MotorType.kBrushless);
 
   /** Creates a new Rev_1Shooter. */
   public Rev_1Shooter() {
@@ -40,6 +42,8 @@ public class Rev_1Shooter extends SubsystemBase {
       SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
       Feeder.set(OutSpeed);
       Shooter.set(OutSpeed);
+      Feeder1.set(OutSpeed);
+      Shooter2.set(OutSpeed);
     }, this);
   }
 
@@ -49,6 +53,8 @@ public class Rev_1Shooter extends SubsystemBase {
       SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
       Feeder.set(StopSpeed);
       Shooter.set(StopSpeed);
+      Feeder1.set(OutSpeed);
+      Shooter2.set(OutSpeed);
     }, this);
   }
 
@@ -58,6 +64,8 @@ public class Rev_1Shooter extends SubsystemBase {
       SmartDashboard.putNumber("ShooterSpeed", InSpeed);
       Feeder.set(InSpeed);
       Shooter.set(InSpeed);
+      Feeder1.set(OutSpeed);
+      Shooter2.set(OutSpeed);
     }, this);
   }
 

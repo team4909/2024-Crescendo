@@ -93,6 +93,7 @@ public class RobotContainer {
         Intake.whileTrue(s_Intake.Intake());
         Spit.whileTrue(s_Intake.Spit());
         Stop.whileTrue(s_Intake.Stop());
+
     }
 
     /**
