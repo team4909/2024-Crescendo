@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.IdleMode;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,6 +28,9 @@ public class Rev_1Intake extends SubsystemBase {
     SmartDashboard.putNumber("BackRollerSpeed", defaultBackRollerSpeed);
     SmartDashboard.putNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeed);
     SmartDashboard.putNumber("BackRollerSpeedSpit", defaultBackRollerSpeed);
+
+    frontRoller.setIdleMode(IdleMode.kBrake);
+    backRoller.setIdleMode(IdleMode.kBrake);
   }
 
   @Override
