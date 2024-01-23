@@ -1,10 +1,17 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.drivetrain.Drivetrain;
+import frc.robot.intake.Intake;
+import frc.robot.shooter.Shooter;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -18,6 +25,9 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<String> m_chooser =
       new LoggedDashboardChooser<>("Auto Choices");
   private final Drivetrain m_drivetrain;
+  private final Intake m_intake = new Intake();
+  private final Shooter m_shooter = new Shooter();
+  private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
 
@@ -55,7 +65,6 @@ public class Robot extends LoggedRobot {
         m_drivetrain = Subsystems.createBlankDrivetrain();
         break;
     }
-    // m_drivetrain.setDefaultCommand(m_drivetrain.testDrive());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
@@ -63,6 +72,31 @@ public class Robot extends LoggedRobot {
             // This needs to be getRawAxis(2) when using sim on a Mac
             () -> -m_driverController.getRightX()));
     m_driverController.y().onTrue(m_drivetrain.zeroRotation());
+
+    double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
+
+    m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
+    m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
+    m_driverController.x().whileTrue(m_intake.intake());
+    m_driverController.y().whileTrue(m_intake.Spit());
+    m_driverController.b().whileTrue(m_intake.Stop());
+    final double defaultStopDistance = 0;
+    m_driverController.leftBumper().onTrue(m_shooter.Shoot());
+    m_driverController.rightBumper().onTrue(m_shooter.Feeder());
+    m_driverController.b().onTrue(m_shooter.Stop());
+    SmartDashboard.putNumber("StopDistance", defaultStopDistance);
+
+    m_driverController
+        .a()
+        .onTrue(
+            new SequentialCommandGroup(
+                    new InstantCommand(() -> m_intake.intake()),
+                    new InstantCommand(() -> m_shooter.Intake()))
+                .until(
+                    () -> {
+                      return sensorValue
+                          <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+                    }));
   }
 
   @Override
