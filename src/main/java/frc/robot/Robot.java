@@ -1,136 +1,123 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import frc.robot.drivetrain.Drivetrain;
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-/**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the
- * name of this class or
- * the package after creating this project, you must also update the
- * build.gradle file in the
- * project.
- */
-public class Robot extends TimedRobot {
-  public static CTREConfigs ctreConfigs;
+public class Robot extends LoggedRobot {
 
-  private RobotContainer m_robotContainer;
-  private Command m_autonomousCommand;
+  private final LoggedDashboardChooser<String> m_chooser =
+      new LoggedDashboardChooser<>("Auto Choices");
+  private final Drivetrain m_drivetrain;
 
-  private CommandXboxController m_oppController = new CommandXboxController(1);
-  private DoubleSupplier m_leftStickSupplier, m_rightStickSupplier;
-  private CANSparkMax m_motor1, m_motor2;
+  private final CommandXboxController m_driverController = new CommandXboxController(0);
 
-  /**
-   * This function is run when the robot is first started up and should be used
-   * for any
-   * initialization code.
-   */
-  @Override
-  public void robotInit() {
-    ctreConfigs = new CTREConfigs();
-    // Instantiate our RobotContainer. This will perform all our button bindings,
-    // and put our
-    // autonomous chooser on the dashboard.
-    m_robotContainer = new RobotContainer();
-    m_motor1 = new CANSparkMax(1, MotorType.kBrushless);
-    m_motor2 = new CANSparkMax(2, MotorType.kBrushless);
+  public Robot() {
+    recordMetadeta();
+
+    switch (Constants.kCurrentMode) {
+      case kReal:
+        // TODO find out why this causes weird errors
+        // Logger.addDataReceiver(new WPILOGWriter());
+        Logger.addDataReceiver(new NT4Publisher());
+        break;
+      case kSim:
+        DriverStation.silenceJoystickConnectionWarning(true);
+        Logger.addDataReceiver(new NT4Publisher());
+        break;
+      case kReplay:
+        setUseTiming(false);
+        String logPath = LogFileUtil.findReplayLog();
+        Logger.setReplaySource(new WPILOGReader(logPath));
+        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+        break;
+    }
+
+    Logger.start();
+
+    switch (Constants.kCurrentMode) {
+      case kReal:
+        m_drivetrain = Subsystems.createTalonFXDrivetrain();
+        break;
+      case kSim:
+        m_drivetrain = Subsystems.createTalonFXDrivetrain();
+        break;
+      default:
+        m_drivetrain = Subsystems.createBlankDrivetrain();
+        break;
+    }
+    // m_drivetrain.setDefaultCommand(m_drivetrain.testDrive());
+    m_drivetrain.setDefaultCommand(
+        m_drivetrain.joystickDrive(
+            () -> -m_driverController.getLeftY(),
+            () -> -m_driverController.getLeftX(),
+            // This needs to be getRawAxis(2) when using sim on a Mac
+            () -> -m_driverController.getRightX()));
+    m_driverController.y().onTrue(m_drivetrain.zeroRotation());
   }
 
-  /**
-   * This function is called every robot packet, no matter the mode. Use this for
-   * items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and
-   * test.
-   *
-   * <p>
-   * This runs after the mode specific periodic functions, but before LiveWindow
-   * and
-   * SmartDashboard integrated updating.
-   */
   @Override
   public void robotPeriodic() {
-    // Runs the Scheduler. This is responsible for polling buttons, adding
-    // newly-scheduled
-    // commands, running already-scheduled commands, removing finished or
-    // interrupted commands,
-    // and running subsystem periodic() methods. This must be called from the
-    // robot's periodic
-    // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    m_leftStickSupplier = () -> m_oppController.getLeftY();
-    m_rightStickSupplier = () -> m_oppController.getRightY();
   }
 
-  /** This function is called once each time the robot enters Disabled mode. */
-  @Override
-  public void disabledInit() {
-  }
-
-  @Override
-  public void disabledPeriodic() {
-  }
-
-  /**
-   * This autonomous runs the autonomous command selected by your
-   * {@link RobotContainer} class.
-   */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    new PathPlannerAuto("New Auto").schedule();
+  }
 
-    // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
+  @Override
+  public void autonomousPeriodic() {}
+
+  @Override
+  public void teleopInit() {}
+
+  @Override
+  public void teleopPeriodic() {}
+
+  @Override
+  public void disabledInit() {}
+
+  @Override
+  public void disabledPeriodic() {}
+
+  @Override
+  public void testInit() {}
+
+  @Override
+  public void testPeriodic() {}
+
+  @Override
+  public void simulationInit() {}
+
+  @Override
+  public void simulationPeriodic() {}
+
+  private void recordMetadeta() {
+    Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+    Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+    Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+    Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+    Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+    switch (BuildConstants.DIRTY) {
+      case 0:
+        Logger.recordMetadata("GitDirty", "All changes committed");
+        break;
+      case 1:
+        Logger.recordMetadata("GitDirty", "Uncomitted changes");
+        break;
+      default:
+        Logger.recordMetadata("GitDirty", "Unknown");
+        break;
     }
-  }
-
-  /** This function is called periodically during autonomous. */
-  @Override
-  public void autonomousPeriodic() {
-  }
-
-  @Override
-  public void teleopInit() {
-    // This makes sure that the autonomous stops running when
-    // teleop starts running. If you want the autonomous to
-    // continue until interrupted by another command, remove
-    // this line or comment it out.
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
-  }
-
-  /** This function is called periodically during operator control. */
-  @Override
-  public void teleopPeriodic() {
-    m_motor1.set(m_leftStickSupplier.getAsDouble());
-    m_motor2.set(m_rightStickSupplier.getAsDouble());
-  }
-
-  @Override
-  public void testInit() {
-    // Cancels all running commands at the start of test mode.
-    CommandScheduler.getInstance().cancelAll();
-  }
-
-  /** This function is called periodically during test mode. */
-  @Override
-  public void testPeriodic() {
   }
 }
