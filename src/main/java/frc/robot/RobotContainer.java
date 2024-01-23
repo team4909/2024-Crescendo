@@ -30,8 +30,7 @@ import frc.robot.subsystems.*;
  */
 public class RobotContainer {
 
-    public TimeOfFlight mytimeofflight = new TimeOfFlight(12);
-    public double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
+    public static TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
     /* Controllers */
     private final CommandXboxController driver = new CommandXboxController(0);
@@ -69,7 +68,7 @@ public class RobotContainer {
         // var jt = new JoystickTrigger(driver,
         // XboxController.Axis.kRightTrigger.value);
         // CommandXboxController m_oppController = new CommandXboxController(1);
-
+        // SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
         s_Swerve.setDefaultCommand(
                 new TeleopSwerve(
                         s_Swerve,
@@ -106,12 +105,13 @@ public class RobotContainer {
         Feeder.onTrue(s_Shooter.Feeder());
         Stop.onTrue(s_Shooter.Stop());
         SmartDashboard.putNumber("StopDistance", defaultStopDistance);
-
+        // System.out.println(mytimeofflight.getRange());
         driver.a().onTrue(
                 new SequentialCommandGroup(
                         new InstantCommand(() -> s_Intake.Intake()),
                         new InstantCommand(() -> s_Shooter.Intake())).until(() -> {
-                            return sensorValue <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+                            return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance",
+                                    defaultStopDistance);
                         }));
 
     };

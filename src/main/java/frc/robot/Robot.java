@@ -79,12 +79,13 @@ public class Robot extends TimedRobot {
     // m_rightStickSupplier = () -> m_oppController.getRightY();
 
     // -----------------------------------------
-    // SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
+    SmartDashboard.putNumber("Distance", RobotContainer.mytimeofflight.getRange());
     // SmartDashboard.putString("Distance/mode",
     // mytimeofflight.getRangingMode().toString());
     // SmartDashboard.putData("Distance/1", mytimeofflight);
     // SmartDashboard.putString("Distance/status",
     // mytimeofflight.getStatus().toString());
+
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
