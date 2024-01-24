@@ -11,7 +11,6 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -47,20 +46,21 @@ public class Drivetrain extends SubsystemBase {
   private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
   private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
   private final SwerveDrivePoseEstimator m_poseEstimator;
-  private SwerveModulePosition[] m_lastModulePositions = // For delta tracking in simulation.
-      new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition()
-      };
-
   private final SwerveDriveKinematics m_kinematics =
       new SwerveDriveKinematics(
           new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
           new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0));
+
+  // For calculating chassis position deltas in simulation.
+  private SwerveModulePosition[] m_lastModulePositions =
+      new SwerveModulePosition[] {
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition(),
+        new SwerveModulePosition()
+      };
 
   public Drivetrain(
       ImuIO imuIO,
@@ -118,10 +118,11 @@ public class Drivetrain extends SubsystemBase {
         m_lastModulePositions[moduleIndex] = newModulePositions[moduleIndex];
       }
       if (Constants.kIsSim) {
-        Twist2d chassisDelta = m_kinematics.toTwist2d(moduleDeltas);
-        m_imuIO.updateSim(chassisDelta.dtheta);
+        m_imuIO.updateSim(m_kinematics.toTwist2d(moduleDeltas).dtheta);
       }
 
+      // The reason we are bothering with timestamps here is so vision updates can be properly
+      // chronologized with odometry updates.
       m_poseEstimator.updateWithTime(
           sampleTimestamps[updateIndex],
           m_imuInputs.odometryYawPositions[updateIndex],
@@ -130,14 +131,10 @@ public class Drivetrain extends SubsystemBase {
   }
 
   private void runVelocity(ChassisSpeeds speeds) {
-    if (Constants.kIsSim) {
-      m_imuIO.updateSim(speeds.omegaRadiansPerSecond * 0.02);
-    }
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
     SwerveModuleState[] setpointStates = m_kinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, kMaxLinearSpeedMetersPerSecond);
 
-    // Send setpoints to modules
     SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
     for (int moduleIndex = 0; moduleIndex < m_modules.length; moduleIndex++) {
       optimizedSetpointStates[moduleIndex] =
