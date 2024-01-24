@@ -7,6 +7,7 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,9 +22,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.LocalADStarAK;
 import frc.robot.Constants;
+import frc.robot.vision.Vision;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -47,6 +50,7 @@ public class Drivetrain extends SubsystemBase {
   private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
   private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
   private final SwerveDrivePoseEstimator m_poseEstimator;
+  private Vision m_cam;
   private SwerveModulePosition[] m_lastModulePositions = // For delta tracking in simulation.
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -78,6 +82,7 @@ public class Drivetrain extends SubsystemBase {
         new SwerveDrivePoseEstimator(
             m_kinematics, new Rotation2d(), getModulePositions(), new Pose2d());
     configurePathing();
+    m_cam = new Vision();
   }
 
   public void periodic() {
@@ -146,6 +151,38 @@ public class Drivetrain extends SubsystemBase {
 
     Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
     Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
+  }
+
+  public Command AutoAlign() {
+    PIDController snapPID = new PIDController(0.05, 0.0, 0.0);
+    snapPID.setTolerance(10.0);
+    snapPID.enableContinuousInput(-180, 180);
+    var speeds =
+        new Object() {
+          double x = 0;
+          double y = 0;
+          double omega = 0;
+        };
+    return Commands.parallel(
+            new PIDCommand(
+                    snapPID,
+                    () -> m_cam.getYaw(),
+                    () -> 0,
+                    omegaSpeed -> runVelocity(new ChassisSpeeds(0, 0, omegaSpeed)),
+                    this)
+                .finallyDo(() -> runVelocity(new ChassisSpeeds(0, 0, 0))),
+            Commands.run(
+                () -> {
+                  Logger.recordOutput("Has Targets", m_cam.getIfTargets());
+                  if (m_cam.getIfTargets()) {
+                    // var chassisSpeeds = new ChassisSpeeds(speeds.x, speeds.y, speeds.omega);
+                    // runVelocity(chassisSpeeds);
+                    Logger.recordOutput("Yaw", m_cam.getYaw());
+                    Logger.recordOutput("ChassisSpeeds", speeds.omega);
+                  }
+                }))
+        .ignoringDisable(true)
+        .withName("Auto Align");
   }
 
   public Command testDrive() {

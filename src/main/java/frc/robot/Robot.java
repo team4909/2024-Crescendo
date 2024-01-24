@@ -1,9 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.drivetrain.Drivetrain;
@@ -22,7 +20,7 @@ public class Robot extends LoggedRobot {
   private final Drivetrain m_drivetrain;
   // private final Intake m_intake = new Intake();
   // private final Shooter m_shooter = new Shooter();
-  private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
+  // private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
 
@@ -60,15 +58,18 @@ public class Robot extends LoggedRobot {
         m_drivetrain = Subsystems.createBlankDrivetrain();
         break;
     }
-    m_drivetrain.setDefaultCommand(
-        m_drivetrain.joystickDrive(
-            () -> -m_driverController.getLeftY(),
-            () -> -m_driverController.getLeftX(),
-            // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> -m_driverController.getRightX()));
+    // m_drivetrain.setDefaultCommand(m_drivetrain.testDrive());
+    m_driverController.a().whileTrue(m_drivetrain.AutoAlign());
+    // m_drivetrain.setDefaultCommand(
+    //     m_drivetrain.joystickDrive(
+    //         () -> -m_driverController.getLeftY(),
+    //         () -> -m_driverController.getLeftX(),
+    //         // This needs to be getRawAxis(2) when using sim on a Mac
+    //         () -> -m_driverController.getRightX()));
     m_driverController.y().onTrue(m_drivetrain.zeroRotation());
+    // m_driverController.b().onTrue(m_drivetrain.AutoAlign());
 
-    double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
+    // double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
 
     // m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
     // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
