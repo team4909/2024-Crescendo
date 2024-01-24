@@ -141,6 +141,6 @@ public class RobotContainer {
         // An ExampleCommand will run in autonomous
         // return new exampleAuto(s_Swerve);
         // return new PathPlannerAuto("Auto1");
-        return new PathPlannerAuto("preloaded note and taxi");
+        return new PathPlannerAuto("2 Note Auto");
     }
 }

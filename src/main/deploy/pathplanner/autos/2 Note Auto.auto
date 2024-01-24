@@ -26,13 +26,19 @@
         {
           "type": "named",
           "data": {
-            "name": null
+            "name": "SensorIntake"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": null
+            "pathName": "Note 1 Back (2NA)"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShooterDelay"
           }
         }
       ]
