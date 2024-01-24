@@ -64,9 +64,7 @@ public class Rev_1Shooter extends SubsystemBase {
       System.out.println("InSpeed");
       SmartDashboard.putNumber("ShooterSpeed", InSpeed);
       TopFeeder.set(InSpeed);
-      TopShooter.set(InSpeed);
-      BottomFeeder.set(OutSpeed);
-      BottomShooter.set(OutSpeed);
+      BottomFeeder.set(InSpeed);
     }, this);
   }
 

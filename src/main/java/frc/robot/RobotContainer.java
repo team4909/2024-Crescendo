@@ -1,5 +1,9 @@
 package frc.robot;
 
+import java.time.Instant;
+
+import javax.swing.GroupLayout.ParallelGroup;
+
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.playingwithfusion.TimeOfFlight;
@@ -10,6 +14,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -78,6 +84,7 @@ public class RobotContainer {
                         () -> robotCentric.getAsBoolean()));
 
         s_Shooter.setDefaultCommand(s_Shooter.Stop());
+        s_Intake.setDefaultCommand(s_Intake.Stop());
 
         // Configure the button bindings
         configureButtonBindings();
@@ -100,19 +107,19 @@ public class RobotContainer {
         Intake.whileTrue(s_Intake.Intake());
         Spit.whileTrue(s_Intake.Spit());
         Stop.whileTrue(s_Intake.Stop());
-        final double defaultStopDistance = 0;
+        final double defaultStopDistance = 35;
         Shoot.onTrue(s_Shooter.Shoot());
         Feeder.onTrue(s_Shooter.Feeder());
         Stop.onTrue(s_Shooter.Stop());
         SmartDashboard.putNumber("StopDistance", defaultStopDistance);
         // System.out.println(mytimeofflight.getRange());
         driver.a().onTrue(
-                new SequentialCommandGroup(
-                        new InstantCommand(() -> s_Intake.Intake()),
-                        new InstantCommand(() -> s_Shooter.Intake())).until(() -> {
+                new ParallelRaceGroup(
+                        new RepeatCommand(s_Intake.Intake()),
+                        new RepeatCommand(s_Shooter.Intake()).until(() -> {
                             return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance",
                                     defaultStopDistance);
-                        }));
+                        })));
 
     };
 
