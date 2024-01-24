@@ -69,8 +69,11 @@ public class RobotContainer {
      */
     public RobotContainer() {
 
+        // Commands that can be used from path planner
         NamedCommands.registerCommand("ShooterDelay", s_Shooter.ShooterDelay().withTimeout(1));
         NamedCommands.registerCommand("Stop", s_Shooter.Stop());
+
+        NamedCommands.registerCommand("SensorIntake", SensorIntake());
         // var jt = new JoystickTrigger(driver,
         // XboxController.Axis.kRightTrigger.value);
         // CommandXboxController m_oppController = new CommandXboxController(1);
@@ -107,21 +110,27 @@ public class RobotContainer {
         Intake.whileTrue(s_Intake.Intake());
         Spit.whileTrue(s_Intake.Spit());
         Stop.whileTrue(s_Intake.Stop());
-        final double defaultStopDistance = 35;
+
         Shoot.onTrue(s_Shooter.Shoot());
         Feeder.onTrue(s_Shooter.Feeder());
         Stop.onTrue(s_Shooter.Stop());
-        SmartDashboard.putNumber("StopDistance", defaultStopDistance);
+
         // System.out.println(mytimeofflight.getRange());
-        driver.a().onTrue(
-                new ParallelRaceGroup(
-                        new RepeatCommand(s_Intake.Intake()),
-                        new RepeatCommand(s_Shooter.Intake()).until(() -> {
-                            return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance",
-                                    defaultStopDistance);
-                        })));
+        driver.a().onTrue(SensorIntake());
 
     };
+
+    public Command SensorIntake() {
+        final double defaultStopDistance = 35;
+        SmartDashboard.putNumber("StopDistance", defaultStopDistance); // this is here to make the value be editable on
+                                                                       // the dashboard
+        return new ParallelRaceGroup(
+                new RepeatCommand(s_Intake.Intake()),
+                new RepeatCommand(s_Shooter.Intake()).until(() -> {
+                    return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance",
+                            defaultStopDistance);
+                }));
+    }
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
