@@ -1,7 +1,5 @@
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -108,8 +106,6 @@ public final class Constants {
                 public static final double maxAngularVelocity = 10.0; // TODO: This must be tuned to specific robot
 
                 /* Neutral Modes */
-                public static final NeutralMode angleNeutralMode = NeutralMode.Coast;
-                public static final NeutralMode driveNeutralMode = NeutralMode.Brake;
 
                 /* Module Specific Constants */
                 /* Front Left Module - Module 0 */
@@ -172,4 +168,5 @@ public final class Constants {
                 public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
                                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
         }
+
 }
