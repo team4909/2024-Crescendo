@@ -1,11 +1,12 @@
 package frc.robot;
 
-import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -18,8 +19,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
 
-  private final LoggedDashboardChooser<String> m_chooser =
-      new LoggedDashboardChooser<>("Auto Choices");
+  private final LoggedDashboardChooser<Command> m_autoChooser;
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
   // private final Intake m_intake = new Intake();
@@ -39,6 +39,7 @@ public class Robot extends LoggedRobot {
         break;
       case kSim:
         DriverStation.silenceJoystickConnectionWarning(true);
+        Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         break;
       case kReplay:
@@ -74,7 +75,20 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getRawAxis(2)));
     m_driverController.y().onTrue(m_drivetrain.zeroRotation());
 
-    double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
+    m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
+    m_autoChooser.addOption(
+        "Drive SysId (Quasistatic Forward)",
+        m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Drive SysId (Quasistatic Reverse)",
+        m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Drive SysId (Dynamic Forward)",
+        m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Drive SysId (Dynamic Reverse)",
+        m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
 
     // m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
     // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
@@ -108,7 +122,10 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void autonomousInit() {
-    new PathPlannerAuto("New Auto").schedule();
+    Command autonomousCommand = m_autoChooser.get();
+    if (autonomousCommand != null) {
+      autonomousCommand.schedule();
+    }
   }
 
   @Override

@@ -1,5 +1,7 @@
 package frc.robot.drivetrain;
 
+import static edu.wpi.first.units.Units.Volts;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -21,6 +23,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.LocalADStarAK;
 import frc.robot.Constants;
 import frc.robot.vision.Vision.VisionUpdate;
@@ -42,7 +45,7 @@ public class Drivetrain extends SubsystemBase {
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.05;
-  private final boolean kUseVisionCorrection = false;
+  private final boolean kUseVisionCorrection = true;
 
   public static final Lock odometryLock = new ReentrantLock();
   private final ImuIO m_imuIO;
@@ -66,6 +69,7 @@ public class Drivetrain extends SubsystemBase {
       };
 
   private final Consumer<VisionUpdate> m_visionUpdateConsumer;
+  private final SysIdRoutine m_sysIdRoutine;
 
   public Drivetrain(
       ImuIO imuIO,
@@ -92,6 +96,21 @@ public class Drivetrain extends SubsystemBase {
               visionUpdate.timestampSeconds(),
               visionUpdate.standardDeviations());
         };
+    m_sysIdRoutine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                null,
+                (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  for (Module module : m_modules) {
+                    module.runCharacterization(voltage.in(Volts));
+                  }
+                },
+                null,
+                this));
     configurePathing();
   }
 
@@ -105,7 +124,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     odometryLock.unlock();
-    Logger.processInputs("Drive/IMU", m_imuInputs);
+    Logger.processInputs("DrivetrainInputs/IMU", m_imuInputs);
     for (var module : m_modules) {
       module.periodic();
     }
@@ -133,6 +152,7 @@ public class Drivetrain extends SubsystemBase {
         m_lastModulePositions[moduleIndex] = newModulePositions[moduleIndex];
       }
       if (Constants.kIsSim) {
+        Logger.recordOutput("Drivetrain/dtheta", m_kinematics.toTwist2d(moduleDeltas).dtheta);
         m_imuIO.updateSim(m_kinematics.toTwist2d(moduleDeltas).dtheta);
       }
 
@@ -191,6 +211,14 @@ public class Drivetrain extends SubsystemBase {
   public Command zeroRotation() {
     return Commands.runOnce(() -> setPose(new Pose2d(getPose().getTranslation(), new Rotation2d())))
         .ignoringDisable(true);
+  }
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
   }
 
   private void configurePathing() {
