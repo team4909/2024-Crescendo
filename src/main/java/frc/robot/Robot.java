@@ -55,7 +55,7 @@ public class Robot extends LoggedRobot {
     switch (Constants.kCurrentMode) {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
-        m_vision = Subsystems.createFourCameraVision();
+        m_vision = Subsystems.createBlankFourCameraVision();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
@@ -72,8 +72,8 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> -m_driverController.getRawAxis(2)));
-    m_driverController.y().onTrue(m_drivetrain.zeroRotation());
+            () -> -m_driverController.getRightX()));
+    m_driverController.y().onTrue(m_drivetrain.zeroGyro());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_autoChooser.addOption(

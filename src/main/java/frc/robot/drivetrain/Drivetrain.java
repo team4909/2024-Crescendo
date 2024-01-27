@@ -45,7 +45,7 @@ public class Drivetrain extends SubsystemBase {
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.05;
-  private final boolean kUseVisionCorrection = true;
+  private final boolean kUseVisionCorrection = false;
 
   public static final Lock odometryLock = new ReentrantLock();
   private final ImuIO m_imuIO;
@@ -153,7 +153,9 @@ public class Drivetrain extends SubsystemBase {
       }
       if (Constants.kIsSim) {
         Logger.recordOutput("Drivetrain/dtheta", m_kinematics.toTwist2d(moduleDeltas).dtheta);
-        m_imuIO.updateSim(m_kinematics.toTwist2d(moduleDeltas).dtheta);
+        // TODO we cannot update the gyro sim state in the same loop we read it, it will always be
+        // behind causing inaccurate behavior
+        // m_imuIO.updateSim(m_kinematics.toTwist2d(moduleDeltas).dtheta);
       }
 
       // The reason we are bothering with timestamps here is so vision updates can be properly
@@ -166,6 +168,9 @@ public class Drivetrain extends SubsystemBase {
   }
 
   private void runVelocity(ChassisSpeeds speeds) {
+    if (Constants.kIsSim) {
+      m_imuIO.updateSim(speeds.omegaRadiansPerSecond * 0.02);
+    }
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
     SwerveModuleState[] setpointStates = m_kinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, kMaxLinearSpeedMetersPerSecond);
@@ -208,9 +213,8 @@ public class Drivetrain extends SubsystemBase {
         .withName("Joystick Drive");
   }
 
-  public Command zeroRotation() {
-    return Commands.runOnce(() -> setPose(new Pose2d(getPose().getTranslation(), new Rotation2d())))
-        .ignoringDisable(true);
+  public Command zeroGyro() {
+    return Commands.runOnce(() -> m_imuIO.setGyroAngle(0.0)).ignoringDisable(true);
   }
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {

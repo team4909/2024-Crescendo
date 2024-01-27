@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import java.util.Queue;
 
 public class ImuIOPigeon2 implements ImuIO {
-  private final Pigeon2 m_imu = new Pigeon2(1, "CANivore1");
+  private final Pigeon2 m_imu = new Pigeon2(20, "CANivore1");
   private final StatusSignal<Double> yaw = m_imu.getYaw();
   private final Queue<Double> m_yawPositionQueue, m_yawTimestampQueue;
   private final StatusSignal<Double> yawVelocity = m_imu.getAngularVelocityZWorld();
@@ -41,6 +41,10 @@ public class ImuIOPigeon2 implements ImuIO {
         m_yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
     m_yawPositionQueue.clear();
     m_yawTimestampQueue.clear();
+  }
+
+  public void setGyroAngle(double angleRad) {
+    m_imu.setYaw(angleRad);
   }
 
   public void updateSim(double dThetaRad) {

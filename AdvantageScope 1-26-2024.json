@@ -121,12 +121,12 @@
           "fields": [
             {
               "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/0/speed",
-              "color": "#e5b31b",
+              "color": "#2b66a2",
               "show": false
             },
             {
               "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/SetpointsOptimized/0/speed",
-              "color": "#af2437",
+              "color": "#e5b31b",
               "show": false
             }
           ]
@@ -143,7 +143,7 @@
           "fields": [
             {
               "key": "NT:/AdvantageKit/RealOutputs/SwerveStates/SetpointsOptimized/0/angle/value",
-              "color": "#2b66a2",
+              "color": "#af2437",
               "show": true
             },
             {
@@ -178,6 +178,12 @@
             "key": "NT:/AdvantageKit/RealOutputs/Drivetrain/TrajectorySetpoint",
             "sourceTypeIndex": 1,
             "sourceType": "Pose2d"
+          },
+          {
+            "type": "Vision Target",
+            "key": "NT:/AdvantageKit/RealOutputs/Vision/TagPoses2D",
+            "sourceTypeIndex": 2,
+            "sourceType": "Pose2d[]"
           }
         ]
       ],
@@ -198,7 +204,14 @@
       "type": 6,
       "fields": [],
       "listFields": [
-        [],
+        [
+          {
+            "type": "Vision Target",
+            "key": "NT:/AdvantageKit/RealOutputs/Vision/TagPoses",
+            "sourceTypeIndex": 2,
+            "sourceType": "Pose3d[]"
+          }
+        ],
         [
           {
             "type": "Robot",
@@ -217,6 +230,12 @@
             "key": "NT:/AdvantageKit/RealOutputs/Drivetrain/TrajectorySetpoint",
             "sourceTypeIndex": 1,
             "sourceType": "Pose2d"
+          },
+          {
+            "type": "Green Ghost",
+            "key": "NT:/AdvantageKit/RealOutputs/Vision/EstimatedPoses",
+            "sourceTypeIndex": 2,
+            "sourceType": "Pose2d[]"
           }
         ]
       ],
@@ -231,6 +250,25 @@
       },
       "configHidden": false,
       "title": "3D Field"
+    },
+    {
+      "type": 8,
+      "fields": [],
+      "listFields": [],
+      "options": {
+        "ids": [
+          0,
+          1,
+          2
+        ],
+        "layouts": [
+          "Xbox Controller (White)",
+          "None",
+          "None"
+        ]
+      },
+      "configHidden": false,
+      "title": "Joysticks"
     }
   ]
 }
