@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.drivetrain.Drivetrain;
+import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -20,6 +21,7 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<String> m_chooser =
       new LoggedDashboardChooser<>("Auto Choices");
   private final Drivetrain m_drivetrain;
+  private final Vision m_vision;
   // private final Intake m_intake = new Intake();
   // private final Shooter m_shooter = new Shooter();
   private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
@@ -52,20 +54,24 @@ public class Robot extends LoggedRobot {
     switch (Constants.kCurrentMode) {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
+        m_vision = Subsystems.createFourCameraVision();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
+        m_vision = Subsystems.createFourCameraVision();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
+        m_vision = Subsystems.createBlankFourCameraVision();
         break;
     }
+    m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> -m_driverController.getRightX()));
+            () -> -m_driverController.getRawAxis(2)));
     m_driverController.y().onTrue(m_drivetrain.zeroRotation());
 
     double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
@@ -97,6 +103,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    m_vision.periodic();
   }
 
   @Override
@@ -129,7 +136,9 @@ public class Robot extends LoggedRobot {
   public void simulationInit() {}
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+    m_vision.updateSim(m_drivetrain.getPose());
+  }
 
   private void recordMetadeta() {
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);

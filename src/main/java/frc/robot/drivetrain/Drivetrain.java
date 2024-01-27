@@ -23,9 +23,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.LocalADStarAK;
 import frc.robot.Constants;
+import frc.robot.vision.Vision.VisionUpdate;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -33,13 +35,14 @@ import org.littletonrobotics.junction.Logger;
 
 public class Drivetrain extends SubsystemBase {
 
-  public static final double kTrackwidthMeters = Units.inchesToMeters(26.0);
-  public static final double kWheelbaseMeters = Units.inchesToMeters(26.0);
-  private static final double kDriveBaseRadius =
+  public final double kTrackwidthMeters = Units.inchesToMeters(26.0);
+  public final double kWheelbaseMeters = Units.inchesToMeters(26.0);
+  private final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
-  private static final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
-  private static final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
-  private static final double kDeadband = 0.05;
+  private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
+  private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
+  private final double kDeadband = 0.05;
+  private final boolean kUseVisionCorrection = false;
 
   public static final Lock odometryLock = new ReentrantLock();
   private final ImuIO m_imuIO;
@@ -62,6 +65,8 @@ public class Drivetrain extends SubsystemBase {
         new SwerveModulePosition()
       };
 
+  private final Consumer<VisionUpdate> m_visionUpdateConsumer;
+
   public Drivetrain(
       ImuIO imuIO,
       ModuleIO frontLeftModuleIO,
@@ -77,6 +82,16 @@ public class Drivetrain extends SubsystemBase {
     m_poseEstimator =
         new SwerveDrivePoseEstimator(
             m_kinematics, new Rotation2d(), getModulePositions(), new Pose2d());
+    m_visionUpdateConsumer =
+        (VisionUpdate visionUpdate) -> {
+          if (!kUseVisionCorrection) {
+            return;
+          }
+          m_poseEstimator.addVisionMeasurement(
+              visionUpdate.pose(),
+              visionUpdate.timestampSeconds(),
+              visionUpdate.standardDeviations());
+        };
     configurePathing();
   }
 
@@ -216,11 +231,15 @@ public class Drivetrain extends SubsystemBase {
   }
 
   @AutoLogOutput(key = "Drivetrain/Estimated Pose")
-  private Pose2d getPose() {
+  public Pose2d getPose() {
     return m_poseEstimator.getEstimatedPosition();
   }
 
   public void setPose(Pose2d pose) {
     m_poseEstimator.resetPosition(m_imuInputs.yawPosition, getModulePositions(), pose);
+  }
+
+  public Consumer<VisionUpdate> getVisionPoseConsumer() {
+    return m_visionUpdateConsumer;
   }
 }
