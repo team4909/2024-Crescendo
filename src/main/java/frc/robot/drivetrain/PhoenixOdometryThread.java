@@ -13,6 +13,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.Logger;
 
 public class PhoenixOdometryThread extends Thread {
+
+  public static final double kOdometryFrequencyHz = 250.0;
   private final Lock signalsLock = new ReentrantLock();
   private BaseStatusSignal[] signals = new BaseStatusSignal[0];
   private final List<Queue<Double>> queues = new ArrayList<>();
@@ -75,9 +77,9 @@ public class PhoenixOdometryThread extends Thread {
       signalsLock.lock();
       try {
         if (isCANFD) {
-          BaseStatusSignal.waitForAll(2.0 / Module.kOdometryFrequencyHz, signals);
+          BaseStatusSignal.waitForAll(2.0 / kOdometryFrequencyHz, signals);
         } else {
-          Thread.sleep((long) (1000.0 / Module.kOdometryFrequencyHz));
+          Thread.sleep((long) (1000.0 / kOdometryFrequencyHz));
           if (signals.length > 0) BaseStatusSignal.refreshAll(signals);
         }
       } catch (InterruptedException e) {

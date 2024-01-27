@@ -45,7 +45,7 @@ public class Vision {
     m_poseEstimators = new PhotonPoseEstimator[io.length];
     for (int i = 0; i < io.length; i++) {
       m_inputs[i] = new VisionIOInputs();
-      io[i].updateInputs(m_inputs[i]); // This sets camera names and transforms
+      io[i].updateInputs(m_inputs[i]); // This is for setting camera names and offsets.
       m_poseEstimators[i] =
           new PhotonPoseEstimator(
               kTagLayout,
@@ -83,7 +83,6 @@ public class Vision {
               List<PhotonTrackedTarget> targets = result.getTargets();
               targets.forEach(
                   target -> {
-                    // if (target.getPoseAmbiguity() >= 0.2) return;
                     kTagLayout
                         .getTagPose(target.getFiducialId())
                         .ifPresent(tagPose -> tagPosesToLog.add(tagPose));
@@ -112,6 +111,7 @@ public class Vision {
     var estimatedStdDevs = kSingleTagStdDevs;
     int numTags = 0;
     double avgDist = 0;
+    // TODO add in ambiguity checks and set max stddevs if it exceeds a certain threshold
     for (var target : targets) {
       var tagPose = kTagLayout.getTagPose(target.getFiducialId());
       if (tagPose.isEmpty()) continue;

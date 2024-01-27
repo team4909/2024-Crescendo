@@ -17,7 +17,7 @@ public interface VisionIO {
     public void toLog(LogTable table) {
       table.put("CameraName", cameraName);
       table.put("RobotToCamera", robotToCamera);
-      table.put("FrameCount", results.length);
+      table.put("ResultCount", results.length);
       for (int i = 0; i < results.length; i++) {
         table.put("Result/" + Integer.toString(i), results[i]);
       }
@@ -28,10 +28,10 @@ public interface VisionIO {
     public void fromLog(LogTable table) {
       cameraName = table.get("CameraName", cameraName);
       robotToCamera = table.get("RobotToCamera", robotToCamera);
-      int frameCount = (int) table.get("FrameCount", 0);
-      results = new PhotonPipelineResult[frameCount];
-      for (int i = 0; i < frameCount; i++) {
-        results[i] = table.get("Frame/" + Integer.toString(i), new PhotonPipelineResult());
+      int resultCount = table.get("ResultCount", 0);
+      results = new PhotonPipelineResult[resultCount];
+      for (int i = 0; i < resultCount; i++) {
+        results[i] = table.get("Result/" + Integer.toString(i), new PhotonPipelineResult());
       }
       connected = table.get("Connected", false);
     }

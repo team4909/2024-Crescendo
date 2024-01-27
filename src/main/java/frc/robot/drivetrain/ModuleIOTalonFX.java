@@ -11,6 +11,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -107,6 +108,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -kSlipCurrent;
     driveMotorConfig.CurrentLimits.StatorCurrentLimit = kSlipCurrent;
     driveMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    driveMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_driveMotor.getConfigurator().apply(driveMotorConfig);
     m_driveMotor.setPosition(0.0);
 
@@ -146,7 +148,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
-        Module.kOdometryFrequencyHz, m_drivePositionSignal, m_steerPositionSignal);
+        PhoenixOdometryThread.kOdometryFrequencyHz, m_drivePositionSignal, m_steerPositionSignal);
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
         m_driveVelocitySignal,
