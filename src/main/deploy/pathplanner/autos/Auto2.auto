@@ -14,25 +14,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center Spike"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "SensorIntake"
+            "pathName": "Center Spike (2)"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Center Spike Back"
+            "pathName": "Center Spike (2) Back"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "ShooterDelay"
+            "pathName": "Right Spike (2)"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Spike (2) Back"
           }
         }
       ]

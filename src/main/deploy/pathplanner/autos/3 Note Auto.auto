@@ -6,9 +6,15 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "ShooterDelay"
+            "pathName": "Right Spike"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Spike Back"
           }
         },
         {
@@ -18,21 +24,9 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "SensorIntake"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "Center Spike Back"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "ShooterDelay"
           }
         }
       ]

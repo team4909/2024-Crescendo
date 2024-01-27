@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
+import com.ctre.phoenix.sensors.Pigeon2;
 import com.playingwithfusion.TimeOfFlight;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -32,6 +33,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 public class Robot extends TimedRobot {
   public static CTREConfigs ctreConfigs;
 
+  Pigeon2 gyro = new Pigeon2(Constants.Swerve.pigeonID, "CANivore1");
   private RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
 
@@ -77,7 +79,10 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
     // m_leftStickSupplier = () -> m_oppController.getLeftY();
     // m_rightStickSupplier = () -> m_oppController.getRightY();
+    SmartDashboard.putNumber("GYRO YAW", gyro.getYaw());
+    SmartDashboard.putNumber("GYRO PITCH", gyro.getPitch());
 
+    System.out.println(gyro.getYaw());
     // -----------------------------------------
     SmartDashboard.putNumber("Distance", RobotContainer.mytimeofflight.getRange());
     // SmartDashboard.putString("Distance/mode",

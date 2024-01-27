@@ -1,38 +1,38 @@
 {
   "version": 1.0,
-  "startingPose": null,
+  "startingPose": {
+    "position": {
+      "x": 2,
+      "y": 2
+    },
+    "rotation": 0
+  },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "ShooterDelay"
+            "pathName": "Auto3 Path 1"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Center Spike"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "SensorIntake"
+            "pathName": "Auto 3 Path 1 Back"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Center Spike Back"
+            "pathName": "Auto 3 Path 2"
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "ShooterDelay"
+            "pathName": "Auto 3 Path 2 Back"
           }
         }
       ]
