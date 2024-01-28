@@ -30,6 +30,10 @@ public class Rev_2Arm extends SubsystemBase {
     public static final double MID = 10;
     public static final double HIGH = 0;
     public static final double RETRACTED = 0;
+    // public static final double LOWKV = 0;
+    // public static final double LOWKP = 0;
+    // public static final double LOWKI = 0;
+    // public static final double LOWKD = 0;
   }
 
   public static final class UpperMotorConstants {
@@ -38,7 +42,10 @@ public class Rev_2Arm extends SubsystemBase {
     public static final double MID = 10;
     public static final double HIGH = 0;
     public static final double RETRACTED = 0;
-
+    // public static final double UPKV = 0;
+    // public static final double UPKP = 0;
+    // public static final double UPKI = 0;
+    // public static final double UPKD = 0;
   }
 
   private TalonFX lowMotor = new TalonFX(8, "CANivore1");
