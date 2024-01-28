@@ -105,6 +105,7 @@ public class RobotContainer {
         // System.out.println(mytimeofflight.getRange());
         // driver.a().onTrue(SensorIntake());
         driver.y().onTrue(s_Arm.low());
+        driver.povUp().onTrue(s_Arm.stop());
 
     };
 

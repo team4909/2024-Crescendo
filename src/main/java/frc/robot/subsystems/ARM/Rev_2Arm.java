@@ -38,10 +38,11 @@ public class Rev_2Arm extends SubsystemBase {
     public static final double MID = 10;
     public static final double HIGH = 0;
     public static final double RETRACTED = 0;
+
   }
 
   private TalonFX lowMotor = new TalonFX(8, "CANivore1");
-  private TalonFX upperMotor = new TalonFX(15);
+  private TalonFX upperMotor = new TalonFX(6, "CANivore1");
   // private TalonFX lowMotorFollower = new TalonFX(14);
   // private TalonFX upperMotorFollower = new TalonFX(16);
 
@@ -80,7 +81,7 @@ public class Rev_2Arm extends SubsystemBase {
     slot1Configs.kD = 0.001;
 
     // apply gains, 50 ms total timeout
-    // upperMotor.getConfigurator().apply(slot1Configs, 0.050);
+    upperMotor.getConfigurator().apply(slot1Configs, 0.050);
 
   }
 
@@ -101,9 +102,19 @@ public class Rev_2Arm extends SubsystemBase {
       System.out.println("LOW");
       // lowMotor.setPosition(LowMotorConstants.LOW);
       // upperMotor.setPosition(UpperMotorConstants.LOW);
-      lowMotor.setControl(new DutyCycleOut(1.0));
-      // upperMotor.setControl(m_request.withPosition(UpperMotorConstants.LOW));
-      // upperMotor.setControl(m_request.withPosition(UpperMotorConstants.LOW));
+      lowMotor.setControl(m_request.withPosition(1));
+      // upperMotor.setControl(new DutyCycleOut(1));
+      upperMotor.setControl(m_request.withPosition(10));
+    }, this);
+  }
+
+  public Command stop() {
+    return new InstantCommand(() -> {
+      // lowMotor.setPosition(LowMotorConstants.LOW);
+      // upperMotor.setPosition(UpperMotorConstants.LOW);
+      lowMotor.setControl(new DutyCycleOut(0));
+      // upperMotor.setControl(new DutyCycleOut(1));
+      upperMotor.setControl(new DutyCycleOut(0));
     }, this);
   }
 
