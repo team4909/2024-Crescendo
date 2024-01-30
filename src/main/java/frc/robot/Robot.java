@@ -1,19 +1,12 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.drivetrain.Drivetrain;
-import frc.robot.intake.Intake;
-import frc.robot.shooter.Shooter;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -28,9 +21,6 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Command> m_autoChooser;
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
-  private final Intake m_intake = new Intake();
-  private final Shooter m_shooter = new Shooter();
-  private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
 
@@ -82,11 +72,6 @@ public class Robot extends LoggedRobot {
     m_driverController.y().onTrue(m_drivetrain.zeroGyro());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
-    NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay().withTimeout(1));
-    NamedCommands.registerCommand("Stop", m_shooter.Stop());
-    NamedCommands.registerCommand("SensorIntake", SensorIntake());
-    m_shooter.setDefaultCommand(m_shooter.Stop());
-    m_intake.setDefaultCommand(m_intake.Stop());
     m_autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
         m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
@@ -99,45 +84,6 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    // double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
-
-    // m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
-    // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
-    // m_driverController.x().whileTrue(m_intake.intake());
-    // m_driverController.y().whileTrue(m_intake.Spit());
-    // m_driverController.b().whileTrue(m_intake.Stop());
-    // final double defaultStopDistance = 0;
-    // m_driverController.leftBumper().onTrue(m_shooter.Shoot());
-    // m_driverController.rightBumper().onTrue(m_shooter.Feeder());
-    // m_driverController.b().onTrue(m_shooter.Stop());
-    // SmartDashboard.putNumber("StopDistance", defaultStopDistance);
-
-    // m_driverController
-    //     .a()
-    //     .onTrue(
-    //         new SequentialCommandGroup(
-    //                 new InstantCommand(() -> m_intake.intake()),
-    //                 new InstantCommand(() -> m_shooter.Intake()))
-    //             .until(
-    //                 () -> {
-    //                   return sensorValue
-    //                       <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-    //                 }));
-  }
-
-  public Command SensorIntake() {
-    final double defaultStopDistance = 35;
-    SmartDashboard.putNumber(
-        "StopDistance", defaultStopDistance); // this is here to make the value be editable on
-    // the dashboard
-    return new ParallelRaceGroup(
-        new RepeatCommand(m_intake.intake()),
-        new RepeatCommand(m_shooter.Intake())
-            .until(
-                () -> {
-                  return mytimeofflight.getRange()
-                      <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-                }));
   }
 
   /**
