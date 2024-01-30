@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.climber.Rev_2Climber;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
@@ -31,6 +32,7 @@ public class Robot extends LoggedRobot {
   private final Intake m_intake = new Intake();
   private final Shooter m_shooter = new Shooter();
   private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
+  private final Rev_2Climber m_climber = new Rev_2Climber();
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
 
@@ -111,6 +113,7 @@ public class Robot extends LoggedRobot {
     // m_driverController.rightBumper().onTrue(m_shooter.Feeder());
     // m_driverController.b().onTrue(m_shooter.Stop());
     // SmartDashboard.putNumber("StopDistance", defaultStopDistance);
+    m_driverController.a().onTrue(m_climber.raiseElevator());
 
     // m_driverController
     //     .a()
