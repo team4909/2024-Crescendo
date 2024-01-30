@@ -122,14 +122,13 @@ public class Rev_2Arm extends SubsystemBase {
     }, this);
   }
 
-  // public Command mid() {
-  // return new InstantCommand(() -> {
-  // System.out.println("MID COMMAND");
-  // // set position to 10 rotations
-  // lowMotor.setControl(m_request.withPosition(LowMotorConstants.MID));
-  // upperMotor.setControl(m_request.withPosition(UpperMotorConstants.MID));
-  // }, this);
-  // }
+  public Command mid() {
+    return new InstantCommand(() -> {
+      System.out.println("MID COMMAND");
+      lowMotor.setControl(m_request.withPosition(1));
+        upperMotor.setControl(m_request.withPosition(1));
+    }, this);
+  }
 
   // public Command high() {
   // return new InstantCommand(() -> {
