@@ -63,13 +63,6 @@ public class Robot extends LoggedRobot {
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
-    m_drivetrain.setDefaultCommand(
-        m_drivetrain.joystickDrive(
-            () -> -m_driverController.getLeftY(),
-            () -> -m_driverController.getLeftX(),
-            // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> -m_driverController.getRightX()));
-    m_driverController.y().onTrue(m_drivetrain.zeroGyro());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_autoChooser.addOption(
@@ -84,6 +77,15 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+
+    m_drivetrain.setDefaultCommand(
+        m_drivetrain.joystickDrive(
+            () -> -m_driverController.getLeftY(),
+            () -> -m_driverController.getLeftX(),
+            // This needs to be getRawAxis(2) when using sim on a Mac
+            () -> -m_driverController.getRightX()));
+    m_driverController.y().onTrue(m_drivetrain.zeroGyro());
   }
 
   /**

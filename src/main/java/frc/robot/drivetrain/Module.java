@@ -11,8 +11,8 @@ public class Module {
   // https://www.swervedrivespecialties.com/products/mk4i-swerve-module
   public static final double kDriveRatio = 6.75;
   public static final double kSteerRatio = 150.0 / 7.0;
-  public final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
-  public final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;
+  private final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
+  private final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;
   private final double kCouplingGearRatio = 50.0 / 14.0;
 
   private final ModuleIO m_io;
@@ -35,9 +35,12 @@ public class Module {
     int sampleCount = m_inputs.odometryTimestamps.length;
     m_odometryPositions = new SwerveModulePosition[sampleCount];
     for (int i = 0; i < sampleCount; i++) {
-      double positionMeters = m_inputs.odometryDrivePositionsRad[i] * kWheelRadiusMeters;
-      Rotation2d angle = m_inputs.odometryTurnPositions[i];
-      m_odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
+      var driveRotations = Units.radiansToRotations(m_inputs.odometryDrivePositionsRad[i]);
+      var steerAngle = m_inputs.odometryTurnPositions[i];
+      driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
+      var driveRadians = Units.rotationsToRadians(driveRotations);
+      double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
+      m_odometryPositions[i] = new SwerveModulePosition(positionMeters, steerAngle);
     }
   }
 
@@ -50,6 +53,10 @@ public class Module {
 
     double angleError = optimizedState.angle.getRadians() - m_inputs.steerPosition.getRadians();
     setpointVelocityRPS *= Math.cos(angleError);
+
+    var azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
+    double driveRateBackOut = azimuthVelocityRPS *= kCouplingGearRatio;
+    setpointVelocityRPS -= driveRateBackOut;
 
     Logger.recordOutput(
         "Test/Desired Speed Module " + m_index, optimizedState.speedMetersPerSecond);
@@ -76,7 +83,7 @@ public class Module {
     return m_inputs.odometryTimestamps;
   }
 
-  // getNewPositions() should be used for performant odometry updates, not this.
+  // getOdometryPositions() should be used for performant odometry updates, not this.
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
         m_inputs.drivePositionRad * kWheelRadiusMeters, m_inputs.steerPosition);

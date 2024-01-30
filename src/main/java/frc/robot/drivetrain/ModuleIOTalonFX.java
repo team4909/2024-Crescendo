@@ -203,7 +203,7 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     inputs.odometryDrivePositionsRad =
         m_drivePositionQueue.stream()
-            .mapToDouble((Double value) -> Units.rotationsToRadians(value) / Module.kDriveRatio)
+            .mapToDouble((Double value) -> Units.rotationsToRadians(value))
             .toArray();
     inputs.odometryTurnPositions =
         m_steerPositionQueue.stream()
