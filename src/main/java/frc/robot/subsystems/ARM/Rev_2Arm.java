@@ -50,8 +50,8 @@ public class Rev_2Arm extends SubsystemBase {
 
   private TalonFX lowMotor = new TalonFX(8, "CANivore1");
   private TalonFX upperMotor = new TalonFX(6, "CANivore1");
-  // private TalonFX lowMotorFollower = new TalonFX(14);
-  // private TalonFX upperMotorFollower = new TalonFX(16);
+  private TalonFX lowMotorFollower = new TalonFX(4, "CANivore1");
+  private TalonFX upperMotorFollower = new TalonFX(2, "CANivore1");
 
   final PositionVoltage m_request = new PositionVoltage(10).withSlot(0);
 
@@ -61,12 +61,12 @@ public class Rev_2Arm extends SubsystemBase {
   /** Creates a new Rev_2Arm. */
   public Rev_2Arm() {
     // ArmMotorFirstP.setPosition(High);
-    // lowMotorFollower.setControl(new Follower(lowMotor.getDeviceID(), false));
+    lowMotorFollower.setControl(new Follower(lowMotor.getDeviceID(), false));
     // lowMotorFollower.follow(lowMotor);
-    // upperMotorFollower.setControl(new Follower(lowMotor.getDeviceID(), false));
+    upperMotorFollower.setControl(new Follower(lowMotor.getDeviceID(), false));
 
-    // lowMotor.configFactoryDefault();
-    // upperMotor.configFactoryDefault();
+    lowMotor.getConfigurator().apply(new TalonFXConfiguration());
+    upperMotor.getConfigurator().apply(new TalonFXConfiguration());
     // lowMotorFollower.configFactoryDefault();
     // upperMotorFollower.configFactoryDefault();
     // lowMotor.setSmartCurrentLimit(40);
@@ -107,11 +107,8 @@ public class Rev_2Arm extends SubsystemBase {
   public Command low() {
     return new InstantCommand(() -> {
       System.out.println("LOW");
-      // lowMotor.setPosition(LowMotorConstants.LOW);
-      // upperMotor.setPosition(UpperMotorConstants.LOW);
       lowMotor.setControl(m_request.withPosition(1));
-      // upperMotor.setControl(new DutyCycleOut(1));
-      upperMotor.setControl(m_request.withPosition(10));
+      upperMotor.setControl(m_request.withPosition(1));
     }, this);
   }
 
@@ -147,5 +144,4 @@ public class Rev_2Arm extends SubsystemBase {
   // upperMotor.setControl(m_request.withPosition(UpperMotorConstants.RETRACTED));
   // }, this);
   // }
-
 }
