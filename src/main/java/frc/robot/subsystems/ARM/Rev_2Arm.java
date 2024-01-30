@@ -15,7 +15,9 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest.Idle;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -62,8 +64,10 @@ public class Rev_2Arm extends SubsystemBase {
   public Rev_2Arm() {
     // ArmMotorFirstP.setPosition(High);
     lowMotorFollower.setControl(new Follower(lowMotor.getDeviceID(), false));
-    // lowMotorFollower.follow(lowMotor);
     upperMotorFollower.setControl(new Follower(lowMotor.getDeviceID(), false));
+
+    lowMotor.setPosition(0);
+    upperMotor.setPosition(0);
 
     lowMotor.getConfigurator().apply(new TalonFXConfiguration());
     upperMotor.getConfigurator().apply(new TalonFXConfiguration());
@@ -74,7 +78,7 @@ public class Rev_2Arm extends SubsystemBase {
 
     var lowMotorSlot0Configs = new Slot0Configs();
     lowMotorSlot0Configs.kV = 0.;
-    lowMotorSlot0Configs.kP = 0.1;
+    lowMotorSlot0Configs.kP = 0.8;
     lowMotorSlot0Configs.kI = 0;
     lowMotorSlot0Configs.kD = 0;
 
@@ -83,7 +87,7 @@ public class Rev_2Arm extends SubsystemBase {
 
     var slot1Configs = new Slot0Configs();
     slot1Configs.kV = 0.12;
-    slot1Configs.kP = 0.11;
+    slot1Configs.kP = 0.8;
     slot1Configs.kI = 0.5;
     slot1Configs.kD = 0.001;
 
@@ -95,6 +99,8 @@ public class Rev_2Arm extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    System.out.println(lowMotor.getPosition());
+
   }
 
   // public Command idle() {
@@ -114,20 +120,28 @@ public class Rev_2Arm extends SubsystemBase {
 
   public Command stop() {
     return new InstantCommand(() -> {
-      // lowMotor.setPosition(LowMotorConstants.LOW);
-      // upperMotor.setPosition(UpperMotorConstants.LOW);
       lowMotor.setControl(new DutyCycleOut(0));
-      // upperMotor.setControl(new DutyCycleOut(1));
       upperMotor.setControl(new DutyCycleOut(0));
     }, this);
   }
 
-  public Command mid() {
-    return new InstantCommand(() -> {
-      System.out.println("MID COMMAND");
-      lowMotor.setControl(m_request.withPosition(1));
-        upperMotor.setControl(m_request.withPosition(1));
-    }, this);
+  public Command podium() {
+    return goToPosition(100, 200);
+  }
+
+  public Command low2() {
+    return goToPosition(5, 20);
+  }
+
+  public Command goToPosition(double upperAngle, double lowerAngle) {
+    // using defer to wait for the command to be scheduled before binding in the
+    // angles
+    return this.defer(() -> new InstantCommand(() -> {
+      System.out.println("going to" + upperAngle + " lower:" + lowerAngle);
+      System.out.println(convertAngleToMotorPosition(lowerAngle));
+      lowMotor.setControl(m_request.withPosition(convertAngleToMotorPosition(lowerAngle)));
+      upperMotor.setControl(m_request.withPosition(convertAngleToMotorPosition(upperAngle)));
+    }, this));
   }
 
   // public Command high() {
@@ -143,4 +157,11 @@ public class Rev_2Arm extends SubsystemBase {
   // upperMotor.setControl(m_request.withPosition(UpperMotorConstants.RETRACTED));
   // }, this);
   // }
+  public double convertAngleToMotorPosition(double armAngle) {
+    double motorRotations = armAngle * ((double) 1 / (double) 360) * ((double) 15 / (double) 1); // Double make 0 go bye
+                                                                                                 // bye and make it
+                                                                                                 // happy :)
+    return motorRotations;
+  }
+
 }
