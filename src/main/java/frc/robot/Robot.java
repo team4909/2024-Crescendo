@@ -7,8 +7,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.drivetrain.Drivetrain;
@@ -61,7 +63,7 @@ public class Robot extends LoggedRobot {
     switch (Constants.kCurrentMode) {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
-        m_vision = Subsystems.createBlankFourCameraVision();
+        m_vision = Subsystems.createFourCameraVision();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
@@ -99,30 +101,30 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    // double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
+    double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
 
-    // m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
-    // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
-    // m_driverController.x().whileTrue(m_intake.intake());
-    // m_driverController.y().whileTrue(m_intake.Spit());
-    // m_driverController.b().whileTrue(m_intake.Stop());
-    // final double defaultStopDistance = 0;
-    // m_driverController.leftBumper().onTrue(m_shooter.Shoot());
-    // m_driverController.rightBumper().onTrue(m_shooter.Feeder());
-    // m_driverController.b().onTrue(m_shooter.Stop());
-    // SmartDashboard.putNumber("StopDistance", defaultStopDistance);
+    m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
+    m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
+    m_driverController.x().whileTrue(m_intake.intake());
+    m_driverController.y().whileTrue(m_intake.Spit());
+    m_driverController.b().whileTrue(m_intake.Stop());
+    final double defaultStopDistance = 0;
+    m_driverController.leftBumper().onTrue(m_shooter.Shoot());
+    m_driverController.rightBumper().onTrue(m_shooter.Feeder());
+    m_driverController.b().onTrue(m_shooter.Stop());
+    SmartDashboard.putNumber("StopDistance", defaultStopDistance);
 
-    // m_driverController
-    //     .a()
-    //     .onTrue(
-    //         new SequentialCommandGroup(
-    //                 new InstantCommand(() -> m_intake.intake()),
-    //                 new InstantCommand(() -> m_shooter.Intake()))
-    //             .until(
-    //                 () -> {
-    //                   return sensorValue
-    //                       <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-    //                 }));
+    m_driverController
+        .a()
+        .onTrue(
+            new SequentialCommandGroup(
+                    new InstantCommand(() -> m_intake.intake()),
+                    new InstantCommand(() -> m_shooter.Intake()))
+                .until(
+                    () -> {
+                      return sensorValue
+                          <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+                    }));
   }
 
   public Command SensorIntake() {
