@@ -34,18 +34,19 @@ public class Shooter extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+  }
 
   public Command Shoot() {
     return new InstantCommand(
-            () -> {
-              SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
+        () -> {
+          SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
 
-              shooterTop.set(OutSpeed);
-              shooterBottom.set(OutSpeed);
-              feeder.set(InSpeed);
-            },
-            this)
+          shooterTop.set(OutSpeed);
+          shooterBottom.set(OutSpeed);
+
+        },
+        this)
         .repeatedly();
   }
 
@@ -90,10 +91,10 @@ public class Shooter extends SubsystemBase {
 
   public Command Feeder() {
     return new InstantCommand(
-            () -> {
-              feeder.set(-OutSpeed);
-            },
-            this)
+        () -> {
+          feeder.set(-OutSpeed);
+        },
+        this)
         .repeatedly();
   }
 

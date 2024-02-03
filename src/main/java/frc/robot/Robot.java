@@ -33,6 +33,7 @@ public class Robot extends LoggedRobot {
   private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
+  private final CommandXboxController m_operatorController = new CommandXboxController(1);
 
   public Robot() {
     recordMetadeta();
@@ -79,7 +80,6 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
             () -> -m_driverController.getRightX()));
-    m_driverController.y().onTrue(m_drivetrain.zeroGyro());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay().withTimeout(1));
@@ -101,22 +101,22 @@ public class Robot extends LoggedRobot {
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
 
-    m_driverController.povDown().whileTrue(m_shooter.Shoot());
-    m_driverController.povRight().whileTrue(m_shooter.Feeder());
-    m_driverController.x().whileTrue(m_shooter.Stop());
-    m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
-    m_driverController.a().whileTrue(m_intake.Spit());
+    // m_driverController.povDown().whileTrue(m_shooter.Shoot());
+    // m_driverController.povRight().whileTrue(m_shooter.Feeder());
+    // m_driverController.x().whileTrue(m_shooter.Stop());
+
+    // m_driverController.a().whileTrue(m_intake.Spit());
 
     // m_driverController.leftTrigger().whileTrue(new
     // RepeatCommand(m_shooter.Intake()));
     // m_driverController.leftTrigger().whileTrue(m_intake.intake());
-    m_driverController.y().whileTrue(m_intake.Spit());
-    m_driverController.b().whileTrue(m_intake.Stop());
-    final double defaultStopDistance = 16;
-    m_driverController.leftBumper().whileTrue(m_intake.intake());
-    m_driverController.rightBumper().onTrue(m_shooter.Feeder());
-    m_driverController.b().onTrue(m_shooter.Stop());
-    SmartDashboard.putNumber("StopDistance", defaultStopDistance);
+
+    // m_driverController.b().whileTrue(m_intake.Stop());
+    // final double defaultStopDistance = 16;
+    // m_driverController.leftBumper().whileTrue(m_intake.intake());
+    // m_driverController.rightBumper().onTrue(m_shooter.Feeder());
+    // m_driverController.b().onTrue(m_shooter.Stop());
+    // SmartDashboard.putNumber("StopDistance", defaultStopDistance);
 
     // m_driverController
     // .povUp()
@@ -128,25 +128,48 @@ public class Robot extends LoggedRobot {
     // <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
     // }));
 
-    m_driverController
-        .leftTrigger()
-        .whileTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake()).repeatedly());
+    // m_driverController
+    // .leftTrigger()
+    // .whileTrue(new ParallelRaceGroup(m_intake.intake(),
+    // m_shooter.Intake()).repeatedly());
 
     // this is here to make the value be editable on the dashboard
 
-    SmartDashboard.putNumber("Intake/CurrentStopInput", 10);
+    // SmartDashboard.putNumber("Intake/CurrentStopInput", 10);
+
+    // m_driverController
+    // .leftBumper()
+    // .whileTrue(
+    // new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake())
+    // .repeatedly()
+    // .until(
+    // () -> {
+    // double defaultIntakeStopCurrent = 10;
+    // return m_shooter.getCurrent() > SmartDashboard.getNumber(
+    // "Intake/CurrentStopInput", defaultIntakeStopCurrent);
+    // }));
+
+    // ____________________driverController_______________________\\
+    m_driverController.rightTrigger().onTrue(m_shooter.Feeder());
+
+    m_driverController.rightBumper().whileTrue(m_intake.Spit());
+
+    m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
+
     m_driverController
-        .leftTrigger()
+        .leftBumper()
         .whileTrue(
             new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake())
                 .repeatedly()
                 .until(
                     () -> {
                       double defaultIntakeStopCurrent = 10;
-                      return m_shooter.getCurrent()
-                          > SmartDashboard.getNumber(
-                              "Intake/CurrentStopInput", defaultIntakeStopCurrent);
+                      return m_shooter.getCurrent() > SmartDashboard.getNumber(
+                          "Intake/CurrentStopInput", defaultIntakeStopCurrent);
                     }));
+
+    // ___________________OperatorController______________________\\
+    m_operatorController.y().onTrue(m_shooter.Shoot());
   }
 
   public Command SensorIntake() {
@@ -159,16 +182,19 @@ public class Robot extends LoggedRobot {
         new RepeatCommand(m_shooter.Intake())
             .until(
                 () -> {
-                  return mytimeofflight.getRange()
-                      <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+                  return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
                 }));
   }
 
   /**
-   * This function is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
+   * This function is called every robot packet, no matter the mode. Use this for
+   * items like
+   * diagnostics that you want ran during disabled, autonomous, teleoperated and
+   * test.
    *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
+   * <p>
+   * This runs after the mode specific periodic functions, but before LiveWindow
+   * and
    * SmartDashboard integrated updating.
    */
   @Override
@@ -188,28 +214,36 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+  }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   @Override
   public void simulationPeriodic() {
