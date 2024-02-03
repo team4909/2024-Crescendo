@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Shooter extends SubsystemBase {
 
   private final double InSpeed = -.4;
-  private final double OutSpeed = .25;
+  private final double OutSpeed = .4;
   private final double StopSpeed = 0;
   private double defaultDelay = .3;
 
@@ -97,8 +97,8 @@ public class Shooter extends SubsystemBase {
         .repeatedly();
   }
 
-  // public Command getCurrent(){
-  //   feeder.getTorqueCurrent();
-  //   return double.getTorqueCurrent();
-  // }
+  public double getCurrent(){
+    return feeder.getTorqueCurrent().getValue();
+
+  }
 }

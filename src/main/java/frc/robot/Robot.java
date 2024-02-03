@@ -106,7 +106,8 @@ public class Robot extends LoggedRobot {
     m_driverController.x().whileTrue(m_shooter.Stop());
     m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
 
-    // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
+    // m_driverController.leftTrigger().whileTrue(new
+    // RepeatCommand(m_shooter.Intake()));
     // m_driverController.leftTrigger().whileTrue(m_intake.intake());
     // m_driverController.y().whileTrue(m_intake.Spit());
     m_driverController.b().whileTrue(m_intake.Stop());
@@ -117,27 +118,27 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putNumber("StopDistance", defaultStopDistance);
 
     // m_driverController
-    //     .povUp()
-    //     .onTrue(
-    //         new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake())
-    //             .until(
-    //                 () -> {
-    //                   return mytimeofflight.getRange()
-    //                       <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-    //                 }));
+    // .povUp()
+    // .onTrue(
+    // new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake())
+    // .until(
+    // () -> {
+    // return mytimeofflight.getRange()
+    // <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+    // }));
 
     m_driverController
         .leftTrigger()
         .whileTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake()).repeatedly());
 
-    //     m_driverController
-    //     .leftTrigger()
-    //     .whileTrue(new SequentialCommandGroup(
-    //     m_intake.intake(),
-    //     m_shooter.Intake()).repeatedly()
-    //     .until(
-
-    //     ));
+    m_driverController
+        .leftTrigger()
+        .whileTrue(new ParallelRaceGroup(
+            m_intake.intake(),
+            m_shooter.Intake()).repeatedly()
+            .until(() -> {
+              return m_shooter.getCurrent() > 10;
+            }));
 
   }
 
@@ -151,16 +152,19 @@ public class Robot extends LoggedRobot {
         new RepeatCommand(m_shooter.Intake())
             .until(
                 () -> {
-                  return mytimeofflight.getRange()
-                      <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+                  return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
                 }));
   }
 
   /**
-   * This function is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
+   * This function is called every robot packet, no matter the mode. Use this for
+   * items like
+   * diagnostics that you want ran during disabled, autonomous, teleoperated and
+   * test.
    *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
+   * <p>
+   * This runs after the mode specific periodic functions, but before LiveWindow
+   * and
    * SmartDashboard integrated updating.
    */
   @Override
@@ -179,28 +183,36 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+  }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   @Override
   public void simulationPeriodic() {
