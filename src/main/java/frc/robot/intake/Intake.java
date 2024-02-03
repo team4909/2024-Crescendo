@@ -14,10 +14,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Intake extends SubsystemBase {
   // private final double Speed = 1;
   private final double StopSpeed = 0;
-  private double defaultFrontRollerSpeed = -.75;
-  private double defaultBackRollerSpeed = -.75;
-  private double defaultFrontRollerSpeedSpit = .65;
-  private double defaultBackRollerSpeedSpit = .65;
+  private double defaultFrontRollerSpeed = -.4;
+  private double defaultBackRollerSpeed = -.4;
+  private double defaultFrontRollerSpeedSpit = .5;
+  private double defaultBackRollerSpeedSpit = .5;
 
   private CANSparkMax topRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
   private CANSparkMax bottomRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);

@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.drivetrain.Drivetrain;
@@ -108,7 +107,7 @@ public class Robot extends LoggedRobot {
     m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
 
     // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
-    m_driverController.leftTrigger().whileTrue(m_intake.intake());
+    // m_driverController.leftTrigger().whileTrue(m_intake.intake());
     // m_driverController.y().whileTrue(m_intake.Spit());
     m_driverController.b().whileTrue(m_intake.Stop());
     final double defaultStopDistance = 16;
@@ -117,27 +116,27 @@ public class Robot extends LoggedRobot {
     m_driverController.b().onTrue(m_shooter.Stop());
     SmartDashboard.putNumber("StopDistance", defaultStopDistance);
 
-    m_driverController
-        .povUp()
-        .onTrue(
-            new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake())
-                .until(
-                    () -> {
-                      return mytimeofflight.getRange()
-                          <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-                    }));
-
     // m_driverController
-    //     .leftTrigger()
-    //     .whileTrue(new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake()).repeatedly());
+    //     .povUp()
+    //     .onTrue(
+    //         new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake())
+    //             .until(
+    //                 () -> {
+    //                   return mytimeofflight.getRange()
+    //                       <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+    //                 }));
+
+    m_driverController
+        .leftTrigger()
+        .whileTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake()).repeatedly());
 
     //     m_driverController
     //     .leftTrigger()
     //     .whileTrue(new SequentialCommandGroup(
-    //     m_intake.intake(), 
+    //     m_intake.intake(),
     //     m_shooter.Intake()).repeatedly()
     //     .until(
-          
+
     //     ));
 
   }
