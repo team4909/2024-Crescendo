@@ -1,6 +1,10 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Transform3d;
+import frc.robot.arm.Arm;
+import frc.robot.arm.ArmIO;
+import frc.robot.arm.ArmIOSim;
+import frc.robot.arm.ArmIOTalonFX;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
@@ -32,5 +36,17 @@ public class Subsystems {
 
   public static Vision createBlankFourCameraVision() {
     return new Vision(new VisionIO() {}, new VisionIO() {}, new VisionIO() {}, new VisionIO() {});
+  }
+
+  public static Arm createTalonFXArm() {
+    return new Arm(new ArmIOTalonFX());
+  }
+
+  public static Arm createSimArm() {
+    return new Arm(new ArmIOSim());
+  }
+
+  public static Arm createBlankArm() {
+    return new Arm(new ArmIO() {});
   }
 }

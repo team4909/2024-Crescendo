@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.arm.Arm;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -21,6 +22,7 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Command> m_autoChooser;
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
+  private final Arm m_arm;
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
 
@@ -52,14 +54,17 @@ public class Robot extends LoggedRobot {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createBlankFourCameraVision();
+        m_arm = Subsystems.createTalonFXArm();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
+        m_arm = Subsystems.createTalonFXArm();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
         m_vision = Subsystems.createBlankFourCameraVision();
+        m_arm = Subsystems.createBlankArm();
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
@@ -78,13 +83,13 @@ public class Robot extends LoggedRobot {
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
             () -> -m_driverController.getRightX()));
+    m_arm.setDefaultCommand(m_arm.testSetpoint());
     m_driverController.y().onTrue(m_drivetrain.zeroGyro());
   }
 

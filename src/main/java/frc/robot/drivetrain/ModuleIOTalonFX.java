@@ -33,7 +33,6 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
   private final double kSlipCurrent = 400.0;
-  private final String kCanBusName = "CANivore1";
 
   private final TalonFX m_driveMotor, m_steerMotor;
   private final CANcoder m_azimuthEncoder;
@@ -62,27 +61,27 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_index = index;
     switch (index) {
       case 0: // FL
-        m_driveMotor = new TalonFX(4, kCanBusName);
-        m_steerMotor = new TalonFX(3, kCanBusName);
-        m_azimuthEncoder = new CANcoder(12, kCanBusName);
+        m_driveMotor = new TalonFX(4, Constants.kCanBusName);
+        m_steerMotor = new TalonFX(3, Constants.kCanBusName);
+        m_azimuthEncoder = new CANcoder(12, Constants.kCanBusName);
         m_absoluteEncoderMagnetOffset = -0.380126953125;
         break;
       case 1: // FR
-        m_driveMotor = new TalonFX(6, kCanBusName);
-        m_steerMotor = new TalonFX(5, kCanBusName);
-        m_azimuthEncoder = new CANcoder(13, kCanBusName);
+        m_driveMotor = new TalonFX(6, Constants.kCanBusName);
+        m_steerMotor = new TalonFX(5, Constants.kCanBusName);
+        m_azimuthEncoder = new CANcoder(13, Constants.kCanBusName);
         m_absoluteEncoderMagnetOffset = -0.196533203125;
         break;
       case 2: // BL
-        m_driveMotor = new TalonFX(2, kCanBusName);
-        m_steerMotor = new TalonFX(1, kCanBusName);
-        m_azimuthEncoder = new CANcoder(11, kCanBusName);
+        m_driveMotor = new TalonFX(2, Constants.kCanBusName);
+        m_steerMotor = new TalonFX(1, Constants.kCanBusName);
+        m_azimuthEncoder = new CANcoder(11, Constants.kCanBusName);
         m_absoluteEncoderMagnetOffset = 0.265380859375;
         break;
       case 3: // BR
-        m_driveMotor = new TalonFX(7, kCanBusName);
-        m_steerMotor = new TalonFX(8, kCanBusName);
-        m_azimuthEncoder = new CANcoder(14, kCanBusName);
+        m_driveMotor = new TalonFX(7, Constants.kCanBusName);
+        m_steerMotor = new TalonFX(8, Constants.kCanBusName);
+        m_azimuthEncoder = new CANcoder(14, Constants.kCanBusName);
         m_absoluteEncoderMagnetOffset = 0.314208984375;
         break;
       default:

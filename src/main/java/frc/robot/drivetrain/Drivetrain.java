@@ -45,7 +45,7 @@ public class Drivetrain extends SubsystemBase {
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.05;
-  private final boolean kUseVisionCorrection = false;
+  private final boolean kUseVisionCorrection = true;
 
   public static final Lock odometryLock = new ReentrantLock();
   private final ImuIO m_imuIO;
@@ -153,8 +153,11 @@ public class Drivetrain extends SubsystemBase {
       }
       if (Constants.kIsSim) {
         Logger.recordOutput("Drivetrain/dtheta", m_kinematics.toTwist2d(moduleDeltas).dtheta);
-        // TODO we cannot update the gyro sim state in the same loop we read it, it will always be
-        // behind causing inaccurate behavior
+        /**
+         * TODO we cannot update the gyro sim state in the same loop we read it, it will always be
+         * behind causing inaccurate behavior. The solution might literally be move this before any
+         * odometry logic.
+         */
         // m_imuIO.updateSim(m_kinematics.toTwist2d(moduleDeltas).dtheta);
       }
 
