@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -101,28 +100,26 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
+    SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
 
     m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
-    m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
-    m_driverController.x().whileTrue(m_intake.intake());
-    m_driverController.y().whileTrue(m_intake.Spit());
+    // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
+    m_driverController.leftTrigger().whileTrue(m_intake.intake());
+    // m_driverController.y().whileTrue(m_intake.Spit());
     m_driverController.b().whileTrue(m_intake.Stop());
-    final double defaultStopDistance = 0;
+    final double defaultStopDistance = 16;
     m_driverController.leftBumper().onTrue(m_shooter.Shoot());
     m_driverController.rightBumper().onTrue(m_shooter.Feeder());
     m_driverController.b().onTrue(m_shooter.Stop());
     SmartDashboard.putNumber("StopDistance", defaultStopDistance);
 
     m_driverController
-        .a()
+        .povUp()
         .onTrue(
-            new SequentialCommandGroup(
-                    new InstantCommand(() -> m_intake.intake()),
-                    new InstantCommand(() -> m_shooter.Intake()))
+            new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake())
                 .until(
                     () -> {
-                      return sensorValue
+                      return mytimeofflight.getRange()
                           <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
                     }));
   }
@@ -153,6 +150,7 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_vision.periodic();
+    SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
   }
 
   @Override
