@@ -6,18 +6,17 @@ package frc.robot.shooter;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.BionicWaitCommand;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Shooter extends SubsystemBase {
 
   private final double InSpeed = -1;
-  private final double OutSpeed = .4;
+  private final double OutSpeed = 1;
   private final double StopSpeed = 0;
   private double defaultDelay = .3;
 
@@ -31,22 +30,27 @@ public class Shooter extends SubsystemBase {
     shooterTop.getConfigurator().apply(new TalonFXConfiguration());
     shooterBottom.getConfigurator().apply(new TalonFXConfiguration());
     feeder.getConfigurator().apply(new TalonFXConfiguration());
+
+    TalonFXConfiguration brakeMode = new TalonFXConfiguration();
+    brakeMode.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    shooterTop.getConfigurator().apply(brakeMode);
+    shooterBottom.getConfigurator().apply(brakeMode);
+    feeder.getConfigurator().apply(brakeMode);
   }
 
   @Override
-  public void periodic() {
-  }
+  public void periodic() {}
 
   public Command Shoot() {
     return new InstantCommand(
-        () -> {
-          SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
+            () -> {
+              SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
 
-          shooterTop.set(OutSpeed);
-          shooterBottom.set(OutSpeed);
-
-        },
-        this)
+              shooterTop.set(OutSpeed);
+              shooterBottom.set(OutSpeed);
+            },
+            this)
         .repeatedly();
   }
 
@@ -73,32 +77,33 @@ public class Shooter extends SubsystemBase {
         this);
   }
 
-  public Command ShooterDelay() {
-    return Commands.sequence(
-        this.runOnce(
-            () -> {
-              shooterTop.set(OutSpeed);
-              shooterBottom.set(OutSpeed);
-              // System.out.println(SmartDashboard.getNumber("ShooterDelay", defaultDelay));
-            }),
-        new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay)),
-        new RepeatCommand(
-            new InstantCommand(
-                () -> {
-                  feeder.set(InSpeed);
-                })));
+  public Command PullBack() {
+    return new RunCommand(() -> feeder.set(0.3), this).repeatedly().withTimeout(0.25);
   }
 
   public Command Feeder() {
     return new InstantCommand(
-        () -> {
-          feeder.set(-OutSpeed);
-        },
-        this)
-        .repeatedly();
+            () -> {
+              feeder.set(-OutSpeed);
+            },
+            this)
+        .repeatedly()
+        .withTimeout(1)
+        .finallyDo(() -> Stop());
   }
 
   public double getCurrent() {
     return feeder.getTorqueCurrent().getValue();
+  }
+
+  public Command FeederOut() {
+    return new InstantCommand(
+            () -> {
+              feeder.set(OutSpeed);
+            },
+            this)
+        .repeatedly()
+        .withTimeout(1)
+        .finallyDo(() -> Stop());
   }
 }
