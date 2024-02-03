@@ -105,6 +105,7 @@ public class Robot extends LoggedRobot {
     m_driverController.povRight().whileTrue(m_shooter.Feeder());
     m_driverController.x().whileTrue(m_shooter.Stop());
     m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
+    m_driverController.a().whileTrue(m_intake.Spit());
 
     // m_driverController.leftTrigger().whileTrue(new
     // RepeatCommand(m_shooter.Intake()));
