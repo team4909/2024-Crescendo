@@ -109,7 +109,7 @@ public class Robot extends LoggedRobot {
     // m_driverController.leftTrigger().whileTrue(new
     // RepeatCommand(m_shooter.Intake()));
     // m_driverController.leftTrigger().whileTrue(m_intake.intake());
-    // m_driverController.y().whileTrue(m_intake.Spit());
+    m_driverController.y().whileTrue(m_intake.Spit());
     m_driverController.b().whileTrue(m_intake.Stop());
     final double defaultStopDistance = 16;
     m_driverController.leftBumper().whileTrue(m_intake.intake());

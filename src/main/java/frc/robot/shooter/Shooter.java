@@ -91,7 +91,7 @@ public class Shooter extends SubsystemBase {
   public Command Feeder() {
     return new InstantCommand(
             () -> {
-              feeder.set(OutSpeed);
+              feeder.set(-OutSpeed);
             },
             this)
         .repeatedly();
