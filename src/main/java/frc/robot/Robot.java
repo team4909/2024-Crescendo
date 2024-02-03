@@ -131,40 +131,43 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .whileTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake()).repeatedly());
 
+    // this is here to make the value be editable on the dashboard
+
+    SmartDashboard.putNumber("Intake/CurrentStopInput", 10);
     m_driverController
         .leftTrigger()
-        .whileTrue(new ParallelRaceGroup(
-            m_intake.intake(),
-            m_shooter.Intake()).repeatedly()
-            .until(() -> {
-              return m_shooter.getCurrent() > 10;
-            }));
-
+        .whileTrue(
+            new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake())
+                .repeatedly()
+                .until(
+                    () -> {
+                      double defaultIntakeStopCurrent = 10;
+                      return m_shooter.getCurrent()
+                          > SmartDashboard.getNumber(
+                              "Intake/CurrentStopInput", defaultIntakeStopCurrent);
+                    }));
   }
 
   public Command SensorIntake() {
     final double defaultStopDistance = 35;
-    SmartDashboard.putNumber(
-        "StopDistance", defaultStopDistance); // this is here to make the value be editable on
-    // the dashboard
+
+    // this is here to make the value be editable on the dashboard
+    SmartDashboard.putNumber("StopDistance", defaultStopDistance);
     return new ParallelRaceGroup(
         new RepeatCommand(m_intake.intake()),
         new RepeatCommand(m_shooter.Intake())
             .until(
                 () -> {
-                  return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+                  return mytimeofflight.getRange()
+                      <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
                 }));
   }
 
   /**
-   * This function is called every robot packet, no matter the mode. Use this for
-   * items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and
-   * test.
+   * This function is called every robot packet, no matter the mode. Use this for items like
+   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
    *
-   * <p>
-   * This runs after the mode specific periodic functions, but before LiveWindow
-   * and
+   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
    * SmartDashboard integrated updating.
    */
   @Override
@@ -172,6 +175,7 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     m_vision.periodic();
     SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
+    SmartDashboard.putNumber("Intake/Current", m_shooter.getCurrent());
   }
 
   @Override
@@ -183,36 +187,28 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {
-  }
+  public void autonomousPeriodic() {}
 
   @Override
-  public void teleopInit() {
-  }
+  public void teleopInit() {}
 
   @Override
-  public void teleopPeriodic() {
-  }
+  public void teleopPeriodic() {}
 
   @Override
-  public void disabledInit() {
-  }
+  public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {
-  }
+  public void disabledPeriodic() {}
 
   @Override
-  public void testInit() {
-  }
+  public void testInit() {}
 
   @Override
-  public void testPeriodic() {
-  }
+  public void testPeriodic() {}
 
   @Override
-  public void simulationInit() {
-  }
+  public void simulationInit() {}
 
   @Override
   public void simulationPeriodic() {
