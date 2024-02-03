@@ -14,8 +14,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Intake extends SubsystemBase {
   // private final double Speed = 1;
   private final double StopSpeed = 0;
-  private double defaultFrontRollerSpeed = -.3;
-  private double defaultBackRollerSpeed = -.3;
+  private double defaultFrontRollerSpeed = -.75;
+  private double defaultBackRollerSpeed = -.75;
   private double defaultFrontRollerSpeedSpit = .65;
   private double defaultBackRollerSpeedSpit = .65;
 

@@ -102,7 +102,11 @@ public class Robot extends LoggedRobot {
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
 
+    m_driverController.povDown().whileTrue(m_shooter.Shoot());
+    m_driverController.povRight().whileTrue(m_shooter.Feeder());
+    m_driverController.x().whileTrue(m_shooter.Stop());
     m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
+
     // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
     m_driverController.leftTrigger().whileTrue(m_intake.intake());
     // m_driverController.y().whileTrue(m_intake.Spit());
@@ -122,6 +126,20 @@ public class Robot extends LoggedRobot {
                       return mytimeofflight.getRange()
                           <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
                     }));
+
+    // m_driverController
+    //     .leftTrigger()
+    //     .whileTrue(new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake()).repeatedly());
+
+    //     m_driverController
+    //     .leftTrigger()
+    //     .whileTrue(new SequentialCommandGroup(
+    //     m_intake.intake(), 
+    //     m_shooter.Intake()).repeatedly()
+    //     .until(
+          
+    //     ));
+
   }
 
   public Command SensorIntake() {
