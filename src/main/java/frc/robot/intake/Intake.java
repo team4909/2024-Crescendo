@@ -14,13 +14,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Intake extends SubsystemBase {
   // private final double Speed = 1;
   private final double StopSpeed = 0;
-  private double defaultFrontRollerSpeed = -1;
-  private double defaultBackRollerSpeed = -.6;
+  private double defaultFrontRollerSpeed = -.3;
+  private double defaultBackRollerSpeed = -.3;
   private double defaultFrontRollerSpeedSpit = .65;
   private double defaultBackRollerSpeedSpit = .65;
 
-  private CANSparkMax frontRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
-  private CANSparkMax backRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
+  private CANSparkMax topRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
+  private CANSparkMax bottomRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
 
   public Intake() {
     SmartDashboard.putNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
@@ -28,8 +28,8 @@ public class Intake extends SubsystemBase {
     SmartDashboard.putNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeed);
     SmartDashboard.putNumber("BackRollerSpeedSpit", defaultBackRollerSpeed);
 
-    frontRoller.setIdleMode(IdleMode.kBrake);
-    backRoller.setIdleMode(IdleMode.kBrake);
+    topRoller.setIdleMode(IdleMode.kBrake);
+    bottomRoller.setIdleMode(IdleMode.kBrake);
 
     // frontRoller.getFault(FaultID.)
   }
@@ -42,8 +42,8 @@ public class Intake extends SubsystemBase {
   public Command Stop() {
     return new RunCommand(
         () -> {
-          frontRoller.set(StopSpeed);
-          backRoller.set(StopSpeed);
+          topRoller.set(StopSpeed);
+          bottomRoller.set(StopSpeed);
         },
         this);
   }
@@ -53,11 +53,11 @@ public class Intake extends SubsystemBase {
         () -> {
           double FrontRollerSpeedSpit =
               SmartDashboard.getNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeedSpit);
-          frontRoller.set(defaultFrontRollerSpeedSpit);
+          topRoller.set(defaultFrontRollerSpeedSpit);
 
           double BackRollerSpeedSpit =
               SmartDashboard.getNumber("BackRollerSpeedSpit", defaultBackRollerSpeedSpit);
-          backRoller.set(defaultBackRollerSpeedSpit);
+          bottomRoller.set(defaultBackRollerSpeedSpit);
         },
         this);
   }
@@ -67,11 +67,11 @@ public class Intake extends SubsystemBase {
         () -> {
           double FrontRollerSpeed =
               SmartDashboard.getNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
-          frontRoller.set(defaultFrontRollerSpeed);
+          topRoller.set(defaultFrontRollerSpeed);
 
           double BackRollerSpeed =
               SmartDashboard.getNumber("BackRollerSpeed", defaultBackRollerSpeed);
-          backRoller.set(defaultBackRollerSpeed);
+          bottomRoller.set(defaultBackRollerSpeed);
         },
         this);
   }

@@ -108,7 +108,7 @@ public class Robot extends LoggedRobot {
     // m_driverController.y().whileTrue(m_intake.Spit());
     m_driverController.b().whileTrue(m_intake.Stop());
     final double defaultStopDistance = 16;
-    m_driverController.leftBumper().onTrue(m_shooter.Shoot());
+    m_driverController.leftBumper().whileTrue(m_intake.intake());
     m_driverController.rightBumper().onTrue(m_shooter.Feeder());
     m_driverController.b().onTrue(m_shooter.Stop());
     SmartDashboard.putNumber("StopDistance", defaultStopDistance);
