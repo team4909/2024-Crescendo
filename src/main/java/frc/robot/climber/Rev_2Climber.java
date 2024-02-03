@@ -7,7 +7,6 @@ package frc.robot.climber;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
@@ -27,7 +26,7 @@ public class Rev_2Climber extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Left Elevator Enc Value", leftEnc.getPosition());
+    // SmartDashboard.putNumber("Left Elevator Enc Value", leftEnc.getPosition());
   }
 
   public Command Stop() {
@@ -38,7 +37,7 @@ public class Rev_2Climber extends SubsystemBase {
   }
 
   public Command raiseElevator() {
-    PIDController leftController = new PIDController(0.05, 0, 0);
+    PIDController leftController = new PIDController(0.1, 0, 0);
     leftController.setTolerance(10);
     return new PIDCommand(
         leftController,
@@ -57,5 +56,9 @@ public class Rev_2Climber extends SubsystemBase {
         () -> 0,
         (leftSpeed) -> LeftHook.set(leftSpeed),
         this);
+  }
+
+  public Command down() {
+    return new InstantCommand(() -> LeftHook.set(1));
   }
 }
