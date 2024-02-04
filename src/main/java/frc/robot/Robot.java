@@ -4,6 +4,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -35,12 +36,20 @@ public class Robot extends LoggedRobot {
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
 
+  public static boolean isBlackRobot() {
+    return RobotController.getSerialNumber() == ""; //@todo
+  }
+  public static boolean isGreenRobot() {
+    return RobotController.getSerialNumber() == ""; //@todo
+  }
+
   public Robot() {
     recordMetadeta();
 
     switch (Constants.kCurrentMode) {
       case kReal:
         // TODO find out why this causes weird errors
+        // Note: By default, the WPILOGWriter class writes to a USB stick when running on the roboRIO. A FAT32 formatted USB stick must be connected to one of the roboRIO USB ports.
         // Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         break;
