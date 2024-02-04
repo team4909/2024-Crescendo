@@ -32,7 +32,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double kDrivekV = 0.1;
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
-  private final double kSlipCurrent = 400.0;
+  private final double kSlipCurrent = 80;
   private final String kCanBusName = "CANivore1";
 
   private final TalonFX m_driveMotor, m_steerMotor;
@@ -65,25 +65,25 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(4, kCanBusName);
         m_steerMotor = new TalonFX(3, kCanBusName);
         m_azimuthEncoder = new CANcoder(12, kCanBusName);
-        m_absoluteEncoderMagnetOffset = -0.380126953125;
+        m_absoluteEncoderMagnetOffset = -0.333251953125;
         break;
       case 1: // FR
         m_driveMotor = new TalonFX(6, kCanBusName);
         m_steerMotor = new TalonFX(5, kCanBusName);
         m_azimuthEncoder = new CANcoder(13, kCanBusName);
-        m_absoluteEncoderMagnetOffset = -0.196533203125;
+        m_absoluteEncoderMagnetOffset = 0.311767578125;
         break;
       case 2: // BL
         m_driveMotor = new TalonFX(2, kCanBusName);
         m_steerMotor = new TalonFX(1, kCanBusName);
         m_azimuthEncoder = new CANcoder(11, kCanBusName);
-        m_absoluteEncoderMagnetOffset = 0.265380859375;
+        m_absoluteEncoderMagnetOffset = -0.138916015625;
         break;
       case 3: // BR
         m_driveMotor = new TalonFX(7, kCanBusName);
         m_steerMotor = new TalonFX(8, kCanBusName);
         m_azimuthEncoder = new CANcoder(14, kCanBusName);
-        m_absoluteEncoderMagnetOffset = 0.314208984375;
+        m_absoluteEncoderMagnetOffset = -0.336669921875;
         break;
       default:
         throw new RuntimeException("Invalid module index");

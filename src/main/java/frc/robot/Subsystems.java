@@ -1,6 +1,8 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
@@ -27,7 +29,9 @@ public class Subsystems {
   }
 
   public static Vision createFourCameraVision() {
-    return new Vision(new VisionIOPhotonVision("front-cam", new Transform3d()));
+    return new Vision(
+        new VisionIOPhotonVision(
+            "front-cam", new Transform3d(new Translation3d(1, 1, 1), new Rotation3d(1, 1, 1))));
   }
 
   public static Vision createBlankFourCameraVision() {

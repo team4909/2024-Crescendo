@@ -33,6 +33,7 @@ public class Robot extends LoggedRobot {
   private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
+  private final CommandXboxController m_operatorController = new CommandXboxController(1);
 
   public Robot() {
     recordMetadeta();
@@ -61,7 +62,7 @@ public class Robot extends LoggedRobot {
     switch (Constants.kCurrentMode) {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
-        m_vision = Subsystems.createBlankFourCameraVision();
+        m_vision = Subsystems.createFourCameraVision();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
@@ -79,10 +80,8 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
             () -> -m_driverController.getRightX()));
-    m_driverController.y().onTrue(m_drivetrain.zeroGyro());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
-    NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay().withTimeout(1));
     NamedCommands.registerCommand("Stop", m_shooter.Stop());
     NamedCommands.registerCommand("SensorIntake", SensorIntake());
     m_shooter.setDefaultCommand(m_shooter.Stop());
@@ -99,37 +98,90 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    // double sensorValue = SmartDashboard.getNumber("Distance", mytimeofflight.getRange());
+    SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
 
-    // m_driverController.rightTrigger().whileTrue(m_shooter.ShooterDelay());
-    // m_driverController.leftTrigger().whileTrue(new RepeatCommand(m_shooter.Intake()));
-    // m_driverController.x().whileTrue(m_intake.intake());
-    // m_driverController.y().whileTrue(m_intake.Spit());
+    // m_driverController.povDown().whileTrue(m_shooter.Shoot());
+    // m_driverController.povRight().whileTrue(m_shooter.Feeder());
+    // m_driverController.x().whileTrue(m_shooter.Stop());
+
+    // m_driverController.a().whileTrue(m_intake.Spit());
+
+    // m_driverController.leftTrigger().whileTrue(new
+    // RepeatCommand(m_shooter.Intake()));
+    // m_driverController.leftTrigger().whileTrue(m_intake.intake());
+
     // m_driverController.b().whileTrue(m_intake.Stop());
-    // final double defaultStopDistance = 0;
-    // m_driverController.leftBumper().onTrue(m_shooter.Shoot());
+    // final double defaultStopDistance = 16;
+    // m_driverController.leftBumper().whileTrue(m_intake.intake());
     // m_driverController.rightBumper().onTrue(m_shooter.Feeder());
     // m_driverController.b().onTrue(m_shooter.Stop());
     // SmartDashboard.putNumber("StopDistance", defaultStopDistance);
 
     // m_driverController
-    //     .a()
-    //     .onTrue(
-    //         new SequentialCommandGroup(
-    //                 new InstantCommand(() -> m_intake.intake()),
-    //                 new InstantCommand(() -> m_shooter.Intake()))
-    //             .until(
-    //                 () -> {
-    //                   return sensorValue
-    //                       <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-    //                 }));
+    // .povUp()
+    // .onTrue(
+    // new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake())
+    // .until(
+    // () -> {
+    // return mytimeofflight.getRange()
+    // <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
+    // }));
+
+    // m_driverController
+    // .leftTrigger()
+    // .whileTrue(new ParallelRaceGroup(m_intake.intake(),
+    // m_shooter.Intake()).repeatedly());
+
+    // this is here to make the value be editable on the dashboard
+
+    // SmartDashboard.putNumber("Intake/CurrentStopInput", 10);
+
+    // m_driverController
+    // .leftBumper()
+    // .whileTrue(
+    // new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake())
+    // .repeatedly()
+    // .until(
+    // () -> {
+    // double defaultIntakeStopCurrent = 10;
+    // return m_shooter.getCurrent() > SmartDashboard.getNumber(
+    // "Intake/CurrentStopInput", defaultIntakeStopCurrent);
+    // }));
+
+    // ____________________driverController_______________________\\
+    m_driverController
+        .rightTrigger()
+        .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()));
+
+    m_driverController
+        .rightBumper()
+        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
+
+    m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
+
+    m_driverController
+        .leftBumper()
+        .whileTrue(
+            new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake())
+                .repeatedly()
+                .until(
+                    () -> {
+                      double defaultIntakeStopCurrent = 10;
+                      return m_shooter.getCurrent()
+                          > SmartDashboard.getNumber(
+                              "Intake/CurrentStopInput", defaultIntakeStopCurrent);
+                    }))
+        .onFalse(m_shooter.PullBack());
+
+    // ___________________OperatorController______________________\\
+    m_operatorController.y().onTrue(m_shooter.Shoot());
   }
 
   public Command SensorIntake() {
     final double defaultStopDistance = 35;
-    SmartDashboard.putNumber(
-        "StopDistance", defaultStopDistance); // this is here to make the value be editable on
-    // the dashboard
+
+    // this is here to make the value be editable on the dashboard
+    SmartDashboard.putNumber("StopDistance", defaultStopDistance);
     return new ParallelRaceGroup(
         new RepeatCommand(m_intake.intake()),
         new RepeatCommand(m_shooter.Intake())
@@ -151,6 +203,8 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_vision.periodic();
+    SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
+    SmartDashboard.putNumber("Intake/Current", m_shooter.getCurrent());
   }
 
   @Override

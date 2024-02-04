@@ -44,8 +44,8 @@ public class Drivetrain extends SubsystemBase {
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
-  private final double kDeadband = 0.05;
-  private final boolean kUseVisionCorrection = false;
+  private final double kDeadband = 0.07;
+  private final boolean kUseVisionCorrection = true;
 
   public static final Lock odometryLock = new ReentrantLock();
   private final ImuIO m_imuIO;

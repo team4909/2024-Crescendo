@@ -8,19 +8,19 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
   // private final double Speed = 1;
   private final double StopSpeed = 0;
-  private double defaultFrontRollerSpeed = -1;
-  private double defaultBackRollerSpeed = -.6;
-  private double defaultFrontRollerSpeedSpit = .65;
-  private double defaultBackRollerSpeedSpit = .65;
+  private double defaultFrontRollerSpeed = -.8;
+  private double defaultBackRollerSpeed = -.8;
+  private double defaultFrontRollerSpeedSpit = .8;
+  private double defaultBackRollerSpeedSpit = .8;
 
-  private CANSparkMax frontRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
-  private CANSparkMax backRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
+  private CANSparkMax topRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
+  private CANSparkMax bottomRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
 
   public Intake() {
     SmartDashboard.putNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
@@ -28,8 +28,8 @@ public class Intake extends SubsystemBase {
     SmartDashboard.putNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeed);
     SmartDashboard.putNumber("BackRollerSpeedSpit", defaultBackRollerSpeed);
 
-    frontRoller.setIdleMode(IdleMode.kBrake);
-    backRoller.setIdleMode(IdleMode.kBrake);
+    topRoller.setIdleMode(IdleMode.kBrake);
+    bottomRoller.setIdleMode(IdleMode.kBrake);
 
     // frontRoller.getFault(FaultID.)
   }
@@ -40,38 +40,38 @@ public class Intake extends SubsystemBase {
   }
 
   public Command Stop() {
-    return new InstantCommand(
+    return new RunCommand(
         () -> {
-          frontRoller.set(StopSpeed);
-          backRoller.set(StopSpeed);
+          topRoller.set(StopSpeed);
+          bottomRoller.set(StopSpeed);
         },
         this);
   }
 
   public Command Spit() {
-    return new InstantCommand(
+    return new RunCommand(
         () -> {
           double FrontRollerSpeedSpit =
               SmartDashboard.getNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeedSpit);
-          frontRoller.set(FrontRollerSpeedSpit);
+          topRoller.set(defaultFrontRollerSpeedSpit);
 
           double BackRollerSpeedSpit =
               SmartDashboard.getNumber("BackRollerSpeedSpit", defaultBackRollerSpeedSpit);
-          backRoller.set(BackRollerSpeedSpit);
+          bottomRoller.set(defaultBackRollerSpeedSpit);
         },
         this);
   }
 
   public Command intake() {
-    return new InstantCommand(
+    return new RunCommand(
         () -> {
           double FrontRollerSpeed =
               SmartDashboard.getNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
-          frontRoller.set(FrontRollerSpeed);
+          topRoller.set(defaultFrontRollerSpeed);
 
           double BackRollerSpeed =
               SmartDashboard.getNumber("BackRollerSpeed", defaultBackRollerSpeed);
-          backRoller.set(BackRollerSpeed);
+          bottomRoller.set(defaultBackRollerSpeed);
         },
         this);
   }
