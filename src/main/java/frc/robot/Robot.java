@@ -149,11 +149,13 @@ public class Robot extends LoggedRobot {
     // }));
 
     // ____________________driverController_______________________\\
-    m_driverController.rightTrigger().onTrue(m_shooter.Feeder());
+    m_driverController
+        .rightTrigger()
+        .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()));
 
     m_driverController
         .rightBumper()
-        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.Feeder()));
+        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 

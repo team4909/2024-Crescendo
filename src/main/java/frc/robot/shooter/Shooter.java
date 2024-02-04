@@ -45,8 +45,6 @@ public class Shooter extends SubsystemBase {
   public Command Shoot() {
     return new InstantCommand(
             () -> {
-              SmartDashboard.putNumber("ShooterSpeed", OutSpeed);
-
               shooterTop.set(OutSpeed);
               shooterBottom.set(OutSpeed);
             },
@@ -56,14 +54,15 @@ public class Shooter extends SubsystemBase {
 
   public Command Stop() {
     return new InstantCommand(
-        () -> {
-          SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
+            () -> {
+              SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
 
-          shooterTop.set(StopSpeed);
-          shooterBottom.set(StopSpeed);
-          feeder.set(StopSpeed);
-        },
-        this);
+              shooterTop.set(StopSpeed);
+              shooterBottom.set(StopSpeed);
+              feeder.set(StopSpeed);
+            },
+            this)
+        .repeatedly();
   }
 
   public Command Intake() {
