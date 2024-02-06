@@ -54,7 +54,6 @@ public class RobotContainer {
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
-
         // Commands that can be used from path planner
         // NamedCommands.registerCommand("ShooterDelay",
         // s_Shooter.ShooterDelay().withTimeout(1));
@@ -105,7 +104,10 @@ public class RobotContainer {
         // System.out.println(mytimeofflight.getRange());
         // driver.a().onTrue(SensorIntake());
         driver.povDown().onTrue(s_Arm.low());
-        driver.povUp().onTrue(s_Arm.Rotate().withTimeout(2));
+        // driver.povUp().onTrue(s_Arm.Rotate().withTimeout(2));
+        driver.y().whileTrue(s_Arm.move().repeatedly());
+        driver.b().onTrue(s_Arm.stop());
+        driver.a().onTrue(s_Arm.goToDeg(90));
         // driver.povUp().onTrue(s_Arm.stop());
         // driver.x().onTrue(s_Arm.podium());
         // driver.y().onTrue(s_Arm.low2());
