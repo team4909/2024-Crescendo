@@ -132,11 +132,11 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_driveVelocitySignal = m_driveMotor.getVelocity();
     m_driveAppliedVoltsSignal = m_driveMotor.getMotorVoltage();
     m_driveCurrentSignal = m_driveMotor.getStatorCurrent();
-    m_steerAbsolutePositionSignal = m_azimuthEncoder.getAbsolutePosition();
     m_steerPositionSignal = m_steerMotor.getPosition();
     m_steerVelocitySignal = m_steerMotor.getVelocity();
     m_steerAppliedVoltsSignal = m_steerMotor.getMotorVoltage();
     m_steerCurrentSignal = m_steerMotor.getStatorCurrent();
+    m_steerAbsolutePositionSignal = m_azimuthEncoder.getAbsolutePosition();
 
     m_drivePositionQueue =
         PhoenixOdometryThread.getInstance()
@@ -159,6 +159,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_steerCurrentSignal);
     m_driveMotor.optimizeBusUtilization();
     m_steerMotor.optimizeBusUtilization();
+    m_azimuthEncoder.optimizeBusUtilization();
 
     m_steerControl = new MotionMagicExpoVoltage(0.0, true, 0.0, 0, true, false, false);
     m_driveControl = new VelocityVoltage(0.0, 0.0, true, 0.0, 0, true, false, false);

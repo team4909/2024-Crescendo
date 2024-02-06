@@ -1,5 +1,9 @@
 package frc.robot.arm;
 
+import java.util.Optional;
+
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -9,8 +13,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.arm.ArmConfig.JointConfig;
-import java.util.Optional;
-import org.littletonrobotics.junction.Logger;
 
 public class Arm extends SubsystemBase {
 
@@ -42,17 +44,14 @@ public class Arm extends SubsystemBase {
     Optional<Vector<N2>> setpointAnglesRad = m_armKinematics.inverse(setpoint);
     setpointAnglesRad.ifPresent(
         angles -> {
-          var elbowAngle = angles.get(0, 0);
-          var wristAngle = angles.get(1, 0);
-          Logger.recordOutput("Arm/Elbow Angle Degrees", (elbowAngle));
-          Logger.recordOutput("Arm/Wrist Angle Degrees", (wristAngle));
+          double elbowAngle = angles.get(0, 0);
+          double wristAngle = angles.get(1, 0);
+          Logger.recordOutput("Arm/Goal Elbow Angle", (elbowAngle));
+          Logger.recordOutput("Arm/Goal Wrist Angle", (wristAngle));
           m_setpointVisualizer.update(elbowAngle, wristAngle);
-          var feedforwardAmps = m_armModel.feedforward(angles);
-          // var feedforwardAmps =
-          //     m_armModel.feedforwardAmps(
-          //         VecBuilder.fill(m_inputs.elbowPositionRad, m_inputs.wristPositionRad));
-          var elbowFeedForward = feedforwardAmps.get(0, 0);
-          var wristFeedForward = feedforwardAmps.get(1, 0);
+          Vector<N2> feedforwardVolts = m_armModel.feedforward(angles);
+          double elbowFeedForward = feedforwardVolts.get(0, 0);
+          double wristFeedForward = feedforwardVolts.get(1, 0);
           Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForward);
           Logger.recordOutput("Arm/Wrist Feed Forward", wristFeedForward);
           m_io.setElbowRotatations(Units.radiansToRotations(elbowAngle), elbowFeedForward);
@@ -64,12 +63,10 @@ public class Arm extends SubsystemBase {
   //   return this.run(() -> setSetpoint(new Translation2d(0.5, 0.6))).withName("Test Setpoint");
   // }
 
+  Translation2d folded = new Translation2d(0.0762, 0.4699);
+  Translation2d trapSetpoint = new Translation2d(Units.inchesToMeters(19.8), Units.inchesToMeters(30));
   public Command testSetpoint() {
-    return this.run(
-            () ->
-                setSetpoint(
-                    new Translation2d(Units.inchesToMeters(5.5), Units.inchesToMeters(15.9))))
-        .withName("Test Setpoint");
+    return this.run(() -> setSetpoint(trapSetpoint)).withName("Test Setpoint");
   }
 
   public Command stop() {
@@ -101,54 +98,55 @@ public class Arm extends SubsystemBase {
       Translation2d relativePosition = position.minus(ArmConfig.kOrigin);
 
       // Flip when X is negative
-      boolean isFlipped = relativePosition.getX() < 0.0;
-      if (isFlipped) {
-        relativePosition = new Translation2d(-relativePosition.getX(), relativePosition.getY());
-      }
+      // boolean isFlipped = relativePosition.getX() < 0.0;
+      // if (isFlipped) {
+      //   relativePosition = new Translation2d(-relativePosition.getX(), relativePosition.getY());
+      // }
 
       // Calculate angles
-      double elbowAngle =
+      double wristAngle =
           -Math.acos(
               (Math.pow(relativePosition.getX(), 2)
                       + Math.pow(relativePosition.getY(), 2)
                       - Math.pow(m_elbowConfig.length(), 2)
                       - Math.pow(m_wristConfig.length(), 2))
                   / (2 * m_elbowConfig.length() * m_wristConfig.length()));
-      if (Double.isNaN(elbowAngle)) {
+      if (Double.isNaN(wristAngle)) {
         return Optional.empty();
       }
-      double shoulderAngle =
+      double elbowAngle =
           Math.atan(relativePosition.getY() / relativePosition.getX())
               - Math.atan(
-                  (m_wristConfig.length() * Math.sin(elbowAngle))
-                      / (m_elbowConfig.length() + m_wristConfig.length() * Math.cos(elbowAngle)));
+                  (m_wristConfig.length() * Math.sin(wristAngle))
+                      / (m_elbowConfig.length() + m_wristConfig.length() * Math.cos(wristAngle)));
 
       // Invert shoulder angle if invalid
       Translation2d testPosition =
-          forward(VecBuilder.fill(shoulderAngle, elbowAngle)).minus(ArmConfig.kOrigin);
+          forward(VecBuilder.fill(elbowAngle, wristAngle)).minus(ArmConfig.kOrigin);
       if (testPosition.getDistance(relativePosition) > 1e-3) {
-        shoulderAngle += Math.PI;
+        elbowAngle += Math.PI;
       }
 
       // Flip angles
-      if (isFlipped) {
-        shoulderAngle = Math.PI - shoulderAngle;
-        elbowAngle = -elbowAngle;
-      }
+      // if (isFlipped) {
+      //   elbowAngle = Math.PI - elbowAngle;
+      //   wristAngle = -wristAngle;
+      // }
 
       // Wrap angles to correct ranges
-      shoulderAngle = MathUtil.inputModulus(shoulderAngle, -Math.PI, Math.PI);
-      elbowAngle = MathUtil.inputModulus(elbowAngle, 0.0, Math.PI * 2.0);
+      elbowAngle = MathUtil.inputModulus(elbowAngle, 0, 2 * Math.PI);
+      wristAngle = MathUtil.inputModulus(wristAngle, 0, 2 * Math.PI);
 
       // Exit if outside valid ranges for the joints
-      if (shoulderAngle < m_elbowConfig.minAngle()
-          || shoulderAngle > m_elbowConfig.maxAngle()
-          || elbowAngle < m_wristConfig.minAngle()
-          || elbowAngle > m_wristConfig.maxAngle()) {
+      if (elbowAngle < m_elbowConfig.minAngle()
+          || elbowAngle > m_elbowConfig.maxAngle()
+          || wristAngle < m_wristConfig.minAngle()
+          || wristAngle > m_wristConfig.maxAngle()) {
         return Optional.empty();
       }
-      return Optional.of(VecBuilder.fill(Units.degreesToRadians(146) , Units.degreesToRadians(174)));
-      // return Optional.of(VecBuilder.fill(shoulderAngle, elbowAngle));
+      // return Optional.of(VecBuilder.fill(Units.degreesToRadians(0),
+      // Units.degreesToRadians(0)));
+      return Optional.of(VecBuilder.fill(elbowAngle, wristAngle));
     }
   }
 }
