@@ -51,18 +51,17 @@ public class RobotContainer {
     /* Driver Buttons */
     private final Trigger zeroGyro = driver.start();
     private final Trigger robotCentric = driver.povUp();
-    private final Trigger Intake = driver.x();
     private final Trigger Spit = driver.y();
     private final Trigger Stop = driver.b();
-    private final Trigger Feeder = driver.rightBumper();
-    private final Trigger Shoot = driver.leftBumper();
+    // private final Trigger Feeder = driver.rightBumper();
+    // private final Trigger Shoot = driver.leftBumper();
     // Opperator Buttons
-    private final Trigger ShootButton = driver.rightTrigger();
-    private final Trigger IntakeButton = driver.leftTrigger();
+    // private final Trigger ShootButton = driver.rightTrigger();
+    // private final Trigger IntakeButton = driver.leftTrigger();
 
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
-    private final Rev_1Shooter s_Shooter = new Rev_1Shooter();
+    // private final Rev_1Shooter s_Shooter = new Rev_1Shooter();
     private final Rev_1Intake s_Intake = new Rev_1Intake();
 
     /**
@@ -71,10 +70,10 @@ public class RobotContainer {
     public RobotContainer() {
 
         // Commands that can be used from path planner
-        NamedCommands.registerCommand("ShooterDelay", s_Shooter.ShooterDelay().withTimeout(1));
-        NamedCommands.registerCommand("Stop", s_Shooter.Stop());
+        // NamedCommands.registerCommand("ShooterDelay", s_Shooter.ShooterDelay().withTimeout(1));
+        // NamedCommands.registerCommand("Stop", s_Shooter.Stop());
 
-        NamedCommands.registerCommand("SensorIntake", SensorIntake());
+        // NamedCommands.registerCommand("SensorIntake", SensorIntake());
         // var jt = new JoystickTrigger(driver,
         // XboxController.Axis.kRightTrigger.value);
         // CommandXboxController m_oppController = new CommandXboxController(1);
@@ -87,7 +86,7 @@ public class RobotContainer {
                         () -> -driver.getRawAxis(rotationAxis),
                         () -> robotCentric.getAsBoolean()));
 
-        s_Shooter.setDefaultCommand(s_Shooter.Stop());
+        // s_Shooter.setDefaultCommand(s_Shooter.Stop());
         s_Intake.setDefaultCommand(s_Intake.Stop());
 
         // Configure the button bindings
@@ -106,32 +105,33 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-        ShootButton.whileTrue(s_Shooter.ShooterDelay());
-        IntakeButton.whileTrue(new RepeatCommand(s_Shooter.Intake()));
-        Intake.whileTrue(s_Intake.Intake());
+        // ShootButton.whileTrue(s_Shooter.ShooterDelay());
+        // IntakeButton.whileTrue(new RepeatCommand(s_Shooter.Intake()));
+        driver.x().whileTrue(s_Intake.Intake().repeatedly());
         Spit.whileTrue(s_Intake.Spit());
         Stop.whileTrue(s_Intake.Stop());
 
-        Shoot.onTrue(s_Shooter.Shoot());
-        Feeder.onTrue(s_Shooter.Feeder());
-        Stop.onTrue(s_Shooter.Stop());
+        driver.y().whileTrue(s_Intake.Intake().repeatedly());
+        // Shoot.onTrue(s_Shooter.Shoot());
+        // Feeder.onTrue(s_Shooter.Feeder());
+        // Stop.onTrue(s_Shooter.Stop());
 
         // System.out.println(mytimeofflight.getRange());
-        driver.a().onTrue(SensorIntake());
+        // driver.a().onTrue(SensorIntake());
 
     };
 
-    public Command SensorIntake() {
-        final double defaultStopDistance = 35;
-        SmartDashboard.putNumber("StopDistance", defaultStopDistance); // this is here to make the value be editable on
-                                                                       // the dashboard
-        return new ParallelRaceGroup(
-                new RepeatCommand(s_Intake.Intake()),
-                new RepeatCommand(s_Shooter.Intake()).until(() -> {
-                    return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance",
-                            defaultStopDistance);
-                }));
-    }
+    // public Command SensorIntake() {
+    //     final double defaultStopDistance = 35;
+    //     SmartDashboard.putNumber("StopDistance", defaultStopDistance); // this is here to make the value be editable on
+    //                                                                    // the dashboard
+    //     return new ParallelRaceGroup(
+    //             new RepeatCommand(s_Intake.Intake()),
+    //             new RepeatCommand(s_Shooter.Intake()).until(() -> {
+    //                 return mytimeofflight.getRange() <= SmartDashboard.getNumber("StopDistance",
+    //                         defaultStopDistance);
+    //             }));
+    // }
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
