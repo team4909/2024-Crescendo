@@ -4,124 +4,95 @@
 
 package frc.robot.subsystems.ARM;
 
-import java.lang.module.ModuleDescriptor.Requires;
-
 // import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 // import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest.Idle;
-import com.ctre.phoenix6.signals.ControlModeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.playingwithfusion.CANVenom.ControlMode;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
-import frc.robot.Constants;
-import frc.robot.subsystems.ARM.Rev_2Arm.LowMotorConstants;
-import frc.robot.subsystems.ARM.Rev_2Arm.UpperMotorConstants;
 
 public class Rev_2Arm extends SubsystemBase {
+    private double gearRatio1; 
+    private double gearRatio2;
+    private double gearR;
 
-  public static final class LowMotorConstants {
-    public static final double IDLE = 0;
-    public static final double LOW = 0;
-    public static final double MID = 10;
-    public static final double HIGH = 0;
-    public static final double RETRACTED = 0;
-    // public static final double LOWKV = 0;
-    // public static final double LOWKP = 0;
-    // public static final double LOWKI = 0;
-    // public static final double LOWKD = 0;
-  }
-    private double AngularVelocity;
-    private double GearRatio1; 
-    private double GearRatio2;
-    private double Motor1Vel;
-    private double Motor2Vel;
-    private double GearR;
+  private TalonFX l_Joint1 = new TalonFX(13, "CANivore2");
+  private TalonFX l_Joint2 = new TalonFX(15, "CANivore2");
+  private TalonFX r_Joint1 = new TalonFX(14, "CANivore2");
+  private TalonFX r_Joint2 = new TalonFX(16, "CANivore2");
 
-  public static final class UpperMotorConstants {
-    public static final double IDLE = 0;
-    public static final double LOW = 0;
-    public static final double MID = 10;
-    public static final double HIGH = 0;
-    public static final double RETRACTED = 0;
-    // public static final double UPKV = 0;
-    // public static final double UPKP = 0;
-    // public static final double UPKI = 0;
-    // public static final double UPKD = 0;
-  }
-
-  private TalonFX l_joint1 = new TalonFX(13, "CANivore2");
-  private TalonFX l_joint2 = new TalonFX(15, "CANivore2");
-  private TalonFX r_joint1 = new TalonFX(14, "CANivore2");
-  private TalonFX r_joint2 = new TalonFX(16, "CANivore2");
-
-  final PositionVoltage m_request = new PositionVoltage(0).withSlot(0);
+  final MotionMagicVoltage m_request = new MotionMagicVoltage(0).withSlot(0);
 
 
-  private final DutyCycleOut m_lMotor = new DutyCycleOut(1.0);
-  private final DutyCycleOut m_rMotor = new DutyCycleOut(1.0);
-
-  /** Creates a new Rev_2Arm. */
+  /** Creates a new Rev_2Arm. */ 
   public Rev_2Arm() {
-    AngularVelocity = 1;
-    GearR = 15d;
-    GearRatio1 = 48d/17d*GearR;
-    GearRatio2 = 36d/17d*GearR;
+    gearR = 15d;
+    gearRatio1 = 48d/17d*gearR;
+    gearRatio2 = 36d/17d*gearR;
 
     // ArmMotorFirstP.setPosition(High);
-    r_joint1.setControl(new Follower(l_joint1.getDeviceID(), true));
-    r_joint2.setControl(new Follower(l_joint2.getDeviceID(), true));
+    r_Joint1.setControl(new Follower(l_Joint1.getDeviceID(), true));
+    r_Joint2.setControl(new Follower(l_Joint2.getDeviceID(), true));
 
-    l_joint1.setPosition(0);
-    l_joint2.setPosition(0);
+    l_Joint1.setPosition(0);
+    l_Joint2.setPosition(0);
 
-    l_joint1.getConfigurator().apply(new TalonFXConfiguration());
-    l_joint2.getConfigurator().apply(new TalonFXConfiguration());
+    l_Joint1.getConfigurator().apply(new TalonFXConfiguration());
+    l_Joint2.getConfigurator().apply(new TalonFXConfiguration());
 
     TalonFXConfiguration brakeConfiguration = new TalonFXConfiguration();
     brakeConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-    l_joint1.getConfigurator().apply(brakeConfiguration);
-    l_joint2.getConfigurator().apply(brakeConfiguration);
+    l_Joint1.getConfigurator().apply(brakeConfiguration);
+    l_Joint2.getConfigurator().apply(brakeConfiguration);
     // lowMotorFollower.configFactoryDefault();
     // upperMotorFollower.configFactoryDefault();
     // lowMotor.setSmartCurrentLimit(40);
     // upperMotor.setSmartCurrentLimit(40);
 
     var l_joint1Configs = new Slot0Configs();
-    l_joint1Configs.kV = 0;
+    l_joint1Configs.kS = 0.15;
+    l_joint1Configs.kV = 0.1;
+    l_joint1Configs.kA = 0.01;
     l_joint1Configs.kP = 0.5;
     l_joint1Configs.kI = 0;
     l_joint1Configs.kD = 0;
 
+    var l1_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
+    l1_motionMagicConfigs.MotionMagicCruiseVelocity = 10; // Target cruise velocity of 80 rps
+    l1_motionMagicConfigs.MotionMagicAcceleration = 10; // Target acceleration of 160 rps/s (0.5 seconds)
+    l1_motionMagicConfigs.MotionMagicJerk = 10; // Target jerk of 1600 rps/s/s (0.1 seconds)
+
     // apply gains, 50 ms total timeout
-    l_joint1.getConfigurator().apply(l_joint1Configs, 0.050);
+    l_Joint1.getConfigurator().apply(l_joint1Configs, 0.050);
+    l_Joint1.getConfigurator().apply(l1_motionMagicConfigs, 0.050);
 
     var l_joint2Configs = new Slot0Configs();
-    l_joint2Configs.kV = 0;
+    l_joint2Configs.kS = 0.15;
+    l_joint2Configs.kV = 0.1;
+    l_joint2Configs.kA = 0.05;
     l_joint2Configs.kP = 0.65;
     l_joint2Configs.kI = 0;
     l_joint2Configs.kD = 0;
 
+    var l2_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
+    l2_motionMagicConfigs.MotionMagicCruiseVelocity = 20; // Target cruise velocity of 80 rps
+    l2_motionMagicConfigs.MotionMagicAcceleration = 30; // Target acceleration of 160 rps/s (0.5 seconds)
+    l2_motionMagicConfigs.MotionMagicJerk = 30; // Target jerk of 1600 rps/s/s (0.1 seconds)
+
     // apply gains, 50 ms total timeout
-    l_joint2.getConfigurator().apply(l_joint2Configs, 0.050);
+    l_Joint1.getConfigurator().apply(l_joint2Configs, 0.050);
+    l_Joint1.getConfigurator().apply(l2_motionMagicConfigs, 0.050);
+
+    // apply gains, 50 ms total timeout
+    l_Joint2.getConfigurator().apply(l_joint2Configs, 0.050);
 
     
 
@@ -140,13 +111,13 @@ public class Rev_2Arm extends SubsystemBase {
   // }, this);
   // }
 
-  public Command low() {
-    return new InstantCommand(() -> {
-      System.out.println("LOW");
-      l_joint1.setControl(m_request.withVelocity(Motor1Vel));
-      l_joint2.setControl(m_request.withVelocity(1));
-    }, this);
-  }
+  // public Command low() {
+  //   return new InstantCommand(() -> {
+  //     System.out.println("LOW");
+  //     l_joint1.setControl(m_request.withVelocity(Motor1Vel));
+  //     l_joint2.setControl(m_request.withVelocity(1));
+  //   }, this);
+  // }
 
   // public Command stop() {
   //   return new InstantCommand(() -> {
@@ -174,15 +145,15 @@ public class Rev_2Arm extends SubsystemBase {
   //   }, this));
   // }
 
-  public Command move() {
-    return new InstantCommand(()-> {
-      l_joint1.setControl(m_request.withVelocity(-Motor1Vel));
-      l_joint2.setControl(m_request.withVelocity(-Motor2Vel));
-    }, this);
+  // public Command move() {
+  //   return new InstantCommand(()-> {
+  //     l_joint1.setControl(m_request.withVelocity(-Motor1Vel));
+  //     l_joint2.setControl(m_request.withVelocity(-Motor2Vel));
+  //   }, this);
 
       // l_joint1.setControl(m_request.withVelocity(Motor1Vel));
       // l_joint2.setControl(m_request.withVelocity(Motor2Vel));
-  }
+  // }
 
   public Command goToDeg(TalonFX joint, double GR, double degree){
     return new InstantCommand(()-> {
@@ -191,32 +162,56 @@ public class Rev_2Arm extends SubsystemBase {
     }, this);
   }
 
+  //   public Command goToDegVel(TalonFX joint, double GR, double degree, double vel){
+  //   return new InstantCommand(()-> {
+  //     // l_joint1.setControl(m_request.withPosition(-(degree*GearRatio1)/(360d)));
+  //     joint.setControl(m_request.withPosition((degree*GR)/(360d)).withVelocity(vel));
+  //   }, this);
+  // }
+
   // public Command goToDegW1J(){
   //   return goToDeg(l_joint1, GearRatio1, 60);
   // }
 
   public Command goToDeg(double j1Degrees, double j2Degrees){
     return new SequentialCommandGroup(
-      goToDeg(l_joint1, GearRatio1, -j1Degrees),
-      goToDeg(l_joint2, GearRatio2, j2Degrees));
+      goToDeg(l_Joint1, gearRatio1, -j1Degrees),
+      goToDeg(l_Joint2, gearRatio2, j2Degrees));
   }
+
+  //   public Command goToDegVel(double j1Degrees, double j2Degrees, double vel){
+  //   return new SequentialCommandGroup(
+  //     goToDegVel(l_joint1, GearRatio1, -j1Degrees, vel),
+  //     goToDegVel(l_joint2, GearRatio2, j2Degrees, vel));
+  // }
 
   public Command goToDegSeq(double j1ParDeg, double j2ParDeg, double j2SeqDeg){
     return new SequentialCommandGroup(
       goToDeg(j1ParDeg, j2ParDeg),
       new WaitUntilCommand(() -> {
-        System.out.println(l_joint1.getPosition().getValue() - (-j1ParDeg*GearRatio1)/(360d));
-        return Math.abs(l_joint1.getPosition().getValue() - (-j1ParDeg*GearRatio1)/(360d)) <= 5;
-      })
+        System.out.println(l_Joint1.getPosition().getValue() - (-j1ParDeg*gearRatio1)/(360d));
+        return Math.abs(l_Joint1.getPosition().getValue() - (-j1ParDeg*gearRatio1)/(360d)) <= 5;
+      }),
+      goToDeg(j1ParDeg, j2ParDeg)
       );
   }
 
-  public Command stop(){
-    return new InstantCommand(()-> {
-      l_joint1.setControl(m_request.withVelocity(0));
-      l_joint2.setControl(m_request.withVelocity(0));
-    }, this);
+  public Command goDown(){
+      return new SequentialCommandGroup(
+      goToDeg(l_Joint2, gearRatio2, 0),
+      new WaitUntilCommand(() -> {
+        return Math.abs(l_Joint2.getPosition().getValue() - (0*gearRatio2)/(360d)) <= 5;
+      }),
+      goToDeg(0, 0)
+      );
   }
+
+  // public Command stop(){
+  //   return new InstantCommand(()-> {
+  //     l_joint1.setControl(m_request.withVelocity(0));
+  //     l_joint2.setControl(m_request.withVelocity(0));
+  //   }, this);
+  // }
 
   // public Command high() {
   // return new InstantCommand(() -> {

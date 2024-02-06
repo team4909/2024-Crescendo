@@ -107,9 +107,11 @@ public class RobotContainer {
         // driver.povDown().onTrue(s_Arm.low());
         // driver.povUp().onTrue(s_Arm.Rotate().withTimeout(2));
         // driver.y().whileTrue(s_Arm.move().repeatedly());
-        driver.b().onTrue(s_Arm.stop());
-        driver.a().onTrue(s_Arm.goToDeg(0,50));
-        driver.x().onTrue(s_Arm.goToDegSeq(100,0,-45));
+        // driver.b().onTrue(s_Arm.stop());
+        // driver.a().onTrue(s_Arm.goToDeg(0,50));
+        // driver.a().onTrue(s_Arm.goToDegVel(150, 0, 0.5));
+        driver.x().onTrue(s_Arm.goToDegSeq(150,0, 45));
+        driver.b().onTrue(s_Arm.goDown());
         // driver.povUp().onTrue(s_Arm.stop());
         // driver.x().onTrue(s_Arm.podium());
         // driver.y().onTrue(s_Arm.low2());
