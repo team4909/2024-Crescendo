@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.playingwithfusion.TimeOfFlight;
 
@@ -103,11 +104,12 @@ public class RobotContainer {
 
         // System.out.println(mytimeofflight.getRange());
         // driver.a().onTrue(SensorIntake());
-        driver.povDown().onTrue(s_Arm.low());
+        // driver.povDown().onTrue(s_Arm.low());
         // driver.povUp().onTrue(s_Arm.Rotate().withTimeout(2));
-        driver.y().whileTrue(s_Arm.move().repeatedly());
+        // driver.y().whileTrue(s_Arm.move().repeatedly());
         driver.b().onTrue(s_Arm.stop());
-        driver.a().onTrue(s_Arm.goToDeg(90));
+        driver.a().onTrue(s_Arm.goToDeg(0,50));
+        driver.x().onTrue(s_Arm.goToDegSeq(100,0,-45));
         // driver.povUp().onTrue(s_Arm.stop());
         // driver.x().onTrue(s_Arm.podium());
         // driver.y().onTrue(s_Arm.low2());

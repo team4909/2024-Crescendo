@@ -27,7 +27,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants;
 import frc.robot.subsystems.ARM.Rev_2Arm.LowMotorConstants;
 import frc.robot.subsystems.ARM.Rev_2Arm.UpperMotorConstants;
@@ -84,7 +87,7 @@ public class Rev_2Arm extends SubsystemBase {
 
     // ArmMotorFirstP.setPosition(High);
     r_joint1.setControl(new Follower(l_joint1.getDeviceID(), true));
-    r_joint2.setControl(new Follower(l_joint1.getDeviceID(), true));
+    r_joint2.setControl(new Follower(l_joint2.getDeviceID(), true));
 
     l_joint1.setPosition(0);
     l_joint2.setPosition(0);
@@ -113,7 +116,7 @@ public class Rev_2Arm extends SubsystemBase {
 
     var l_joint2Configs = new Slot0Configs();
     l_joint2Configs.kV = 0;
-    l_joint2Configs.kP = 0.5;
+    l_joint2Configs.kP = 0.65;
     l_joint2Configs.kI = 0;
     l_joint2Configs.kD = 0;
 
@@ -127,7 +130,7 @@ public class Rev_2Arm extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    System.out.println(l_joint1.getTorqueCurrent());
+    // System.out.println(l_joint2.getTorqueCurrent());
   }
 
   // public Command idle() {
@@ -181,11 +184,31 @@ public class Rev_2Arm extends SubsystemBase {
       // l_joint2.setControl(m_request.withVelocity(Motor2Vel));
   }
 
-  public Command goToDeg(double degree){
+  public Command goToDeg(TalonFX joint, double GR, double degree){
     return new InstantCommand(()-> {
-      l_joint1.setControl(m_request.withPosition(-(degree*GearRatio1)/(360d)));
-      l_joint2.setControl(m_request.withPosition(-(degree*GearRatio2)/(360d)));
+      // l_joint1.setControl(m_request.withPosition(-(degree*GearRatio1)/(360d)));
+      joint.setControl(m_request.withPosition((degree*GR)/(360d)));
     }, this);
+  }
+
+  // public Command goToDegW1J(){
+  //   return goToDeg(l_joint1, GearRatio1, 60);
+  // }
+
+  public Command goToDeg(double j1Degrees, double j2Degrees){
+    return new SequentialCommandGroup(
+      goToDeg(l_joint1, GearRatio1, -j1Degrees),
+      goToDeg(l_joint2, GearRatio2, j2Degrees));
+  }
+
+  public Command goToDegSeq(double j1ParDeg, double j2ParDeg, double j2SeqDeg){
+    return new SequentialCommandGroup(
+      goToDeg(j1ParDeg, j2ParDeg),
+      new WaitUntilCommand(() -> {
+        System.out.println(l_joint1.getPosition().getValue() - (-j1ParDeg*GearRatio1)/(360d));
+        return Math.abs(l_joint1.getPosition().getValue() - (-j1ParDeg*GearRatio1)/(360d)) <= 5;
+      })
+      );
   }
 
   public Command stop(){
