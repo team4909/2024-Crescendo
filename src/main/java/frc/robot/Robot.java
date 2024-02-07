@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
@@ -37,6 +38,7 @@ public class Robot extends LoggedRobot {
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
+  private boolean speakerShot = false;
 
   public Robot() {
     recordMetadeta();
@@ -154,7 +156,8 @@ public class Robot extends LoggedRobot {
     // ____________________driverController_______________________\\
     m_driverController
         .rightTrigger()
-        .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()));
+        .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
+        .onFalse(new InstantCommand(() -> speakerShot = false));
 
     m_driverController
         .rightBumper()
@@ -165,7 +168,12 @@ public class Robot extends LoggedRobot {
     m_driverController.b().onTrue(m_arm.goDown());
 
     m_driverController.a().onTrue(m_arm.goToDeg(0, 0));
-    m_driverController.y().onTrue(m_arm.goToDeg(0, 32));
+    m_driverController
+        .y()
+        .onTrue(
+            new ParallelCommandGroup(
+                m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)));
+
     m_driverController.x().onTrue(m_arm.goToDegSeq(115, 0, -95));
 
     m_operatorController
@@ -177,7 +185,7 @@ public class Robot extends LoggedRobot {
     m_driverController
         .leftBumper()
         .whileTrue(
-            new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake())
+            new ParallelRaceGroup(m_intake.intake(false), m_shooter.Intake())
                 .repeatedly()
                 .until(
                     () -> {
@@ -188,7 +196,7 @@ public class Robot extends LoggedRobot {
                     }))
         .onFalse(
             new ParallelRaceGroup(
-                m_shooter.PullBack(), m_intake.intake().repeatedly().withTimeout(0.125)));
+                m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
     // ___________________OperatorController______________________\\
     m_operatorController.y().onTrue(m_shooter.Shoot());
@@ -200,7 +208,7 @@ public class Robot extends LoggedRobot {
     // this is here to make the value be editable on the dashboard
     SmartDashboard.putNumber("StopDistance", defaultStopDistance);
     return new ParallelRaceGroup(
-        new RepeatCommand(m_intake.intake()),
+        new RepeatCommand(m_intake.intake(speakerShot)),
         new RepeatCommand(m_shooter.Intake())
             .until(
                 () -> {

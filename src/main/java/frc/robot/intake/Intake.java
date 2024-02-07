@@ -62,16 +62,17 @@ public class Intake extends SubsystemBase {
         this);
   }
 
-  public Command intake() {
+  public Command intake(boolean spit) {
+    int coef = spit ? -1 : 1;
     return new RunCommand(
         () -> {
           double FrontRollerSpeed =
               SmartDashboard.getNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
-          topRoller.set(defaultFrontRollerSpeed);
+          topRoller.set(coef * defaultFrontRollerSpeed);
 
           double BackRollerSpeed =
               SmartDashboard.getNumber("BackRollerSpeed", defaultBackRollerSpeed);
-          bottomRoller.set(defaultBackRollerSpeed);
+          bottomRoller.set(coef * defaultBackRollerSpeed);
         },
         this);
   }
