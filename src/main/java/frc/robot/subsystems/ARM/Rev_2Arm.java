@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 
 public class Rev_2Arm extends SubsystemBase {
-  private double m_j1Ratio; 
+  private double m_j1Ratio;
   private double m_j2Ratio;
   private double m_MPRatio;
 
@@ -30,11 +30,11 @@ public class Rev_2Arm extends SubsystemBase {
 
   final MotionMagicVoltage m_request = new MotionMagicVoltage(0).withSlot(0);
 
-  /** Creates a new Rev_2Arm. */ 
+  /** Creates a new Rev_2Arm. */
   public Rev_2Arm() {
     m_MPRatio = 15d;
-    m_j1Ratio = 48d/17d*m_MPRatio;
-    m_j2Ratio = 36d/17d*m_MPRatio;
+    m_j1Ratio = 48d / 17d * m_MPRatio;
+    m_j2Ratio = 36d / 17d * m_MPRatio;
 
     // ArmMotorFirstP.setPosition(High);
     m_rJoint1.setControl(new Follower(m_lJoint1.getDeviceID(), true));
@@ -59,7 +59,8 @@ public class Rev_2Arm extends SubsystemBase {
 
     var l1_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
     l1_motionMagicConfigs.MotionMagicCruiseVelocity = 10; // Target cruise velocity of 80 rps
-    l1_motionMagicConfigs.MotionMagicAcceleration = 10; // Target acceleration of 160 rps/s (0.5 seconds)
+    l1_motionMagicConfigs.MotionMagicAcceleration =
+        10; // Target acceleration of 160 rps/s (0.5 seconds)
     l1_motionMagicConfigs.MotionMagicJerk = 10; // Target jerk of 1600 rps/s/s (0.1 seconds)
 
     // apply gains, 50 ms total timeout
@@ -76,7 +77,8 @@ public class Rev_2Arm extends SubsystemBase {
 
     var l2_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
     l2_motionMagicConfigs.MotionMagicCruiseVelocity = 20; // Target cruise velocity of 80 rps
-    l2_motionMagicConfigs.MotionMagicAcceleration = 30; // Target acceleration of 160 rps/s (0.5 seconds)
+    l2_motionMagicConfigs.MotionMagicAcceleration =
+        30; // Target acceleration of 160 rps/s (0.5 seconds)
     l2_motionMagicConfigs.MotionMagicJerk = 30; // Target jerk of 1600 rps/s/s (0.1 seconds)
 
     // apply gains, 50 ms total timeout
@@ -89,37 +91,40 @@ public class Rev_2Arm extends SubsystemBase {
     // System.out.println(m_lJoint1.getPosition().getValue());
   }
 
-  private Command goToDeg(TalonFX joint, double gearRatio, double degree){
-    return new InstantCommand(()-> {
-      // l_joint1.setControl(m_request.withPosition(-(degree*GearRatio1)/(360d)));
-      joint.setControl(m_request.withPosition((degree*gearRatio)/(360d)));
-    }, this);
+  private Command goToDeg(TalonFX joint, double gearRatio, double degree) {
+    return new InstantCommand(
+        () -> {
+          // l_joint1.setControl(m_request.withPosition(-(degree*GearRatio1)/(360d)));
+          joint.setControl(m_request.withPosition((degree * gearRatio) / (360d)));
+        },
+        this);
   }
 
-  public Command goToDeg(double j1Degrees, double j2Degrees){
+  public Command goToDeg(double j1Degrees, double j2Degrees) {
     return new SequentialCommandGroup(
-      goToDeg(m_lJoint1, m_j1Ratio, -j1Degrees),
-      goToDeg(m_lJoint2, m_j2Ratio, j2Degrees));
+        goToDeg(m_lJoint1, m_j1Ratio, -j1Degrees), goToDeg(m_lJoint2, m_j2Ratio, j2Degrees));
   }
 
-  public Command goToDegSeq(double j1ParDeg, double j2ParDeg, double j2SeqDeg){
+  public Command goToDegSeq(double j1ParDeg, double j2ParDeg, double j2SeqDeg) {
     return new SequentialCommandGroup(
-      goToDeg(j1ParDeg, j2ParDeg),
-      new WaitUntilCommand(() -> {
-        // System.out.println(m_lJoint1.getPosition().getValue() - (-j1ParDeg*m_j1Ratio)/(360d));
-        return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg*m_j1Ratio)/(360d)) <= 5;
-      }),
-      goToDeg(m_lJoint2, m_j2Ratio, j2SeqDeg)
-      );
+        goToDeg(j1ParDeg, j2ParDeg),
+        new WaitUntilCommand(
+            () -> {
+              // System.out.println(m_lJoint1.getPosition().getValue() -
+              // (-j1ParDeg*m_j1Ratio)/(360d));
+              return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg * m_j1Ratio) / (360d))
+                  <= 5;
+            }),
+        goToDeg(m_lJoint2, m_j2Ratio, j2SeqDeg));
   }
 
-  public Command goDown(){
-      return new SequentialCommandGroup(
-      goToDeg(m_lJoint2, m_j2Ratio, 0),
-      new WaitUntilCommand(() -> {
-        return Math.abs(m_lJoint2.getPosition().getValue() - (0*m_j2Ratio)/(360d)) <= 5;
-      }),
-      goToDeg(0, 0)
-      );
+  public Command goDown() {
+    return new SequentialCommandGroup(
+        goToDeg(m_lJoint2, m_j2Ratio, 0),
+        new WaitUntilCommand(
+            () -> {
+              return Math.abs(m_lJoint2.getPosition().getValue() - (0 * m_j2Ratio) / (360d)) <= 5;
+            }),
+        goToDeg(0, 0));
   }
 }

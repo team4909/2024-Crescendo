@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
+import frc.robot.subsystems.ARM.Rev_2Arm;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -31,6 +32,7 @@ public class Robot extends LoggedRobot {
   private final Intake m_intake = new Intake();
   private final Shooter m_shooter = new Shooter();
   private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
+  private final Rev_2Arm m_arm = new Rev_2Arm();
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
@@ -158,6 +160,12 @@ public class Robot extends LoggedRobot {
         .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
+
+    m_driverController.b().onTrue(m_arm.goDown());
+
+    m_driverController.a().onTrue(m_arm.goToDeg(0, 0));
+    m_driverController.y().onTrue(m_arm.goToDeg(0, 32));
+    m_driverController.x().onTrue(m_arm.goToDegSeq(125, 0, -100));
 
     m_driverController
         .leftBumper()
