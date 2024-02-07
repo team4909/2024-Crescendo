@@ -28,6 +28,7 @@ public class Rev_2Arm extends SubsystemBase {
   private TalonFX m_rJoint1 = new TalonFX(14, "CANivore2");
   private TalonFX m_rJoint2 = new TalonFX(16, "CANivore2");
 
+  // Change jerk if needed
   final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 1000, 200, 1000);
   final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 250);
   final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 10, 20, 20);
