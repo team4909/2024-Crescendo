@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.ARM;
+package frc.robot.arm;
 
 // import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 // import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -18,7 +18,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 
-public class Rev_2Arm extends SubsystemBase {
+public class Arm extends SubsystemBase {
   private double m_j1Ratio;
   private double m_j2Ratio;
   private double m_MPRatio;
@@ -29,12 +29,15 @@ public class Rev_2Arm extends SubsystemBase {
   private TalonFX m_rJoint2 = new TalonFX(16, "CANivore2");
 
   // Change jerk if needed
-  final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 1000, 200, 1000);
-  final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 250);
+  // final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 1000, 200,
+  // 1000);
+  // final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 250);
+  final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 1000, 200, 200);
+  final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 200);
   final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 10, 20, 20);
 
   /** Creates a new Rev_2Arm. */
-  public Rev_2Arm() {
+  public Arm() {
     m_MPRatio = 15d;
     m_j1Ratio = 48d / 17d * m_MPRatio;
     m_j2Ratio = 36d / 17d * m_MPRatio;
@@ -117,7 +120,7 @@ public class Rev_2Arm extends SubsystemBase {
               // System.out.println(m_lJoint1.getPosition().getValue() -
               // (-j1ParDeg*m_j1Ratio)/(360d));
               return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg * m_j1Ratio) / (360d))
-                  <= 5;
+                  <= 20;
             }),
         goToDeg(m_lJoint2, m_j2Request, m_j2Ratio, j2SeqDeg));
   }
@@ -127,7 +130,7 @@ public class Rev_2Arm extends SubsystemBase {
         goToDeg(m_lJoint2, m_j2Request, m_j2Ratio, 0),
         new WaitUntilCommand(
             () -> {
-              return Math.abs(m_lJoint2.getPosition().getValue() - (0 * m_j2Ratio) / (360d)) <= 5;
+              return Math.abs(m_lJoint2.getPosition().getValue() - (0 * m_j2Ratio) / (360d)) <= 15;
             }),
         new SequentialCommandGroup(
             goToDeg(m_lJoint1, m_goDownRequest, m_j1Ratio, 0),

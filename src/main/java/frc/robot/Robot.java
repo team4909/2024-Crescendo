@@ -13,10 +13,10 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.arm.Arm;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
-import frc.robot.subsystems.ARM.Rev_2Arm;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -34,7 +34,7 @@ public class Robot extends LoggedRobot {
   private final Intake m_intake = new Intake();
   private final Shooter m_shooter = new Shooter();
   private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
-  private final Rev_2Arm m_arm = new Rev_2Arm();
+  private final Arm m_arm = new Arm();
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
@@ -105,54 +105,6 @@ public class Robot extends LoggedRobot {
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
 
-    // m_driverController.povDown().whileTrue(m_shooter.Shoot());
-    // m_driverController.povRight().whileTrue(m_shooter.Feeder());
-    // m_driverController.x().whileTrue(m_shooter.Stop());
-
-    // m_driverController.a().whileTrue(m_intake.Spit());
-
-    // m_driverController.leftTrigger().whileTrue(new
-    // RepeatCommand(m_shooter.Intake()));
-    // m_driverController.leftTrigger().whileTrue(m_intake.intake());
-
-    // m_driverController.b().whileTrue(m_intake.Stop());
-    // final double defaultStopDistance = 16;
-    // m_driverController.leftBumper().whileTrue(m_intake.intake());
-    // m_driverController.rightBumper().onTrue(m_shooter.Feeder());
-    // m_driverController.b().onTrue(m_shooter.Stop());
-    // SmartDashboard.putNumber("StopDistance", defaultStopDistance);
-
-    // m_driverController
-    // .povUp()
-    // .onTrue(
-    // new SequentialCommandGroup(m_intake.intake(), m_shooter.Intake())
-    // .until(
-    // () -> {
-    // return mytimeofflight.getRange()
-    // <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-    // }));
-
-    // m_driverController
-    // .leftTrigger()
-    // .whileTrue(new ParallelRaceGroup(m_intake.intake(),
-    // m_shooter.Intake()).repeatedly());
-
-    // this is here to make the value be editable on the dashboard
-
-    // SmartDashboard.putNumber("Intake/CurrentStopInput", 10);
-
-    // m_driverController
-    // .leftBumper()
-    // .whileTrue(
-    // new ParallelRaceGroup(m_intake.intake(), m_shooter.Intake())
-    // .repeatedly()
-    // .until(
-    // () -> {
-    // double defaultIntakeStopCurrent = 10;
-    // return m_shooter.getCurrent() > SmartDashboard.getNumber(
-    // "Intake/CurrentStopInput", defaultIntakeStopCurrent);
-    // }));
-
     // ____________________driverController_______________________\\
     m_driverController
         .rightTrigger()
@@ -176,12 +128,6 @@ public class Robot extends LoggedRobot {
 
     m_driverController.x().onTrue(m_arm.goToDegSeq(115, 0, -95));
 
-    m_operatorController
-        .a()
-        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 10), m_shooter.Catch().repeatedly()))
-        .onFalse(m_shooter.Stop());
-    // .until(() -> Math.abs(m_shooter.getCurrent()) >= 40)));
-
     m_driverController
         .leftBumper()
         .whileTrue(
@@ -199,7 +145,26 @@ public class Robot extends LoggedRobot {
                 m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
     // ___________________OperatorController______________________\\
+    m_operatorController
+        .rightTrigger()
+        .onTrue(m_arm.goToDegSeq(115, 0, -95))
+        .onFalse(m_arm.goDown());
+
+    m_operatorController.leftTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
+
+    m_operatorController
+        .povUp()
+        .onTrue(
+            new ParallelCommandGroup(
+                m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)))
+        .onFalse(m_arm.goDown());
+
     m_operatorController.y().onTrue(m_shooter.Shoot());
+
+    m_operatorController
+        .leftBumper()
+        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 10), m_shooter.Catch().repeatedly()))
+        .onFalse(m_shooter.Stop());
   }
 
   public Command SensorIntake() {
