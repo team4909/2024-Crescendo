@@ -76,6 +76,16 @@ public class Shooter extends SubsystemBase {
         this);
   }
 
+  public Command Catch() {
+    return new InstantCommand(
+        () -> {
+          feeder.set(OutSpeed);
+          shooterTop.set(-OutSpeed);
+          shooterBottom.set(-OutSpeed);
+        },
+        this);
+  }
+
   public Command PullBack() {
     return new RunCommand(() -> feeder.set(0.3), this).repeatedly().withTimeout(0.25);
   }

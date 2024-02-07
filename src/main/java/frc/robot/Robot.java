@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -165,7 +166,13 @@ public class Robot extends LoggedRobot {
 
     m_driverController.a().onTrue(m_arm.goToDeg(0, 0));
     m_driverController.y().onTrue(m_arm.goToDeg(0, 32));
-    m_driverController.x().onTrue(m_arm.goToDegSeq(125, 0, -100));
+    m_driverController.x().onTrue(m_arm.goToDegSeq(115, 0, -95));
+
+    m_operatorController
+        .a()
+        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 10), m_shooter.Catch().repeatedly()))
+        .onFalse(m_shooter.Stop());
+    // .until(() -> Math.abs(m_shooter.getCurrent()) >= 40)));
 
     m_driverController
         .leftBumper()
@@ -179,7 +186,9 @@ public class Robot extends LoggedRobot {
                           > SmartDashboard.getNumber(
                               "Intake/CurrentStopInput", defaultIntakeStopCurrent);
                     }))
-        .onFalse(m_shooter.PullBack());
+        .onFalse(
+            new ParallelRaceGroup(
+                m_shooter.PullBack(), m_intake.intake().repeatedly().withTimeout(0.125)));
 
     // ___________________OperatorController______________________\\
     m_operatorController.y().onTrue(m_shooter.Shoot());
