@@ -4,12 +4,10 @@
 
 package edu.wpi.first.wpilibj2.command;
 
-import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.Timer;
+import java.util.function.DoubleSupplier;
 
 /**
  * A command that does nothing but takes a specified amount of time to finish.
