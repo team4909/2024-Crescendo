@@ -13,6 +13,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants;
 
@@ -176,11 +177,12 @@ public class ArmIOTalonFX implements ArmIO {
     final TalonFXSimState wristSimState = m_wristLeftMotor.getSimState();
     elbowSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
     wristSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    elbowWristSimStates =
-        m_armSimModel.simulate(
-            elbowWristSimStates,
-            VecBuilder.fill(elbowSimState.getMotorVoltage(), wristSimState.getMotorVoltage()),
-            0.02);
+    if (!DriverStation.isDisabled())
+      elbowWristSimStates =
+          m_armSimModel.simulate(
+              elbowWristSimStates,
+              VecBuilder.fill(elbowSimState.getMotorVoltage(), wristSimState.getMotorVoltage()),
+              0.02);
     elbowSimState.setRawRotorPosition(Units.radiansToRotations(elbowWristSimStates.get(0, 0)));
     elbowSimState.setRotorVelocity(Units.radiansToRotations(elbowWristSimStates.get(2, 0)));
     wristSimState.setRawRotorPosition(Units.radiansToRotations(elbowWristSimStates.get(1, 0)));

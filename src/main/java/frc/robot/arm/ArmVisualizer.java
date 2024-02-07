@@ -1,5 +1,9 @@
 package frc.robot.arm;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -41,8 +45,21 @@ public class ArmVisualizer {
   }
 
   public void update(double elbowAngle, double wristAngle) {
-    m_elbowLigament.setAngle(Units.radiansToDegrees(elbowAngle) - 90.0);
+    m_elbowLigament.setAngle(Units.radiansToDegrees(elbowAngle) - kShoulderAngleDegrees);
     m_wristLigament.setAngle(Units.radiansToDegrees(wristAngle));
     Logger.recordOutput("Mechanism2d/" + m_logKey, m_mechanism);
+
+    Pose3d elbowPose =
+        new Pose3d(
+            ArmConfig.kOrigin.getX(),
+            0.0,
+            ArmConfig.kOrigin.getY(),
+            new Rotation3d(0.0, -elbowAngle, 0.0));
+    Pose3d wristPose =
+        elbowPose.transformBy(
+            new Transform3d(
+                new Translation3d(ArmConfig.kElbowConfig.length(), 0.0, 0.0),
+                new Rotation3d(0.0, -wristAngle, 0.0)));
+    Logger.recordOutput("Mechanism3d/" + m_logKey, elbowPose, wristPose);
   }
 }

@@ -1,9 +1,5 @@
 package frc.robot.arm;
 
-import java.util.Optional;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -13,6 +9,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.arm.ArmConfig.JointConfig;
+import java.util.Optional;
+import org.littletonrobotics.junction.Logger;
 
 public class Arm extends SubsystemBase {
 
@@ -64,7 +62,9 @@ public class Arm extends SubsystemBase {
   // }
 
   Translation2d folded = new Translation2d(0.0762, 0.4699);
-  Translation2d trapSetpoint = new Translation2d(Units.inchesToMeters(19.8), Units.inchesToMeters(30));
+  Translation2d trapSetpoint =
+      new Translation2d(Units.inchesToMeters(19.8), Units.inchesToMeters(30));
+
   public Command testSetpoint() {
     return this.run(() -> setSetpoint(trapSetpoint)).withName("Test Setpoint");
   }
@@ -144,9 +144,8 @@ public class Arm extends SubsystemBase {
           || wristAngle > m_wristConfig.maxAngle()) {
         return Optional.empty();
       }
-      // return Optional.of(VecBuilder.fill(Units.degreesToRadians(0),
-      // Units.degreesToRadians(0)));
-      return Optional.of(VecBuilder.fill(elbowAngle, wristAngle));
+      return Optional.of(VecBuilder.fill(Units.degreesToRadians(0), Units.degreesToRadians(0)));
+      // return Optional.of(VecBuilder.fill(elbowAngle, wristAngle));
     }
   }
 }
