@@ -14,7 +14,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class ArmVisualizer {
 
-  private final double kShoulderAngleDegrees = 76.015;
+  private final double kShoulderAngleDegrees = 180.0 - 76.015;
   private final String m_logKey;
   private final Mechanism2d m_mechanism;
   private final MechanismRoot2d m_mechanismRoot;

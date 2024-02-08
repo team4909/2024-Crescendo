@@ -38,6 +38,8 @@ import org.littletonrobotics.junction.Logger;
 
 public class Drivetrain extends SubsystemBase {
 
+  public static final Lock odometryLock = new ReentrantLock();
+
   public final double kTrackwidthMeters = Units.inchesToMeters(26.0);
   public final double kWheelbaseMeters = Units.inchesToMeters(26.0);
   private final double kDriveBaseRadius =
@@ -45,13 +47,13 @@ public class Drivetrain extends SubsystemBase {
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.05;
-  private final boolean kUseVisionCorrection = true;
-
-  public static final Lock odometryLock = new ReentrantLock();
+  private final boolean kUseVisionCorrection = false;
   private final ImuIO m_imuIO;
   private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
   private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
   private final SwerveDrivePoseEstimator m_poseEstimator;
+  private final Consumer<VisionUpdate> m_visionUpdateConsumer;
+  private final SysIdRoutine m_sysIdRoutine;
   private final SwerveDriveKinematics m_kinematics =
       new SwerveDriveKinematics(
           new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
@@ -60,16 +62,7 @@ public class Drivetrain extends SubsystemBase {
           new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0));
 
   // For calculating chassis position deltas in simulation.
-  private SwerveModulePosition[] m_lastModulePositions =
-      new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition()
-      };
-
-  private final Consumer<VisionUpdate> m_visionUpdateConsumer;
-  private final SysIdRoutine m_sysIdRoutine;
+  private SwerveModulePosition[] m_lastModulePositions;
 
   public Drivetrain(
       ImuIO imuIO,
@@ -86,6 +79,7 @@ public class Drivetrain extends SubsystemBase {
     m_poseEstimator =
         new SwerveDrivePoseEstimator(
             m_kinematics, new Rotation2d(), getModulePositions(), new Pose2d());
+
     m_visionUpdateConsumer =
         (VisionUpdate visionUpdate) -> {
           if (!kUseVisionCorrection) {
@@ -111,6 +105,7 @@ public class Drivetrain extends SubsystemBase {
                 },
                 null,
                 this));
+    m_lastModulePositions = getModulePositions();
     configurePathing();
   }
 
@@ -140,11 +135,11 @@ public class Drivetrain extends SubsystemBase {
     double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
     for (int updateIndex = 0; updateIndex < sampleTimestamps.length; updateIndex++) {
       SwerveModulePosition[] newModulePositions = new SwerveModulePosition[m_modules.length];
-      SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
+      SwerveModulePosition[] modulePositionDeltas = new SwerveModulePosition[4];
       for (int moduleIndex = 0; moduleIndex < m_modules.length; moduleIndex++) {
         newModulePositions[moduleIndex] =
             m_modules[moduleIndex].getOdometryPositions()[updateIndex];
-        moduleDeltas[moduleIndex] =
+        modulePositionDeltas[moduleIndex] =
             new SwerveModulePosition(
                 newModulePositions[moduleIndex].distanceMeters
                     - m_lastModulePositions[moduleIndex].distanceMeters,
@@ -152,7 +147,8 @@ public class Drivetrain extends SubsystemBase {
         m_lastModulePositions[moduleIndex] = newModulePositions[moduleIndex];
       }
       if (Constants.kIsSim) {
-        Logger.recordOutput("Drivetrain/dtheta", m_kinematics.toTwist2d(moduleDeltas).dtheta);
+        Logger.recordOutput(
+            "Drivetrain/dtheta", m_kinematics.toTwist2d(modulePositionDeltas).dtheta);
         /**
          * TODO we cannot update the gyro sim state in the same loop we read it, it will always be
          * behind causing inaccurate behavior. The solution might literally be move this before any

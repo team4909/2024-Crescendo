@@ -3,16 +3,18 @@ package frc.robot.arm;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class ArmConfig {
 
   public static final Translation2d kOrigin =
-      new Translation2d(Units.inchesToMeters(9.2), Units.inchesToMeters(20));
+      new Translation2d(Units.inchesToMeters(-9.2), Units.inchesToMeters(20));
 
   public static final double kElbowGearing = 100.0;
   private static final double kElbowMassKg = 1.036005;
   private static final double kElbowLengthMeters = Units.inchesToMeters(19.0);
-  private static final double kElbowMoiKgMetersSq = 0.08;
+  private static final double kElbowMoiKgMetersSq =
+      SingleJointedArmSim.estimateMOI(kElbowLengthMeters, kElbowMassKg);
   private static final double kElbowCGRadiusMeters = kElbowLengthMeters / 2.0;
   private static final double kElbowMinAngleRad = 0;
   private static final double kElbowMaxAngleRad = 2 * Math.PI;
@@ -22,7 +24,8 @@ public class ArmConfig {
   public static final double kWristGearing = 100.0;
   private static final double kWristMassKg = 1.036005;
   private static final double kWristLengthMeters = Units.inchesToMeters(15.0);
-  private static final double kWristMoiKgMetersSq = 0.08;
+  private static final double kWristMoiKgMetersSq =
+      SingleJointedArmSim.estimateMOI(kWristLengthMeters, kWristMassKg);
   private static final double kWristCGRadiusMeters = kWristLengthMeters / 2.0;
   private static final double kWristMinAngleRad = 0;
   private static final double kWristMaxAngleRad = 2 * Math.PI;

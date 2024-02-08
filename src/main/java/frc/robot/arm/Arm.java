@@ -38,7 +38,8 @@ public class Arm extends SubsystemBase {
     m_measuredVisualizer.update(m_inputs.elbowPositionRad, m_inputs.wristPositionRad);
   }
 
-  public void setSetpoint(Translation2d setpoint) {
+  // TODO overload this method to take angles too
+  public void runTranslationalSetpoint(Translation2d setpoint) {
     Optional<Vector<N2>> setpointAnglesRad = m_armKinematics.inverse(setpoint);
     setpointAnglesRad.ifPresent(
         angles -> {
@@ -57,16 +58,8 @@ public class Arm extends SubsystemBase {
         });
   }
 
-  // public Command testSetpoint() {
-  //   return this.run(() -> setSetpoint(new Translation2d(0.5, 0.6))).withName("Test Setpoint");
-  // }
-
-  Translation2d folded = new Translation2d(0.0762, 0.4699);
-  Translation2d trapSetpoint =
-      new Translation2d(Units.inchesToMeters(19.8), Units.inchesToMeters(30));
-
-  public Command testSetpoint() {
-    return this.run(() -> setSetpoint(trapSetpoint)).withName("Test Setpoint");
+  public Command setSetpoint(Translation2d setpoint) {
+    return this.run(() -> runTranslationalSetpoint(setpoint)).withName("Set Setpoint");
   }
 
   public Command stop() {
@@ -98,10 +91,10 @@ public class Arm extends SubsystemBase {
       Translation2d relativePosition = position.minus(ArmConfig.kOrigin);
 
       // Flip when X is negative
-      // boolean isFlipped = relativePosition.getX() < 0.0;
-      // if (isFlipped) {
-      //   relativePosition = new Translation2d(-relativePosition.getX(), relativePosition.getY());
-      // }
+      boolean isFlipped = relativePosition.getX() < 0.0;
+      if (isFlipped) {
+        relativePosition = new Translation2d(-relativePosition.getX(), relativePosition.getY());
+      }
 
       // Calculate angles
       double wristAngle =
@@ -128,10 +121,10 @@ public class Arm extends SubsystemBase {
       }
 
       // Flip angles
-      // if (isFlipped) {
-      //   elbowAngle = Math.PI - elbowAngle;
-      //   wristAngle = -wristAngle;
-      // }
+      if (isFlipped) {
+        elbowAngle = Math.PI - elbowAngle;
+        wristAngle = -wristAngle;
+      }
 
       // Wrap angles to correct ranges
       elbowAngle = MathUtil.inputModulus(elbowAngle, 0, 2 * Math.PI);
@@ -144,8 +137,7 @@ public class Arm extends SubsystemBase {
           || wristAngle > m_wristConfig.maxAngle()) {
         return Optional.empty();
       }
-      return Optional.of(VecBuilder.fill(Units.degreesToRadians(0), Units.degreesToRadians(0)));
-      // return Optional.of(VecBuilder.fill(elbowAngle, wristAngle));
+      return Optional.of(VecBuilder.fill(elbowAngle, wristAngle));
     }
   }
 }

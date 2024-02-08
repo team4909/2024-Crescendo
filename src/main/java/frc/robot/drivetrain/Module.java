@@ -83,7 +83,8 @@ public class Module {
     return m_inputs.odometryTimestamps;
   }
 
-  // getOdometryPositions() should be used for performant odometry updates, not this.
+  // getOdometryPositions() should be used for performant odometry updates, not this. NOTE that this
+  // also does not compensate for drive-azimuth coupling.
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
         m_inputs.drivePositionRad * kWheelRadiusMeters, m_inputs.steerPosition);
