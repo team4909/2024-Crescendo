@@ -10,7 +10,9 @@ public class ArmConfig {
   public static final Translation2d kOrigin =
       new Translation2d(Units.inchesToMeters(-9.2), Units.inchesToMeters(20));
 
-  public static final double kElbowGearing = 100.0;
+  public static final double kElbowGearboxReduction = 5.0;
+  public static final double kElbowChainReduction = 48.0 / 17.0;
+  public static final double kElbowReduction = kElbowGearboxReduction * kElbowChainReduction;
   private static final double kElbowMassKg = 1.036005;
   private static final double kElbowLengthMeters = Units.inchesToMeters(19.0);
   private static final double kElbowMoiKgMetersSq =
@@ -19,9 +21,11 @@ public class ArmConfig {
   private static final double kElbowMinAngleRad = 0;
   private static final double kElbowMaxAngleRad = 2 * Math.PI;
   private static final DCMotor kElbowGearbox =
-      DCMotor.getFalcon500Foc(2).withReduction(kElbowGearing);
+      DCMotor.getFalcon500Foc(2).withReduction(kElbowReduction);
 
-  public static final double kWristGearing = 100.0;
+  public static final double kWristGearboxReduction = 5.0;
+  public static final double kWristChainReduction = 36.0 / 17.0;
+  public static final double kWristReduction = kWristGearboxReduction * kWristChainReduction;
   private static final double kWristMassKg = 1.036005;
   private static final double kWristLengthMeters = Units.inchesToMeters(15.0);
   private static final double kWristMoiKgMetersSq =
@@ -30,7 +34,7 @@ public class ArmConfig {
   private static final double kWristMinAngleRad = 0;
   private static final double kWristMaxAngleRad = 2 * Math.PI;
   private static final DCMotor kWristGearbox =
-      DCMotor.getFalcon500Foc(2).withReduction(kWristGearing);
+      DCMotor.getFalcon500Foc(2).withReduction(kWristReduction);
 
   public record JointConfig(
       double mass,

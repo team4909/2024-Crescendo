@@ -53,8 +53,10 @@ public class Arm extends SubsystemBase {
           double wristFeedForward = feedforwardVolts.get(1, 0);
           Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForward);
           Logger.recordOutput("Arm/Wrist Feed Forward", wristFeedForward);
-          m_io.setElbowRotatations(Units.radiansToRotations(elbowAngle), elbowFeedForward);
-          m_io.setWristRotatations(Units.radiansToRotations(wristAngle), wristFeedForward);
+          m_io.setElbowRotatations(
+              Units.radiansToRotations(elbowAngle) * ArmConfig.kElbowReduction, elbowFeedForward);
+          m_io.setWristRotatations(
+              Units.radiansToRotations(wristAngle) * ArmConfig.kWristReduction, wristFeedForward);
         });
   }
 
@@ -92,9 +94,8 @@ public class Arm extends SubsystemBase {
 
       // Flip when X is negative
       boolean isFlipped = relativePosition.getX() < 0.0;
-      if (isFlipped) {
+      if (isFlipped) 
         relativePosition = new Translation2d(-relativePosition.getX(), relativePosition.getY());
-      }
 
       // Calculate angles
       double wristAngle =
