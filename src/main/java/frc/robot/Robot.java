@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
+import frc.robot.arm.ArmConfig.ArmSetpoints;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -28,7 +29,7 @@ public class Robot extends LoggedRobot {
 
   public Robot() {
     recordMetadeta();
-
+    Logger.disableDeterministicTimestamps();
     switch (Constants.kCurrentMode) {
       case kReal:
         // TODO find out why this causes weird errors
@@ -88,9 +89,13 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> -m_driverController.getRightX()));
-    m_arm.setDefaultCommand(m_arm.testSetpoint());
+            () -> -m_driverController.getRawAxis(2)));
+    m_arm.setDefaultCommand(m_arm.stop());
+
     m_driverController.y().onTrue(m_drivetrain.zeroGyro());
+    m_driverController.a().onTrue(m_arm.setSetpoint(ArmSetpoints.kStowed));
+    m_driverController.b().onTrue(m_arm.setSetpoint(ArmSetpoints.kTrap));
+    m_driverController.start().onTrue(m_arm.setSetpoint(0.0, 0.0));
   }
 
   /**

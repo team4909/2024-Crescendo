@@ -8,6 +8,7 @@ import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.arm.ArmConfig.ArmSetpoints;
 import frc.robot.arm.ArmConfig.JointConfig;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
@@ -36,32 +37,40 @@ public class Arm extends SubsystemBase {
             VecBuilder.fill(m_inputs.elbowPositionRad, m_inputs.wristPositionRad)));
 
     m_measuredVisualizer.update(m_inputs.elbowPositionRad, m_inputs.wristPositionRad);
+    Logger.recordOutput(
+        "Arm/Current Command",
+        getCurrentCommand() == null ? "Null" : getCurrentCommand().getName());
   }
 
-  // TODO overload this method to take angles too
-  public void runTranslationalSetpoint(Translation2d setpoint) {
+  private void runSetpoint(Vector<N2> setpointAnglesRad) {
+    double elbowAngle = setpointAnglesRad.get(0, 0);
+    double wristAngle = setpointAnglesRad.get(1, 0);
+    Logger.recordOutput("Arm/Goal Elbow Angle", (elbowAngle));
+    Logger.recordOutput("Arm/Goal Wrist Angle", (wristAngle));
+    m_setpointVisualizer.update(elbowAngle, wristAngle);
+    Vector<N2> feedforwardVolts = m_armModel.feedforward(VecBuilder.fill(elbowAngle, wristAngle));
+    double elbowFeedForward = feedforwardVolts.get(0, 0);
+    double wristFeedForward = feedforwardVolts.get(1, 0);
+    Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForward);
+    Logger.recordOutput("Arm/Wrist Feed Forward", wristFeedForward);
+    m_io.setElbowRotatations(
+        Units.radiansToRotations(elbowAngle) * ArmConfig.kElbowReduction, elbowFeedForward);
+    m_io.setWristRotatations(
+        Units.radiansToRotations(wristAngle) * ArmConfig.kWristReduction, wristFeedForward);
+  }
+
+  private void runSetpoint(Translation2d setpoint) {
     Optional<Vector<N2>> setpointAnglesRad = m_armKinematics.inverse(setpoint);
-    setpointAnglesRad.ifPresent(
-        angles -> {
-          double elbowAngle = angles.get(0, 0);
-          double wristAngle = angles.get(1, 0);
-          Logger.recordOutput("Arm/Goal Elbow Angle", (elbowAngle));
-          Logger.recordOutput("Arm/Goal Wrist Angle", (wristAngle));
-          m_setpointVisualizer.update(elbowAngle, wristAngle);
-          Vector<N2> feedforwardVolts = m_armModel.feedforward(angles);
-          double elbowFeedForward = feedforwardVolts.get(0, 0);
-          double wristFeedForward = feedforwardVolts.get(1, 0);
-          Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForward);
-          Logger.recordOutput("Arm/Wrist Feed Forward", wristFeedForward);
-          m_io.setElbowRotatations(
-              Units.radiansToRotations(elbowAngle) * ArmConfig.kElbowReduction, elbowFeedForward);
-          m_io.setWristRotatations(
-              Units.radiansToRotations(wristAngle) * ArmConfig.kWristReduction, wristFeedForward);
-        });
+    setpointAnglesRad.ifPresent(angles -> runSetpoint(angles));
   }
 
-  public Command setSetpoint(Translation2d setpoint) {
-    return this.run(() -> runTranslationalSetpoint(setpoint)).withName("Set Setpoint");
+  public Command setSetpoint(ArmSetpoints setpoint) {
+    return this.run(() -> runSetpoint(setpoint.get())).withName("Set Setpoint (Translation)");
+  }
+
+  public Command setSetpoint(double elbowAngleRad, double wristAngleRad) {
+    return this.run(() -> runSetpoint(VecBuilder.fill(elbowAngleRad, wristAngleRad)))
+        .withName("Set Setpoint (Angles)");
   }
 
   public Command stop() {
@@ -94,7 +103,7 @@ public class Arm extends SubsystemBase {
 
       // Flip when X is negative
       boolean isFlipped = relativePosition.getX() < 0.0;
-      if (isFlipped) 
+      if (isFlipped)
         relativePosition = new Translation2d(-relativePosition.getX(), relativePosition.getY());
 
       // Calculate angles
@@ -128,8 +137,8 @@ public class Arm extends SubsystemBase {
       }
 
       // Wrap angles to correct ranges
-      elbowAngle = MathUtil.inputModulus(elbowAngle, 0, 2 * Math.PI);
-      wristAngle = MathUtil.inputModulus(wristAngle, 0, 2 * Math.PI);
+      elbowAngle = MathUtil.inputModulus(elbowAngle, -Math.PI, Math.PI);
+      wristAngle = MathUtil.inputModulus(wristAngle, -Math.PI, Math.PI);
 
       // Exit if outside valid ranges for the joints
       if (elbowAngle < m_elbowConfig.minAngle()
