@@ -48,7 +48,7 @@ public class Arm extends SubsystemBase {
     Logger.recordOutput("Arm/Goal Elbow Angle", (elbowAngle));
     Logger.recordOutput("Arm/Goal Wrist Angle", (wristAngle));
     m_setpointVisualizer.update(elbowAngle, wristAngle);
-    Vector<N2> feedforwardVolts = m_armModel.feedforward(VecBuilder.fill(elbowAngle, wristAngle));
+    Vector<N2> feedforwardVolts = m_armModel.feedforward(setpointAnglesRad);
     double elbowFeedForward = feedforwardVolts.get(0, 0);
     double wristFeedForward = feedforwardVolts.get(1, 0);
     Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForward);
@@ -65,12 +65,12 @@ public class Arm extends SubsystemBase {
   }
 
   public Command setSetpoint(ArmSetpoints setpoint) {
-    return this.run(() -> runSetpoint(setpoint.get())).withName("Set Setpoint (Translation)");
+    return this.run(() -> runSetpoint(setpoint.get())).withName("Set Inverse Setpoint");
   }
 
   public Command setSetpoint(double elbowAngleRad, double wristAngleRad) {
     return this.run(() -> runSetpoint(VecBuilder.fill(elbowAngleRad, wristAngleRad)))
-        .withName("Set Setpoint (Angles)");
+        .withName("Set Forward Setpoint");
   }
 
   public Command stop() {
@@ -79,6 +79,7 @@ public class Arm extends SubsystemBase {
               m_io.setElbowVoltage(0.0);
               m_io.setWristVoltage(0.0);
             })
+        .ignoringDisable(true)
         .withName("Stop");
   }
 
@@ -138,7 +139,7 @@ public class Arm extends SubsystemBase {
 
       // Wrap angles to correct ranges
       elbowAngle = MathUtil.inputModulus(elbowAngle, -Math.PI, Math.PI);
-      wristAngle = MathUtil.inputModulus(wristAngle, -Math.PI, Math.PI);
+      wristAngle = MathUtil.inputModulus(wristAngle, 0, 2 * Math.PI);
 
       // Exit if outside valid ranges for the joints
       if (elbowAngle < m_elbowConfig.minAngle()

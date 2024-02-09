@@ -56,7 +56,7 @@ public class ArmIOTalonFX implements ArmIO {
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowLeftMotorConfig.TorqueCurrent = torqueCurrentConfig;
-    elbowLeftMotorConfig.Slot0.kP = 5;
+    elbowLeftMotorConfig.Slot0.kP = 1;
     elbowLeftMotorConfig.Slot0.kD = 0.05;
     elbowLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 100.0 / ArmConfig.kElbowReduction;
     elbowLeftMotorConfig.MotionMagic.MotionMagicAcceleration =
@@ -69,7 +69,7 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
     wristLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     wristLeftMotorConfig.TorqueCurrent = torqueCurrentConfig;
-    wristLeftMotorConfig.Slot0.kP = 5;
+    wristLeftMotorConfig.Slot0.kP = 1;
     wristLeftMotorConfig.Slot0.kD = 0.05;
     wristLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 100.0 / ArmConfig.kWristReduction;
     wristLeftMotorConfig.MotionMagic.MotionMagicAcceleration =

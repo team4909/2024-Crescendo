@@ -31,8 +31,8 @@ public class ArmConfig {
   private static final double kWristMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kWristLengthMeters, kWristMassKg);
   private static final double kWristCGRadiusMeters = kWristLengthMeters / 2.0;
-  private static final double kWristMinAngleRad = -Math.PI;
-  private static final double kWristMaxAngleRad = Math.PI;
+  private static final double kWristMinAngleRad = 0.0;
+  private static final double kWristMaxAngleRad = 2 * Math.PI;
   private static final DCMotor kWristGearbox =
       DCMotor.getFalcon500Foc(2).withReduction(kWristReduction);
 
@@ -66,7 +66,7 @@ public class ArmConfig {
           kWristGearbox);
 
   public static enum ArmSetpoints {
-    kStowed(-5, 9),
+    kStowed(-5, 13),
     kTrap(19.8, 30);
 
     private final Translation2d m_setpoint;
