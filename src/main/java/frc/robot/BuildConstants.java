@@ -9,8 +9,8 @@ public final class BuildConstants {
   public static final String GIT_SHA = "9243f8415dbb3800f08c1a116584eceb4ee2d671";
   public static final String GIT_DATE = "2024-02-09 19:37:25 EST";
   public static final String GIT_BRANCH = "Black_Rev2_Arm";
-  public static final String BUILD_DATE = "2024-02-09 19:45:31 EST";
-  public static final long BUILD_UNIX_TIME = 1707525931028L;
+  public static final String BUILD_DATE = "2024-02-09 21:06:34 EST";
+  public static final long BUILD_UNIX_TIME = 1707530794973L;
   public static final int DIRTY = 1;
 
   private BuildConstants() {}

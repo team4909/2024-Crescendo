@@ -85,11 +85,12 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
             () -> -m_driverController.getRightX()));
+    NamedCommands.registerCommand("stop", m_shooter.Stop());
+    NamedCommands.registerCommand("sensorIntake", SensorIntake());
+    NamedCommands.registerCommand("intake", m_intake.intake(speakerShot));
+    NamedCommands.registerCommand("shoot", m_shooter.Shoot());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
-    NamedCommands.registerCommand("Stop", m_shooter.Stop());
-    NamedCommands.registerCommand("SensorIntake", SensorIntake());
-    NamedCommands.registerCommand("Intake", m_intake.intake(speakerShot));
     m_shooter.setDefaultCommand(m_shooter.Stop());
     m_intake.setDefaultCommand(m_intake.Stop());
     m_autoChooser.addOption(

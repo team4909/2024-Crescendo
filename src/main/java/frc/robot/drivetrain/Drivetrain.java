@@ -38,8 +38,8 @@ import org.littletonrobotics.junction.Logger;
 
 public class Drivetrain extends SubsystemBase {
 
-  public final double kTrackwidthMeters = Units.inchesToMeters(26.0);
-  public final double kWheelbaseMeters = Units.inchesToMeters(26.0);
+  public final double kTrackwidthMeters = Units.inchesToMeters(21);
+  public final double kWheelbaseMeters = Units.inchesToMeters(16);
   private final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);

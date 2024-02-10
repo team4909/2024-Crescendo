@@ -1,0 +1,37 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.65,
+      "y": 5.55
+    },
+    "rotation": 0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Stage to Left Spike"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left Spike to Center Spike"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Center Spike to Right Spike"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
