@@ -155,7 +155,7 @@ public class Vision {
     double avgDist = 0;
     for (var target : targets) {
       var tagPose = kTagLayout.getTagPose(target.getFiducialId());
-      // Ignore tags that aren't on the 2024 field.
+      // Ignore tags whose ids are not in the field layout.
       if (tagPose.isEmpty()) continue;
       numTags++;
       avgDist +=
