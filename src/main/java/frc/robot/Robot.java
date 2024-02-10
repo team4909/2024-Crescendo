@@ -89,6 +89,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     NamedCommands.registerCommand("Stop", m_shooter.Stop());
     NamedCommands.registerCommand("SensorIntake", SensorIntake());
+    NamedCommands.registerCommand("Intake", m_intake.intake(speakerShot));
     m_shooter.setDefaultCommand(m_shooter.Stop());
     m_intake.setDefaultCommand(m_intake.Stop());
     m_autoChooser.addOption(
