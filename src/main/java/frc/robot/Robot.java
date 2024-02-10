@@ -112,17 +112,6 @@ public class Robot extends LoggedRobot {
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    m_driverController.b().onTrue(m_arm.goDown());
-
-    m_driverController.a().onTrue(m_arm.goToDeg(0, 0));
-    m_driverController
-        .y()
-        .onTrue(
-            new ParallelCommandGroup(
-                m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)));
-
-    m_driverController.x().onTrue(m_arm.goToDegSeq(115, 0, -95));
-
     m_driverController
         .leftBumper()
         .whileTrue(new ParallelRaceGroup(m_intake.intake(false), m_shooter.Intake()).repeatedly())
@@ -132,11 +121,11 @@ public class Robot extends LoggedRobot {
 
     // ___________________OperatorController______________________\\
     m_operatorController
-        .rightTrigger()
-        .onTrue(m_arm.goToDegSeq(115, 0, -95))
+        .leftTrigger()
+        .onTrue(m_arm.goToDegSeq(100, 0, -70))
         .onFalse(m_arm.goDown());
 
-    m_operatorController.leftTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
+    m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
 
     m_operatorController
         .povUp()
