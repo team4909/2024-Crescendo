@@ -8,8 +8,12 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.BionicWaitCommand;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -114,5 +118,13 @@ public class Shooter extends SubsystemBase {
         .repeatedly()
         .withTimeout(1)
         .finallyDo(() -> Stop());
+  }
+
+  public Command ShooterDelay() {
+    return Commands.sequence(
+        new ParallelCommandGroup(
+            Shoot(),
+            new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay))),
+        new RepeatCommand(Intake()));
   }
 }

@@ -85,14 +85,22 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
             () -> -m_driverController.getRightX()));
-    NamedCommands.registerCommand("stop", m_shooter.Stop());
+    NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake(speakerShot));
-    NamedCommands.registerCommand("shoot", m_shooter.Shoot());
+    NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
+    NamedCommands.registerCommand("sub shot", m_arm.goToDeg(20, 25));
+    NamedCommands.registerCommand("arm down", m_arm.goDown());
+    NamedCommands.registerCommand("feed", m_shooter.Feeder());
+    NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
+    m_shooter.setDefaultCommand(m_shooter.Shoot());
     m_shooter.setDefaultCommand(m_shooter.Stop());
     m_intake.setDefaultCommand(m_intake.Stop());
+    // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
+    // m_arm.setDefaultCommand(m_arm.goDown());
+
     m_autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
         m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
@@ -140,6 +148,8 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .onTrue(m_arm.goToDegSeq(100, 0, -70))
         .onFalse(m_arm.goDown());
+
+    m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
 
     m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
 

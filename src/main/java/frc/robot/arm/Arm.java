@@ -13,6 +13,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -127,6 +128,13 @@ public class Arm extends SubsystemBase {
 
   public Command goDown() {
     return new SequentialCommandGroup(
+        Commands.runOnce(
+            () -> {
+              // var highPConfig = new Slot0Configs();
+              // highPConfig.kP = 1;
+
+            },
+            this),
         goToDeg(m_lJoint2, m_j2Request, m_j2Ratio, 0),
         new WaitUntilCommand(
             () -> {

@@ -12,6 +12,24 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "sub shot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShooterDelay"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stop"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Stage to Left Spike"
