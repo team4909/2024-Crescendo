@@ -32,6 +32,10 @@ public class ArmModel {
     return feedforward(position, VecBuilder.fill(0.0, 0.0), VecBuilder.fill(0.0, 0.0));
   }
 
+  public Vector<N2> feedforward(Vector<N2> position, Vector<N2> velocity) {
+    return feedforward(position, velocity, VecBuilder.fill(0.0, 0.0));
+  }
+
   public Vector<N2> feedforward(Vector<N2> position, Vector<N2> velocity, Vector<N2> acceleration) {
     var torque =
         M(position)
