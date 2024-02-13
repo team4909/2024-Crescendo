@@ -13,7 +13,6 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -128,17 +127,22 @@ public class Arm extends SubsystemBase {
 
   public Command goDown() {
     return new SequentialCommandGroup(
-        Commands.runOnce(
-            () -> {
-              // var highPConfig = new Slot0Configs();
-              // highPConfig.kP = 1;
-
-            },
-            this),
         goToDeg(m_lJoint2, m_j2Request, m_j2Ratio, 0),
         new WaitUntilCommand(
             () -> {
-              return Math.abs(m_lJoint2.getPosition().getValue() - (0 * m_j2Ratio) / (360d)) <= 15;
+              return Math.abs(m_lJoint2.getPosition().getValue() - (0 * m_j2Ratio) / (360d)) <= 5;
+            }),
+        new SequentialCommandGroup(
+            goToDeg(m_lJoint1, m_goDownRequest, m_j1Ratio, 0),
+            goToDeg(m_lJoint2, m_goDownRequest, m_j2Ratio, 0)));
+  }
+
+  public Command goDownAuto() {
+    return new SequentialCommandGroup(
+        goToDeg(m_lJoint1, m_j1Request, m_j1Ratio, -10),
+        new WaitUntilCommand(
+            () -> {
+              return Math.abs(m_lJoint1.getPosition().getValue() - (-10 * m_j1Ratio) / (360d)) <= 5;
             }),
         new SequentialCommandGroup(
             goToDeg(m_lJoint1, m_goDownRequest, m_j1Ratio, 0),

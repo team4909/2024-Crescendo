@@ -12,8 +12,6 @@ import edu.wpi.first.wpilibj2.command.BionicWaitCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -47,13 +45,26 @@ public class Shooter extends SubsystemBase {
   public void periodic() {}
 
   public Command Shoot() {
+    return ShooterOn().repeatedly();
+  }
+
+  public Command ShooterOn() {
     return new InstantCommand(
-            () -> {
-              shooterTop.set(OutSpeed);
-              shooterBottom.set(OutSpeed);
-            },
-            this)
-        .repeatedly();
+        () -> {
+          shooterTop.set(OutSpeed);
+          shooterBottom.set(OutSpeed);
+        },
+        this);
+  }
+
+  public Command ShooterOff() {
+    return new InstantCommand(
+        () -> {
+          shooterTop.set(StopSpeed);
+          shooterBottom.set(StopSpeed);
+          feeder.set(StopSpeed);
+        },
+        this);
   }
 
   public Command Stop() {
@@ -69,7 +80,7 @@ public class Shooter extends SubsystemBase {
         .repeatedly();
   }
 
-  public Command Intake() {
+  public Command FeederOn() {
     return new InstantCommand(
         () -> {
           System.out.println("InSpeed");
@@ -122,9 +133,8 @@ public class Shooter extends SubsystemBase {
 
   public Command ShooterDelay() {
     return Commands.sequence(
-        new ParallelCommandGroup(
-            Shoot(),
-            new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay))),
-        new RepeatCommand(Intake()));
+        ShooterOn(),
+        new BionicWaitCommand(() -> SmartDashboard.getNumber("ShooterDelay", defaultDelay)),
+        FeederOn());
   }
 }

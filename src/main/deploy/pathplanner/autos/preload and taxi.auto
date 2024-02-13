@@ -38,12 +38,6 @@
                 "data": {
                   "name": "FeederOn"
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "2ndNoteShot"
-                }
               }
             ]
           }
@@ -52,12 +46,6 @@
           "type": "path",
           "data": {
             "pathName": "Taxi"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "intake"
           }
         }
       ]
