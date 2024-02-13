@@ -14,6 +14,11 @@ import frc.robot.Constants;
 
 public class ArmIOTalonFX implements ArmIO {
 
+  // Offsets to the horizontal
+  private final double kElbowAbsoluteEncoderOffsetRad = 0.0;
+  private final double kWristAbsoluteEncoderOffsetRad = 0.0;
+  private final double kElbowRelativeEncoderOffsetRad = 0.0;
+  private final double kWristRelativeEncoderOffsetRad = 0.0;
   private final double kCurrentLimitAmps = 80.0;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,
@@ -40,9 +45,6 @@ public class ArmIOTalonFX implements ArmIO {
 
     m_elbowAbsoluteEncoder = new DutyCycleEncoder(0);
     m_wristAbsoluteEncoder = new DutyCycleEncoder(1);
-
-    m_elbowAbsoluteEncoder.setPositionOffset(0.0);
-    m_wristAbsoluteEncoder.setPositionOffset(0.0);
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
     currentLimitsConfig.StatorCurrentLimit = kCurrentLimitAmps;
@@ -108,8 +110,22 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.optimizeBusUtilization();
     m_wristRightFollowerMotor.optimizeBusUtilization();
 
-    m_elbowLeftMotor.setPosition(m_elbowAbsoluteEncoder.get());
-    m_wristLeftMotor.setPosition(m_wristAbsoluteEncoder.get());
+    if (m_elbowAbsoluteEncoder.isConnected()) {
+      m_elbowAbsoluteEncoder.setPositionOffset(
+          Units.radiansToRotations(kElbowAbsoluteEncoderOffsetRad) * ArmModel.kElbowChainReduction);
+      m_elbowLeftMotor.setPosition(m_elbowAbsoluteEncoder.get() * ArmModel.kElbowGearboxReduction);
+    } else
+      m_elbowLeftMotor.setPosition(
+          Units.radiansToRotations(kElbowRelativeEncoderOffsetRad) * ArmModel.kElbowFinalReduction);
+
+    if (m_wristAbsoluteEncoder.isConnected()) {
+      m_wristAbsoluteEncoder.setPositionOffset(
+          Units.radiansToRotations(kWristAbsoluteEncoderOffsetRad) * ArmModel.kWristChainReduction);
+      m_wristLeftMotor.setPosition(m_wristAbsoluteEncoder.get() * ArmModel.kWristGearboxReduction);
+    } else
+      m_wristLeftMotor.setPosition(
+          Units.radiansToRotations(kWristRelativeEncoderOffsetRad) * ArmModel.kWristFinalReduction);
+
     m_elbowControl = new VoltageOut(0.0, true, true, false, false);
     m_wristControl = new VoltageOut(0.0, true, true, false, false);
   }
@@ -131,7 +147,7 @@ public class ArmIOTalonFX implements ArmIO {
     inputs.elbowAbsolutePositionRad =
         Units.rotationsToRadians(m_elbowAbsoluteEncoder.get() / ArmModel.kElbowChainReduction);
     inputs.elbowAbsoluteEncoderConnected = m_elbowAbsoluteEncoder.isConnected();
-    inputs.elbowPositionRad =
+    inputs.elbowRelativePositionRad =
         Units.rotationsToRadians(
             BaseStatusSignal.getLatencyCompensatedValue(
                     m_elbowPositionSignal, m_elbowVelocitySignal)
@@ -145,7 +161,7 @@ public class ArmIOTalonFX implements ArmIO {
     inputs.wristAbsolutePositionRad =
         Units.rotationsToRadians(m_wristAbsoluteEncoder.get() / ArmModel.kWristChainReduction);
     inputs.wristAbsoluteEncoderConnected = m_wristAbsoluteEncoder.isConnected();
-    inputs.wristPositionRad =
+    inputs.wristRelativePositionRad =
         Units.rotationsToRadians(
             BaseStatusSignal.getLatencyCompensatedValue(
                     m_wristPositionSignal, m_wristVelocitySignal)

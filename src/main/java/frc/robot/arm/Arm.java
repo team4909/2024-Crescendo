@@ -22,7 +22,7 @@ public class Arm extends SubsystemBase {
   private final ArmIO m_io;
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
   private final ArmModel m_armModel = new ArmModel();
-  private final ArmKinematics m_armKinematics = new ArmKinematics();
+  private final ArmKinematics m_kinematics = new ArmKinematics();
   private final ArmVisualizer m_measuredVisualizer;
   private final ArmVisualizer m_setpointVisualizer;
   private ProfiledPIDController m_elbowController =
@@ -46,10 +46,12 @@ public class Arm extends SubsystemBase {
   private static final LoggedTunableNumber wristMaxAccelerationRadPerSecSq =
       new LoggedTunableNumber("Arm/Wrist/MaxAcceleration");
 
-  private Vector<N2> m_profileInitialAngles;
   // We don't want to add kS to the feedback when the output is close to 0
   private final BiFunction<Double, Double, Double> m_deadbandkS =
       (volts, kS) -> Math.abs(volts) < kSDeadband ? volts : volts + Math.copySign(kS, volts);
+
+  private Vector<N2> m_profileInitialAngles;
+  private double m_elbowPositionRad, m_wristPositionRad;
 
   static {
     switch (Constants.kCurrentMode) {
@@ -91,12 +93,21 @@ public class Arm extends SubsystemBase {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("ArmInputs", m_inputs);
 
-    if (DriverStation.isDisabled()){
+    m_elbowPositionRad =
+        m_inputs.elbowAbsoluteEncoderConnected
+            ? m_inputs.elbowAbsolutePositionRad
+            : m_inputs.elbowRelativePositionRad;
+    m_wristPositionRad =
+        m_inputs.wristAbsoluteEncoderConnected
+            ? m_inputs.wristAbsolutePositionRad
+            : m_inputs.wristRelativePositionRad;
+
+    if (DriverStation.isDisabled()) {
       m_io.setElbowVoltage(0.0);
       m_io.setWristVoltage(0.0);
     }
 
-    // #region Update controllers when tunables change.
+    // #region Update controllers wßhen tunables change.
     if (elbowkP.hasChanged(hashCode()) || elbowkD.hasChanged(hashCode())) {
       m_elbowController.setP(elbowkP.get());
       m_elbowController.setD(elbowkD.get());
@@ -122,10 +133,8 @@ public class Arm extends SubsystemBase {
 
     Logger.recordOutput(
         "Arm/Forward Kinematics Position",
-        m_armKinematics.forward(
-            VecBuilder.fill(m_inputs.elbowPositionRad, m_inputs.wristPositionRad)));
-
-    m_measuredVisualizer.update(m_inputs.elbowPositionRad, m_inputs.wristPositionRad);
+        m_kinematics.forward(VecBuilder.fill(m_elbowPositionRad, m_wristPositionRad)));
+    m_measuredVisualizer.update(m_elbowPositionRad, m_wristPositionRad);
     Logger.recordOutput(
         "Arm/Current Command",
         getCurrentCommand() == null ? "Null" : getCurrentCommand().getName());
@@ -134,17 +143,17 @@ public class Arm extends SubsystemBase {
   private void setSetpoint(Vector<N2> setpointAnglesRad) {
     double elbowAngle = setpointAnglesRad.get(0, 0);
     double wristAngle = setpointAnglesRad.get(1, 0);
-    Logger.recordOutput("Arm/Goal Elbow Angle", (elbowAngle));
-    Logger.recordOutput("Arm/Goal Wrist Angle", (wristAngle));
+    Logger.recordOutput("Arm/Goal Arm Position", m_kinematics.forward(setpointAnglesRad));
+    Logger.recordOutput("Arm/Goal Elbow Angle", elbowAngle);
+    Logger.recordOutput("Arm/Goal Wrist Angle", wristAngle);
     m_setpointVisualizer.update(elbowAngle, wristAngle);
     m_elbowController.setGoal(elbowAngle);
     m_wristController.setGoal(wristAngle);
-    m_profileInitialAngles =
-        VecBuilder.fill(m_inputs.elbowAbsolutePositionRad, m_inputs.wristAbsolutePositionRad);
+    m_profileInitialAngles = VecBuilder.fill(m_elbowPositionRad, m_wristPositionRad);
   }
 
   private void setSetpoint(Translation2d setpoint) {
-    Optional<Vector<N2>> setpointAnglesRad = m_armKinematics.inverse(setpoint);
+    Optional<Vector<N2>> setpointAnglesRad = m_kinematics.inverse(setpoint);
     setpointAnglesRad.ifPresent(angles -> setSetpoint(angles));
   }
 
@@ -162,26 +171,24 @@ public class Arm extends SubsystemBase {
     double elbowGoalVelocity = m_elbowController.getSetpoint().velocity;
     double wristGoalVelocity = m_wristController.getSetpoint().velocity;
     double elbowProgress =
-        Math.abs(m_inputs.elbowAbsolutePositionRad - m_profileInitialAngles.get(0, 0))
+        Math.abs(m_elbowPositionRad - m_profileInitialAngles.get(0, 0))
             / Math.abs(m_elbowController.getGoal().position - m_profileInitialAngles.get(0, 0));
     double wristProgress =
-        Math.abs(m_inputs.wristAbsolutePositionRad - m_profileInitialAngles.get(1, 0))
+        Math.abs(m_wristPositionRad - m_profileInitialAngles.get(1, 0))
             / Math.abs(m_wristController.getGoal().position - m_profileInitialAngles.get(1, 0));
     Logger.recordOutput("Arm/Elbow Progress", elbowProgress);
     Logger.recordOutput("Arm/Wrist Progress", wristProgress);
     double elbowFeedbackVolts =
-        m_deadbandkS.apply(
-            m_elbowController.calculate(m_inputs.elbowAbsolutePositionRad), elbowkS.get());
+        m_deadbandkS.apply(m_elbowController.calculate(m_elbowPositionRad), elbowkS.get());
     double wristFeedbackVolts =
-        m_deadbandkS.apply(
-            m_wristController.calculate(m_inputs.wristAbsolutePositionRad), wristkS.get());
+        m_deadbandkS.apply(m_wristController.calculate(m_wristPositionRad), wristkS.get());
     if (wristProgress < elbowDelay) {
-      elbowGoalPosition = m_inputs.elbowAbsolutePositionRad;
+      elbowGoalPosition = m_elbowPositionRad;
       elbowGoalVelocity = 0.0;
       elbowFeedbackVolts = 0.0;
     }
     if (elbowProgress < wristDelay) {
-      wristGoalPosition = m_inputs.wristAbsolutePositionRad;
+      wristGoalPosition = m_wristPositionRad;
       wristGoalVelocity = 0.0;
       wristFeedbackVolts = 0.0;
     }

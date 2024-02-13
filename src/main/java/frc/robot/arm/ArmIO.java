@@ -8,14 +8,14 @@ public interface ArmIO {
   public static class ArmIOInputs {
     public double elbowAbsolutePositionRad = 0.0;
     public boolean elbowAbsoluteEncoderConnected = false;
-    public double elbowPositionRad = 0.0;
+    public double elbowRelativePositionRad = 0.0;
     public double elbowVelocityRadPerSec = 0.0;
     public double elbowAppliedVolts = 0.0;
     public double[] elbowCurrentAmps = new double[] {};
 
     public double wristAbsolutePositionRad = 0.0;
     public boolean wristAbsoluteEncoderConnected = false;
-    public double wristPositionRad = 0.0;
+    public double wristRelativePositionRad = 0.0;
     public double wristVelocityRadPerSec = 0.0;
     public double wristAppliedVolts = 0.0;
     public double[] wristCurrentAmps = new double[] {};
