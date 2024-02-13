@@ -1,50 +1,82 @@
 package frc.robot.arm;
 
-import edu.wpi.first.math.MatBuilder;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N4;
-import edu.wpi.first.math.system.NumericalIntegration;
-import frc.robot.arm.ArmConfig.JointConfig;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-/**
- * Calculates feedforward currents for a double jointed arm.
- *
- * <p>https://www.chiefdelphi.com/t/whitepaper-two-jointed-arm-dynamics/423060 Builds off of the
- * work done by Teams 6328 and 3467 in 2023.
- */
 public class ArmModel {
-  private static final double g = 9.80665;
 
-  private final JointConfig m_elbowJointConfig;
-  private final JointConfig m_wristJointConfig;
+  public static final Translation2d kOrigin =
+      new Translation2d(Units.inchesToMeters(-9.2), Units.inchesToMeters(20));
 
-  public ArmModel(JointConfig elbowJointConfig, JointConfig wristJointConfig) {
-    this.m_elbowJointConfig = elbowJointConfig;
-    this.m_wristJointConfig = wristJointConfig;
+  public static final double kElbowGearboxReduction = 5.0;
+  public static final double kElbowChainReduction = 48.0 / 17.0;
+  public static final double kElbowFinalReduction = kElbowGearboxReduction * kElbowChainReduction;
+  public static final double kElbowLengthMeters = Units.inchesToMeters(19.0);
+  public static final double kElbowMinAngleRad = -Math.PI;
+  public static final double kElbowMaxAngleRad = Math.PI;
+  public static final DCMotor kElbowGearbox = DCMotor.getFalcon500Foc(2);
+  private final double kElbowMassKg = Units.lbsToKilograms(7.0);
+  private final double kElbowMoiKgMetersSq =
+      SingleJointedArmSim.estimateMOI(kElbowLengthMeters, kElbowMassKg);
+  private final double elbowkG = 0.53;
+  private final double elbowkV = 0.27;
+
+  public static final double kWristGearboxReduction = 5.0;
+  public static final double kWristChainReduction = 36.0 / 17.0;
+  public static final double kWristFinalReduction = kWristGearboxReduction * kWristChainReduction;
+  public static final double kWristLengthMeters = Units.inchesToMeters(15.0);
+  public static final double kWristMinAngleRad = -Math.PI;
+  public static final double kWristMaxAngleRad = Math.PI;
+  public static final DCMotor kWristGearbox = DCMotor.getFalcon500Foc(2);
+  private final double kWristMassKg = Units.lbsToKilograms(11.5);
+  private final double kWristMoiKgMetersSq =
+      SingleJointedArmSim.estimateMOI(kWristLengthMeters, kWristMassKg);
+  private final double wristkG = 0.8;
+  private final double wristkV = 0.2;
+
+  private final ArmFeedforward m_elbowFeedForward, m_wristFeedForward;
+  private final SingleJointedArmSim m_elbowSim, m_wristSim;
+
+  public ArmModel() {
+    m_elbowFeedForward = new ArmFeedforward(0.0, elbowkG, elbowkV, 0.0);
+    m_wristFeedForward = new ArmFeedforward(0.0, wristkG, wristkV, 0.0);
+    m_elbowSim =
+        new SingleJointedArmSim(
+            kElbowGearbox,
+            kElbowFinalReduction,
+            kElbowMoiKgMetersSq,
+            kElbowLengthMeters,
+            kElbowMinAngleRad,
+            kElbowMaxAngleRad,
+            true,
+            0.0);
+    m_wristSim =
+        new SingleJointedArmSim(
+            kWristGearbox,
+            kWristFinalReduction,
+            kWristMoiKgMetersSq,
+            kWristLengthMeters,
+            kWristMinAngleRad,
+            kWristMaxAngleRad,
+            true,
+            0.0);
   }
 
   public Vector<N2> feedforward(Vector<N2> position) {
-    return feedforward(position, VecBuilder.fill(0.0, 0.0), VecBuilder.fill(0.0, 0.0));
+    return feedforward(position, VecBuilder.fill(0.0, 0.0));
   }
 
   public Vector<N2> feedforward(Vector<N2> position, Vector<N2> velocity) {
-    return feedforward(position, velocity, VecBuilder.fill(0.0, 0.0));
-  }
-
-  public Vector<N2> feedforward(Vector<N2> position, Vector<N2> velocity, Vector<N2> acceleration) {
-    var torque =
-        M(position)
-            .times(acceleration)
-            .plus(C(position, velocity).times(velocity))
-            .plus(Tg(position));
     return VecBuilder.fill(
-        m_elbowJointConfig.gearbox().getVoltage(torque.get(0, 0), velocity.get(0, 0)),
-        m_wristJointConfig.gearbox().getVoltage(torque.get(1, 0), velocity.get(1, 0)));
+        m_elbowFeedForward.calculate(position.get(0, 0), velocity.get(0, 0)),
+        m_wristFeedForward.calculate(position.get(0, 0) + position.get(1, 0), velocity.get(1, 0)));
   }
 
   /**
@@ -56,178 +88,16 @@ public class ArmModel {
    * @return The new state of the arm as (position_0, position_1, velocity_0, velocity_1)
    */
   public Vector<N4> simulate(Vector<N4> state, Vector<N2> voltage, double dt) {
-    return new Vector<>(
-        NumericalIntegration.rkdp(
-            (Matrix<N4, N1> x, Matrix<N2, N1> u) -> {
-              // x = current state, u = voltages, return = state derivatives
-
-              // Get vectors from state
-              var position = VecBuilder.fill(x.get(0, 0), x.get(1, 0));
-              var velocity = VecBuilder.fill(x.get(2, 0), x.get(3, 0));
-
-              // Calculate torque
-              var elbowTorque =
-                  m_elbowJointConfig
-                      .gearbox()
-                      .getTorque(
-                          m_elbowJointConfig.gearbox().getCurrent(velocity.get(0, 0), u.get(0, 0)));
-              var wristTorque =
-                  m_wristJointConfig
-                      .gearbox()
-                      .getTorque(
-                          m_wristJointConfig.gearbox().getCurrent(velocity.get(1, 0), u.get(1, 0)));
-              var torque = VecBuilder.fill(elbowTorque, wristTorque);
-
-              // Apply limits
-              if (position.get(0, 0) < m_elbowJointConfig.minAngle()) {
-                position.set(0, 0, m_elbowJointConfig.minAngle());
-                if (velocity.get(0, 0) < 0.0) {
-                  velocity.set(0, 0, 0.0);
-                }
-                if (torque.get(0, 0) < 0.0) {
-                  torque.set(0, 0, 0.0);
-                }
-              }
-              if (position.get(0, 0) > m_elbowJointConfig.maxAngle()) {
-                position.set(0, 0, m_elbowJointConfig.maxAngle());
-                if (velocity.get(0, 0) > 0.0) {
-                  velocity.set(0, 0, 0.0);
-                }
-                if (torque.get(0, 0) > 0.0) {
-                  torque.set(0, 0, 0.0);
-                }
-              }
-              if (position.get(1, 0) < m_wristJointConfig.minAngle()) {
-                position.set(1, 0, m_wristJointConfig.minAngle());
-                if (velocity.get(1, 0) < 0.0) {
-                  velocity.set(1, 0, 0.0);
-                }
-                if (torque.get(1, 0) < 0.0) {
-                  torque.set(1, 0, 0.0);
-                }
-              }
-              if (position.get(1, 0) > m_wristJointConfig.maxAngle()) {
-                position.set(1, 0, m_wristJointConfig.maxAngle());
-                if (velocity.get(1, 0) > 0.0) {
-                  velocity.set(1, 0, 0.0);
-                }
-                if (torque.get(1, 0) > 0.0) {
-                  torque.set(1, 0, 0.0);
-                }
-              }
-
-              // Calculate acceleration
-              var acceleration =
-                  M(position)
-                      .inv()
-                      .times(
-                          torque.minus(C(position, velocity).times(velocity)).minus(Tg(position)));
-
-              // Return state vector
-              return MatBuilder.fill(
-                  Nat.N4(),
-                  Nat.N1(),
-                  velocity.get(0, 0),
-                  velocity.get(1, 0),
-                  acceleration.get(0, 0),
-                  acceleration.get(1, 0));
-            },
-            state,
-            voltage,
-            dt));
-  }
-
-  private Matrix<N2, N2> M(Vector<N2> position) {
-    var M = new Matrix<>(N2.instance, N2.instance);
-    M.set(
-        0,
-        0,
-        m_elbowJointConfig.mass() * Math.pow(m_elbowJointConfig.cgRadius(), 2.0)
-            + m_wristJointConfig.mass()
-                * (Math.pow(m_elbowJointConfig.length(), 2.0)
-                    + Math.pow(m_wristJointConfig.cgRadius(), 2.0))
-            + m_elbowJointConfig.moi()
-            + m_wristJointConfig.moi()
-            + 2
-                * m_wristJointConfig.mass()
-                * m_elbowJointConfig.length()
-                * m_wristJointConfig.cgRadius()
-                * Math.cos(position.get(1, 0)));
-    M.set(
-        1,
-        0,
-        m_wristJointConfig.mass() * Math.pow(m_wristJointConfig.cgRadius(), 2.0)
-            + m_wristJointConfig.moi()
-            + m_wristJointConfig.mass()
-                * m_elbowJointConfig.length()
-                * m_wristJointConfig.cgRadius()
-                * Math.cos(position.get(1, 0)));
-    M.set(
-        0,
-        1,
-        m_wristJointConfig.mass() * Math.pow(m_wristJointConfig.cgRadius(), 2.0)
-            + m_wristJointConfig.moi()
-            + m_wristJointConfig.mass()
-                * m_elbowJointConfig.length()
-                * m_wristJointConfig.cgRadius()
-                * Math.cos(position.get(1, 0)));
-    M.set(
-        1,
-        1,
-        m_wristJointConfig.mass() * Math.pow(m_wristJointConfig.cgRadius(), 2.0)
-            + m_wristJointConfig.moi());
-    return M;
-  }
-
-  private Matrix<N2, N2> C(Vector<N2> position, Vector<N2> velocity) {
-    var C = new Matrix<>(N2.instance, N2.instance);
-    C.set(
-        0,
-        0,
-        -m_wristJointConfig.mass()
-            * m_elbowJointConfig.length()
-            * m_wristJointConfig.cgRadius()
-            * Math.sin(position.get(1, 0))
-            * velocity.get(1, 0));
-    C.set(
-        1,
-        0,
-        m_wristJointConfig.mass()
-            * m_elbowJointConfig.length()
-            * m_wristJointConfig.cgRadius()
-            * Math.sin(position.get(1, 0))
-            * velocity.get(0, 0));
-    C.set(
-        0,
-        1,
-        -m_wristJointConfig.mass()
-            * m_elbowJointConfig.length()
-            * m_wristJointConfig.cgRadius()
-            * Math.sin(position.get(1, 0))
-            * (velocity.get(0, 0) + velocity.get(1, 0)));
-    return C;
-  }
-
-  private Matrix<N2, N1> Tg(Vector<N2> position) {
-    var Tg = new Matrix<>(N2.instance, N1.instance);
-    Tg.set(
-        0,
-        0,
-        (m_elbowJointConfig.mass() * m_elbowJointConfig.cgRadius()
-                    + m_wristJointConfig.mass() * m_elbowJointConfig.length())
-                * g
-                * Math.cos(position.get(0, 0))
-            + m_wristJointConfig.mass()
-                * m_wristJointConfig.cgRadius()
-                * g
-                * Math.cos(position.get(0, 0) + position.get(1, 0)));
-    Tg.set(
-        1,
-        0,
-        m_wristJointConfig.mass()
-            * m_wristJointConfig.cgRadius()
-            * g
-            * Math.cos(position.get(0, 0) + position.get(1, 0)));
-    return Tg;
+    m_elbowSim.setState(state.get(0, 0), state.get(2, 0));
+    m_wristSim.setState(state.get(0, 0) + state.get(1, 0), state.get(3, 0));
+    m_elbowSim.setInputVoltage(voltage.get(0, 0));
+    m_wristSim.setInputVoltage(voltage.get(1, 0));
+    m_elbowSim.update(dt);
+    m_wristSim.update(dt);
+    return VecBuilder.fill(
+        m_elbowSim.getAngleRads(),
+        m_wristSim.getAngleRads() - m_elbowSim.getAngleRads(),
+        m_elbowSim.getVelocityRadPerSec(),
+        m_wristSim.getVelocityRadPerSec());
   }
 }

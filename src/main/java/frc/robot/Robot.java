@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
-import frc.robot.arm.ArmConfig.ArmSetpoints;
+import frc.robot.arm.ArmSetpoints;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -60,7 +60,7 @@ public class Robot extends LoggedRobot {
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
-        m_arm = Subsystems.createTalonFXArm();
+        m_arm = Subsystems.createSimArm();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
@@ -93,9 +93,9 @@ public class Robot extends LoggedRobot {
     m_arm.setDefaultCommand(m_arm.stop());
 
     m_driverController.y().onTrue(m_drivetrain.zeroGyro());
-    m_driverController.a().onTrue(m_arm.setSetpoint(ArmSetpoints.kStowed));
-    m_driverController.b().onTrue(m_arm.setSetpoint(ArmSetpoints.kTrap));
-    m_driverController.start().onTrue(m_arm.setSetpoint(0.0, 0.0));
+    m_driverController.a().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+    m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
+    m_driverController.start().onTrue(m_arm.goToSetpoint(0.0, 0.0));
   }
 
   /**

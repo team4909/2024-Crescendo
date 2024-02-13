@@ -3,24 +3,83 @@ package frc.robot.arm;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.arm.ArmConfig.ArmSetpoints;
-import frc.robot.arm.ArmConfig.JointConfig;
+import frc.lib.LoggedTunableNumber;
+import frc.robot.Constants;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import org.littletonrobotics.junction.Logger;
 
 public class Arm extends SubsystemBase {
 
+  private final double kSDeadband = 0.05;
   private final ArmIO m_io;
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
-  private final ArmModel m_armModel = new ArmModel(ArmConfig.kElbowConfig, ArmConfig.kWristConfig);
+  private final ArmModel m_armModel = new ArmModel();
   private final ArmKinematics m_armKinematics = new ArmKinematics();
   private final ArmVisualizer m_measuredVisualizer;
   private final ArmVisualizer m_setpointVisualizer;
+  private ProfiledPIDController m_elbowController =
+      new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0));
+
+  private ProfiledPIDController m_wristController =
+      new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0));
+
+  private static final LoggedTunableNumber elbowkP = new LoggedTunableNumber("Arm/Elbow/kP");
+  private static final LoggedTunableNumber elbowkD = new LoggedTunableNumber("Arm/Elbow/kD");
+  private static final LoggedTunableNumber elbowkS = new LoggedTunableNumber("Arm/Elbow/kS");
+  private static final LoggedTunableNumber elbowCruiseVelocityRadPerSec =
+      new LoggedTunableNumber("Arm/Elbow/CruiseVelocity");
+  private static final LoggedTunableNumber elbowMaxAccelerationRadPerSecSq =
+      new LoggedTunableNumber("Arm/Elbow/MaxAcceleration");
+  private static final LoggedTunableNumber wristkP = new LoggedTunableNumber("Arm/Wrist/kP");
+  private static final LoggedTunableNumber wristkD = new LoggedTunableNumber("Arm/Wrist/kD");
+  private static final LoggedTunableNumber wristkS = new LoggedTunableNumber("Arm/Wrist/kS");
+  private static final LoggedTunableNumber wristCruiseVelocityRadPerSec =
+      new LoggedTunableNumber("Arm/Wrist/CruiseVelocity");
+  private static final LoggedTunableNumber wristMaxAccelerationRadPerSecSq =
+      new LoggedTunableNumber("Arm/Wrist/MaxAcceleration");
+
+  private Vector<N2> m_profileInitialAngles;
+  // We don't want to add kS to the feedback when the output is close to 0
+  private final BiFunction<Double, Double, Double> m_deadbandkS =
+      (volts, kS) -> Math.abs(volts) < kSDeadband ? volts : volts + Math.copySign(kS, volts);
+
+  static {
+    switch (Constants.kCurrentMode) {
+      case kReal:
+        elbowkP.initDefault(0.0);
+        elbowkD.initDefault(0);
+        elbowkS.initDefault(0.0);
+        elbowCruiseVelocityRadPerSec.initDefault(1.0);
+        elbowMaxAccelerationRadPerSecSq.initDefault(0.5);
+        wristkP.initDefault(0.0);
+        wristkD.initDefault(0);
+        wristkS.initDefault(0.0);
+        wristCruiseVelocityRadPerSec.initDefault(1.0);
+        wristMaxAccelerationRadPerSecSq.initDefault(0.5);
+        break;
+      case kSim:
+        // We should not need kS in simulation
+        elbowkP.initDefault(3.0);
+        elbowkD.initDefault(0.0);
+        elbowCruiseVelocityRadPerSec.initDefault(3.0);
+        elbowMaxAccelerationRadPerSecSq.initDefault(2.0);
+        wristkP.initDefault(6.0);
+        wristkD.initDefault(0.0);
+        wristCruiseVelocityRadPerSec.initDefault(3.0);
+        wristMaxAccelerationRadPerSecSq.initDefault(2.0);
+        break;
+      default:
+        break;
+    }
+  }
 
   public Arm(ArmIO io) {
     m_io = io;
@@ -30,9 +89,39 @@ public class Arm extends SubsystemBase {
 
   public void periodic() {
     m_io.updateInputs(m_inputs);
-    Logger.processInputs("Arm", m_inputs);
+    Logger.processInputs("ArmInputs", m_inputs);
+
+    if (DriverStation.isDisabled()){
+      m_io.setElbowVoltage(0.0);
+      m_io.setWristVoltage(0.0);
+    }
+
+    // #region Update controllers when tunables change.
+    if (elbowkP.hasChanged(hashCode()) || elbowkD.hasChanged(hashCode())) {
+      m_elbowController.setP(elbowkP.get());
+      m_elbowController.setD(elbowkD.get());
+    }
+    if (wristkP.hasChanged(hashCode()) || wristkD.hasChanged(hashCode())) {
+      m_wristController.setP(wristkP.get());
+      m_wristController.setD(wristkD.get());
+    }
+
+    if (elbowCruiseVelocityRadPerSec.hasChanged(hashCode())
+        || elbowMaxAccelerationRadPerSecSq.hasChanged(hashCode())) {
+      m_elbowController.setConstraints(
+          new TrapezoidProfile.Constraints(
+              elbowCruiseVelocityRadPerSec.get(), elbowMaxAccelerationRadPerSecSq.get()));
+    }
+    if (wristCruiseVelocityRadPerSec.hasChanged(hashCode())
+        || wristMaxAccelerationRadPerSecSq.hasChanged(hashCode())) {
+      m_wristController.setConstraints(
+          new TrapezoidProfile.Constraints(
+              wristCruiseVelocityRadPerSec.get(), wristMaxAccelerationRadPerSecSq.get()));
+    }
+    // #endregion
+
     Logger.recordOutput(
-        "Arm/Cartesian Position",
+        "Arm/Forward Kinematics Position",
         m_armKinematics.forward(
             VecBuilder.fill(m_inputs.elbowPositionRad, m_inputs.wristPositionRad)));
 
@@ -42,34 +131,90 @@ public class Arm extends SubsystemBase {
         getCurrentCommand() == null ? "Null" : getCurrentCommand().getName());
   }
 
-  private void runSetpoint(Vector<N2> setpointAnglesRad) {
+  private void setSetpoint(Vector<N2> setpointAnglesRad) {
     double elbowAngle = setpointAnglesRad.get(0, 0);
     double wristAngle = setpointAnglesRad.get(1, 0);
     Logger.recordOutput("Arm/Goal Elbow Angle", (elbowAngle));
     Logger.recordOutput("Arm/Goal Wrist Angle", (wristAngle));
     m_setpointVisualizer.update(elbowAngle, wristAngle);
-    Vector<N2> feedforwardVolts = m_armModel.feedforward(setpointAnglesRad);
-    double elbowFeedForward = feedforwardVolts.get(0, 0);
-    double wristFeedForward = feedforwardVolts.get(1, 0);
-    Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForward);
-    Logger.recordOutput("Arm/Wrist Feed Forward", wristFeedForward);
-    m_io.setElbowRotatations(
-        Units.radiansToRotations(elbowAngle) * ArmConfig.kElbowReduction, elbowFeedForward);
-    m_io.setWristRotatations(
-        Units.radiansToRotations(wristAngle) * ArmConfig.kWristReduction, wristFeedForward);
+    m_elbowController.setGoal(elbowAngle);
+    m_wristController.setGoal(wristAngle);
+    m_profileInitialAngles =
+        VecBuilder.fill(m_inputs.elbowAbsolutePositionRad, m_inputs.wristAbsolutePositionRad);
   }
 
-  private void runSetpoint(Translation2d setpoint) {
+  private void setSetpoint(Translation2d setpoint) {
     Optional<Vector<N2>> setpointAnglesRad = m_armKinematics.inverse(setpoint);
-    setpointAnglesRad.ifPresent(angles -> runSetpoint(angles));
+    setpointAnglesRad.ifPresent(angles -> setSetpoint(angles));
   }
 
-  public Command setSetpoint(ArmSetpoints setpoint) {
-    return this.run(() -> runSetpoint(setpoint.get())).withName("Set Inverse Setpoint");
+  /**
+   * @param elbowDelay The percent that the wrist must travel before the elbow moves.
+   * @param wristDelay The percent that the elbow must travel before the wrist moves.
+   */
+  private void runSetpoint(double elbowDelay, double wristDelay) {
+    if (elbowDelay > 0.0 && wristDelay > 0.0)
+      throw new IllegalArgumentException("Only one joint can be delayed at a time.");
+    if (elbowDelay < 0.0 || wristDelay < 0.0)
+      throw new IllegalArgumentException("Percent delay can't be negative.");
+    double elbowGoalPosition = m_elbowController.getSetpoint().position;
+    double wristGoalPosition = m_wristController.getSetpoint().position;
+    double elbowGoalVelocity = m_elbowController.getSetpoint().velocity;
+    double wristGoalVelocity = m_wristController.getSetpoint().velocity;
+    double elbowProgress =
+        Math.abs(m_inputs.elbowAbsolutePositionRad - m_profileInitialAngles.get(0, 0))
+            / Math.abs(m_elbowController.getGoal().position - m_profileInitialAngles.get(0, 0));
+    double wristProgress =
+        Math.abs(m_inputs.wristAbsolutePositionRad - m_profileInitialAngles.get(1, 0))
+            / Math.abs(m_wristController.getGoal().position - m_profileInitialAngles.get(1, 0));
+    Logger.recordOutput("Arm/Elbow Progress", elbowProgress);
+    Logger.recordOutput("Arm/Wrist Progress", wristProgress);
+    double elbowFeedbackVolts =
+        m_deadbandkS.apply(
+            m_elbowController.calculate(m_inputs.elbowAbsolutePositionRad), elbowkS.get());
+    double wristFeedbackVolts =
+        m_deadbandkS.apply(
+            m_wristController.calculate(m_inputs.wristAbsolutePositionRad), wristkS.get());
+    if (wristProgress < elbowDelay) {
+      elbowGoalPosition = m_inputs.elbowAbsolutePositionRad;
+      elbowGoalVelocity = 0.0;
+      elbowFeedbackVolts = 0.0;
+    }
+    if (elbowProgress < wristDelay) {
+      wristGoalPosition = m_inputs.wristAbsolutePositionRad;
+      wristGoalVelocity = 0.0;
+      wristFeedbackVolts = 0.0;
+    }
+    Vector<N2> feedforwardVolts =
+        m_armModel.feedforward(
+            VecBuilder.fill(elbowGoalPosition, wristGoalPosition),
+            VecBuilder.fill(elbowGoalVelocity, wristGoalVelocity));
+    double elbowFeedForwardVolts = feedforwardVolts.get(0, 0);
+    double wristFeedForwardVolts = feedforwardVolts.get(1, 0);
+    Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForwardVolts);
+    Logger.recordOutput("Arm/Wrist Feed Forward", wristFeedForwardVolts);
+    m_io.setElbowVoltage(elbowFeedbackVolts + elbowFeedForwardVolts);
+    m_io.setWristVoltage(wristFeedbackVolts + wristFeedForwardVolts);
   }
 
-  public Command setSetpoint(double elbowAngleRad, double wristAngleRad) {
-    return this.run(() -> runSetpoint(VecBuilder.fill(elbowAngleRad, wristAngleRad)))
+  private void runSetpoint() {
+    runSetpoint(0.0, 0.0);
+  }
+
+  public Command goToSetpoint(ArmSetpoints setpoint) {
+    return this.runOnce(
+            () -> {
+              setSetpoint(setpoint.getTranslation());
+            })
+        .andThen(
+            this.run(
+                () -> runSetpoint(setpoint.getDelay().getFirst(), setpoint.getDelay().getSecond())))
+        .withName("Set Inverse Setpoint");
+  }
+
+  public Command goToSetpoint(double elbowAngleRad, double wristAngleRad) {
+    return this.runOnce(() -> setSetpoint(VecBuilder.fill(elbowAngleRad, wristAngleRad)))
+        .andThen(this.run(this::runSetpoint))
         .withName("Set Forward Setpoint");
   }
 
@@ -85,22 +230,19 @@ public class Arm extends SubsystemBase {
 
   class ArmKinematics {
 
-    private final JointConfig m_elbowConfig = ArmConfig.kElbowConfig;
-    private final JointConfig m_wristConfig = ArmConfig.kWristConfig;
-
     public Translation2d forward(Vector<N2> angles) {
 
       return new Translation2d(
-          ArmConfig.kOrigin.getX()
-              + m_elbowConfig.length() * Math.cos(angles.get(0, 0))
-              + m_wristConfig.length() * Math.cos(angles.get(0, 0) + angles.get(1, 0)),
-          ArmConfig.kOrigin.getY()
-              + m_elbowConfig.length() * Math.sin(angles.get(0, 0))
-              + m_wristConfig.length() * Math.sin(angles.get(0, 0) + angles.get(1, 0)));
+          ArmModel.kOrigin.getX()
+              + ArmModel.kElbowLengthMeters * Math.cos(angles.get(0, 0))
+              + ArmModel.kWristLengthMeters * Math.cos(angles.get(0, 0) + angles.get(1, 0)),
+          ArmModel.kOrigin.getY()
+              + ArmModel.kElbowLengthMeters * Math.sin(angles.get(0, 0))
+              + ArmModel.kWristLengthMeters * Math.sin(angles.get(0, 0) + angles.get(1, 0)));
     }
 
     public Optional<Vector<N2>> inverse(Translation2d position) {
-      Translation2d relativePosition = position.minus(ArmConfig.kOrigin);
+      Translation2d relativePosition = position.minus(ArmModel.kOrigin);
 
       // Flip when X is negative
       boolean isFlipped = relativePosition.getX() < 0.0;
@@ -112,21 +254,22 @@ public class Arm extends SubsystemBase {
           -Math.acos(
               (Math.pow(relativePosition.getX(), 2)
                       + Math.pow(relativePosition.getY(), 2)
-                      - Math.pow(m_elbowConfig.length(), 2)
-                      - Math.pow(m_wristConfig.length(), 2))
-                  / (2 * m_elbowConfig.length() * m_wristConfig.length()));
+                      - Math.pow(ArmModel.kElbowLengthMeters, 2)
+                      - Math.pow(ArmModel.kWristLengthMeters, 2))
+                  / (2 * ArmModel.kElbowLengthMeters * ArmModel.kWristLengthMeters));
       if (Double.isNaN(wristAngle)) {
         return Optional.empty();
       }
       double elbowAngle =
-          Math.atan(relativePosition.getY() / relativePosition.getX())
-              - Math.atan(
-                  (m_wristConfig.length() * Math.sin(wristAngle))
-                      / (m_elbowConfig.length() + m_wristConfig.length() * Math.cos(wristAngle)));
+          Math.atan2(relativePosition.getY(), relativePosition.getX())
+              - Math.atan2(
+                  (ArmModel.kWristLengthMeters * Math.sin(wristAngle)),
+                  (ArmModel.kElbowLengthMeters
+                      + ArmModel.kWristLengthMeters * Math.cos(wristAngle)));
 
       // Invert shoulder angle if invalid
       Translation2d testPosition =
-          forward(VecBuilder.fill(elbowAngle, wristAngle)).minus(ArmConfig.kOrigin);
+          forward(VecBuilder.fill(elbowAngle, wristAngle)).minus(ArmModel.kOrigin);
       if (testPosition.getDistance(relativePosition) > 1e-3) {
         elbowAngle += Math.PI;
       }
@@ -138,14 +281,14 @@ public class Arm extends SubsystemBase {
       }
 
       // Wrap angles to correct ranges
-      elbowAngle = MathUtil.inputModulus(elbowAngle, -Math.PI, Math.PI);
-      wristAngle = MathUtil.inputModulus(wristAngle, 0, 2 * Math.PI);
+      elbowAngle = MathUtil.angleModulus(elbowAngle);
+      wristAngle = MathUtil.angleModulus(wristAngle);
 
       // Exit if outside valid ranges for the joints
-      if (elbowAngle < m_elbowConfig.minAngle()
-          || elbowAngle > m_elbowConfig.maxAngle()
-          || wristAngle < m_wristConfig.minAngle()
-          || wristAngle > m_wristConfig.maxAngle()) {
+      if (elbowAngle < ArmModel.kElbowMinAngleRad
+          || elbowAngle > ArmModel.kElbowMaxAngleRad
+          || wristAngle < ArmModel.kWristMinAngleRad
+          || wristAngle > ArmModel.kWristMaxAngleRad) {
         return Optional.empty();
       }
       return Optional.of(VecBuilder.fill(elbowAngle, wristAngle));

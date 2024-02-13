@@ -6,14 +6,10 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.sim.TalonFXSimState;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.Constants;
 
 public class ArmIOTalonFX implements ArmIO {
@@ -23,11 +19,8 @@ public class ArmIOTalonFX implements ArmIO {
       m_elbowRightFollowerMotor,
       m_wristLeftMotor,
       m_wristRightFollowerMotor;
-  private final MotionMagicExpoVoltage m_elbowControl, m_wristControl;
-  private final ArmModel m_armSimModel =
-      new ArmModel(ArmConfig.kElbowConfig, ArmConfig.kWristConfig);
-  private Vector<N4> elbowWristSimStates = VecBuilder.fill(Math.PI / 2, Math.PI / 2, 0.0, 0.0);
-
+  private final DutyCycleEncoder m_elbowAbsoluteEncoder, m_wristAbsoluteEncoder;
+  private final VoltageOut m_elbowControl, m_wristControl;
   private final StatusSignal<Double> m_elbowPositionSignal,
       m_elbowVelocitySignal,
       m_elbowAppliedVoltsSignal,
@@ -45,6 +38,12 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor = new TalonFX(12, Constants.kCanBusName);
     m_wristRightFollowerMotor = new TalonFX(11, Constants.kCanBusName);
 
+    m_elbowAbsoluteEncoder = new DutyCycleEncoder(0);
+    m_wristAbsoluteEncoder = new DutyCycleEncoder(1);
+
+    m_elbowAbsoluteEncoder.setPositionOffset(0.0);
+    m_wristAbsoluteEncoder.setPositionOffset(0.0);
+
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
     currentLimitsConfig.StatorCurrentLimit = kCurrentLimitAmps;
     currentLimitsConfig.StatorCurrentLimitEnable = true;
@@ -56,26 +55,14 @@ public class ArmIOTalonFX implements ArmIO {
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowLeftMotorConfig.TorqueCurrent = torqueCurrentConfig;
-    elbowLeftMotorConfig.Slot0.kP = 1;
-    elbowLeftMotorConfig.Slot0.kD = 0.05;
-    elbowLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 100.0 / ArmConfig.kElbowReduction;
-    elbowLeftMotorConfig.MotionMagic.MotionMagicAcceleration =
-        elbowLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity / 0.100;
-    elbowLeftMotorConfig.MotionMagic.MotionMagicExpo_kV = 0.12 * ArmConfig.kElbowReduction;
-    elbowLeftMotorConfig.MotionMagic.MotionMagicExpo_kA = 0.1;
+
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
 
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
     wristLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     wristLeftMotorConfig.TorqueCurrent = torqueCurrentConfig;
-    wristLeftMotorConfig.Slot0.kP = 1;
-    wristLeftMotorConfig.Slot0.kD = 0.05;
-    wristLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 100.0 / ArmConfig.kWristReduction;
-    wristLeftMotorConfig.MotionMagic.MotionMagicAcceleration =
-        wristLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity / 0.100;
-    wristLeftMotorConfig.MotionMagic.MotionMagicExpo_kV = 0.12 * ArmConfig.kWristReduction;
-    wristLeftMotorConfig.MotionMagic.MotionMagicExpo_kA = 0.1;
+
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
@@ -121,15 +108,14 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.optimizeBusUtilization();
     m_wristRightFollowerMotor.optimizeBusUtilization();
 
-    m_elbowControl = new MotionMagicExpoVoltage(0.0, false, 0, 0, true, false, false);
-    m_wristControl = new MotionMagicExpoVoltage(0.0, false, 0, 0, true, false, false);
+    m_elbowLeftMotor.setPosition(m_elbowAbsoluteEncoder.get());
+    m_wristLeftMotor.setPosition(m_wristAbsoluteEncoder.get());
+    m_elbowControl = new VoltageOut(0.0, true, true, false, false);
+    m_wristControl = new VoltageOut(0.0, true, true, false, false);
   }
 
   public void updateInputs(ArmIOInputs inputs) {
 
-    if (Constants.kIsSim) {
-      updateSim();
-    }
     BaseStatusSignal.refreshAll(
         m_elbowPositionSignal,
         m_elbowVelocitySignal,
@@ -142,64 +128,40 @@ public class ArmIOTalonFX implements ArmIO {
         m_wristCurrentSignal,
         m_wristFollowerCurrentSignal);
 
+    inputs.elbowAbsolutePositionRad =
+        Units.rotationsToRadians(m_elbowAbsoluteEncoder.get() / ArmModel.kElbowChainReduction);
+    inputs.elbowAbsoluteEncoderConnected = m_elbowAbsoluteEncoder.isConnected();
     inputs.elbowPositionRad =
         Units.rotationsToRadians(
             BaseStatusSignal.getLatencyCompensatedValue(
                     m_elbowPositionSignal, m_elbowVelocitySignal)
-                / ArmConfig.kElbowReduction);
+                / ArmModel.kElbowFinalReduction);
     inputs.elbowVelocityRadPerSec =
-        Units.rotationsToRadians(m_elbowVelocitySignal.getValue() / ArmConfig.kElbowReduction);
+        Units.rotationsToRadians(m_elbowVelocitySignal.getValue() / ArmModel.kElbowFinalReduction);
     inputs.elbowAppliedVolts = m_elbowAppliedVoltsSignal.getValue();
     inputs.elbowCurrentAmps =
         new double[] {m_elbowCurrentSignal.getValue(), m_elbowFollowerCurrentSignal.getValue()};
 
+    inputs.wristAbsolutePositionRad =
+        Units.rotationsToRadians(m_wristAbsoluteEncoder.get() / ArmModel.kWristChainReduction);
+    inputs.wristAbsoluteEncoderConnected = m_wristAbsoluteEncoder.isConnected();
     inputs.wristPositionRad =
         Units.rotationsToRadians(
             BaseStatusSignal.getLatencyCompensatedValue(
                     m_wristPositionSignal, m_wristVelocitySignal)
-                / ArmConfig.kWristReduction);
+                / ArmModel.kWristFinalReduction);
     inputs.wristVelocityRadPerSec =
-        Units.rotationsToRadians(m_wristVelocitySignal.getValue() / ArmConfig.kWristReduction);
+        Units.rotationsToRadians(m_wristVelocitySignal.getValue() / ArmModel.kWristFinalReduction);
     inputs.wristAppliedVolts = m_wristAppliedVoltsSignal.getValue();
     inputs.wristCurrentAmps =
         new double[] {m_wristCurrentSignal.getValue(), m_wristFollowerCurrentSignal.getValue()};
   }
 
-  public void updateSim() {
-    final TalonFXSimState elbowSimState = m_elbowLeftMotor.getSimState();
-    final TalonFXSimState wristSimState = m_wristLeftMotor.getSimState();
-    elbowSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    wristSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    elbowWristSimStates =
-        m_armSimModel.simulate(
-            elbowWristSimStates,
-            VecBuilder.fill(elbowSimState.getMotorVoltage(), wristSimState.getMotorVoltage()),
-            0.02);
-    elbowSimState.setRawRotorPosition(
-        Units.radiansToRotations(elbowWristSimStates.get(0, 0)) * ArmConfig.kElbowReduction);
-    elbowSimState.setRotorVelocity(
-        Units.radiansToRotations(elbowWristSimStates.get(2, 0)) * ArmConfig.kElbowReduction);
-    wristSimState.setRawRotorPosition(
-        Units.radiansToRotations(elbowWristSimStates.get(1, 0)) * ArmConfig.kWristReduction);
-    wristSimState.setRotorVelocity(
-        Units.radiansToRotations(elbowWristSimStates.get(3, 0)) * ArmConfig.kWristReduction);
-  }
-
-  public void setElbowRotatations(double rotations, double feedForwardVolts) {
-    m_elbowLeftMotor.setControl(
-        m_elbowControl.withPosition(rotations).withFeedForward(feedForwardVolts));
-  }
-
-  public void setWristRotatations(double rotations, double feedForwardVolts) {
-    m_wristLeftMotor.setControl(
-        m_wristControl.withPosition(rotations).withFeedForward(feedForwardVolts));
-  }
-
   public void setElbowVoltage(double volts) {
-    m_elbowLeftMotor.setVoltage(volts);
+    m_elbowLeftMotor.setControl(m_elbowControl.withOutput(volts));
   }
 
   public void setWristVoltage(double volts) {
-    m_wristLeftMotor.setVoltage(volts);
+    m_wristLeftMotor.setControl(m_wristControl.withOutput(volts));
   }
 }

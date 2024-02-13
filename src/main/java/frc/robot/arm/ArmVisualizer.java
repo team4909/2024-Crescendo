@@ -26,23 +26,23 @@ public class ArmVisualizer {
   public ArmVisualizer(String logKey) {
     m_logKey = logKey;
     m_mechanism = new Mechanism2d(4, 3, new Color8Bit(Color.kGray));
-    m_mechanismRoot = m_mechanism.getRoot("Arm", 2 + ArmConfig.kOrigin.getX(), 0);
+    m_mechanismRoot = m_mechanism.getRoot("Arm", 2 + ArmModel.kOrigin.getX(), 0);
     m_fixedShoulderLigament =
         m_mechanismRoot.append(
             new MechanismLigament2d(
                 "Shoulder",
-                ArmConfig.kOrigin.getY(),
+                ArmModel.kOrigin.getY(),
                 kShoulderAngleDegrees,
                 6,
                 new Color8Bit(Color.kBlack)));
     m_elbowLigament =
         m_fixedShoulderLigament.append(
             new MechanismLigament2d(
-                "Elbow", ArmConfig.kElbowConfig.length(), 0, 4, new Color8Bit(Color.kGreen)));
+                "Elbow", ArmModel.kElbowLengthMeters, 0, 4, new Color8Bit(Color.kGreen)));
     m_wristLigament =
         m_elbowLigament.append(
             new MechanismLigament2d(
-                "Wrist", ArmConfig.kWristConfig.length(), 0, 4, new Color8Bit(Color.kDarkGreen)));
+                "Wrist", ArmModel.kWristLengthMeters, 0, 4, new Color8Bit(Color.kDarkGreen)));
   }
 
   public void update(double elbowAngle, double wristAngle) {
@@ -52,14 +52,14 @@ public class ArmVisualizer {
 
     Pose3d elbowPose =
         new Pose3d(
-            ArmConfig.kOrigin.getX(),
+            ArmModel.kOrigin.getX(),
             0.0,
-            ArmConfig.kOrigin.getY(),
+            ArmModel.kOrigin.getY(),
             new Rotation3d(0.0, -elbowAngle, 0.0));
     Pose3d wristPose =
         elbowPose.transformBy(
             new Transform3d(
-                new Translation3d(ArmConfig.kElbowConfig.length(), 0.0, 0.0),
+                new Translation3d(ArmModel.kElbowLengthMeters, 0.0, 0.0),
                 new Rotation3d(0.0, -wristAngle, 0.0)));
     Logger.recordOutput("Mechanism3d/" + m_logKey, elbowPose, wristPose);
   }
