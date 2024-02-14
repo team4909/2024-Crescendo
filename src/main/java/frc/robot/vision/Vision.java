@@ -147,8 +147,8 @@ public class Vision {
     double averageDistance = totalDistance / tagCount;
 
     /**
-     * Reject tags is there are no tags OR there is only one tag and it has a high pose ambiguity OR
-     * there is only one tag and the tag is too far.
+     * Reject tags is there are no valid tags OR there is only one tag and it has a high pose
+     * ambiguity OR there is only one tag and the tag is too far.
      */
     if ((tagCount == 0)
         || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.3)
