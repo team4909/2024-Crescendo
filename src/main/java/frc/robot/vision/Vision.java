@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Timer;
-import frc.lib.PolynomialRegression;
 import frc.robot.Constants;
 import frc.robot.vision.VisionIO.VisionIOInputs;
 import java.util.ArrayList;
@@ -44,24 +43,8 @@ public class Vision {
       AprilTagFields.kDefaultField.loadAprilTagLayoutField();
   private Consumer<VisionUpdate> m_visionUpdateConsumer = null;
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
-  private final PolynomialRegression xyStdDevModel =
-      new PolynomialRegression(
-          new double[] {
-            0.752358, 1.016358, 1.296358, 1.574358, 1.913358, 2.184358, 2.493358, 2.758358,
-            3.223358, 4.093358, 4.726358
-          },
-          new double[] {
-            0.005, 0.0135, 0.016, 0.038, 0.0515, 0.0925, 0.0695, 0.046, 0.1245, 0.0815, 0.193
-          },
-          1);
-  private final PolynomialRegression thetaStdDevModel =
-      new PolynomialRegression(
-          new double[] {
-            0.752358, 1.016358, 1.296358, 1.574358, 1.913358, 2.184358, 2.493358, 2.758358,
-            3.223358, 4.093358, 4.726358
-          },
-          new double[] {0.008, 0.027, 0.015, 0.044, 0.04, 0.078, 0.049, 0.027, 0.059, 0.029, 0.068},
-          1);
+  private double xyStdDevCoefficient = 0.1;
+  private double thetaStdDevCoefficient = 0.1;
 
   public Vision(VisionIO... io) {
     this.io = io;
@@ -151,27 +134,28 @@ public class Vision {
       Pose2d estimatedPose, List<PhotonTrackedTarget> targets) {
     Vector<N3> rejectTagStdDev =
         VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-    int numTags = 0;
-    double avgDist = 0;
+    int tagCount = 0;
+    double totalDistance = 0;
     for (var target : targets) {
       var tagPose = kTagLayout.getTagPose(target.getFiducialId());
       // Ignore tags whose ids are not in the field layout.
       if (tagPose.isEmpty()) continue;
-      numTags++;
-      avgDist +=
+      tagCount++;
+      totalDistance +=
           tagPose.get().toPose2d().getTranslation().getDistance(estimatedPose.getTranslation());
     }
-    if (numTags == 0) return rejectTagStdDev;
-    if (numTags == 1) {
-      if (targets.get(0).getPoseAmbiguity() > 0.3) {
-        return rejectTagStdDev;
-      }
-    }
-    avgDist /= numTags;
-    // After 4 meters we can't trust vision
-    if (numTags == 1 && avgDist > 4) return rejectTagStdDev;
-    double xyStdDev = xyStdDevModel.predict(avgDist);
-    double thetaStdDev = thetaStdDevModel.predict(avgDist);
+    double averageDistance = totalDistance / tagCount;
+
+    /**
+     * Reject tags is there are no tags OR there is only one tag and it has a high pose ambiguity OR
+     * there is only one tag and the tag is too far.
+     */
+    if ((tagCount == 0)
+        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.3)
+        || (tagCount == 1 && averageDistance > 4)) return rejectTagStdDev;
+
+    double xyStdDev = xyStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount;
+    double thetaStdDev = thetaStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount;
     return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
   }
 
