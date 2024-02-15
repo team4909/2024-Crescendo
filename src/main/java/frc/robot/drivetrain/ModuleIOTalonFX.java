@@ -61,27 +61,27 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_index = index;
     switch (index) {
       case 0: // FL
-        m_driveMotor = new TalonFX(4, Constants.kCanBusName);
-        m_steerMotor = new TalonFX(3, Constants.kCanBusName);
-        m_azimuthEncoder = new CANcoder(12, Constants.kCanBusName);
+        m_driveMotor = new TalonFX(4, Constants.kDrivetrainCanBus);
+        m_steerMotor = new TalonFX(3, Constants.kDrivetrainCanBus);
+        m_azimuthEncoder = new CANcoder(12, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = -0.380126953125;
         break;
       case 1: // FR
-        m_driveMotor = new TalonFX(6, Constants.kCanBusName);
-        m_steerMotor = new TalonFX(5, Constants.kCanBusName);
-        m_azimuthEncoder = new CANcoder(13, Constants.kCanBusName);
+        m_driveMotor = new TalonFX(6, Constants.kDrivetrainCanBus);
+        m_steerMotor = new TalonFX(5, Constants.kDrivetrainCanBus);
+        m_azimuthEncoder = new CANcoder(13, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = -0.196533203125;
         break;
       case 2: // BL
-        m_driveMotor = new TalonFX(2, Constants.kCanBusName);
-        m_steerMotor = new TalonFX(1, Constants.kCanBusName);
-        m_azimuthEncoder = new CANcoder(11, Constants.kCanBusName);
+        m_driveMotor = new TalonFX(2, Constants.kDrivetrainCanBus);
+        m_steerMotor = new TalonFX(1, Constants.kDrivetrainCanBus);
+        m_azimuthEncoder = new CANcoder(11, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = 0.265380859375;
         break;
       case 3: // BR
-        m_driveMotor = new TalonFX(7, Constants.kCanBusName);
-        m_steerMotor = new TalonFX(8, Constants.kCanBusName);
-        m_azimuthEncoder = new CANcoder(14, Constants.kCanBusName);
+        m_driveMotor = new TalonFX(7, Constants.kDrivetrainCanBus);
+        m_steerMotor = new TalonFX(8, Constants.kDrivetrainCanBus);
+        m_azimuthEncoder = new CANcoder(14, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = 0.314208984375;
         break;
       default:

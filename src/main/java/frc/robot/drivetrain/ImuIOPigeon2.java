@@ -13,7 +13,7 @@ import frc.robot.Constants;
 import java.util.Queue;
 
 public class ImuIOPigeon2 implements ImuIO {
-  private final Pigeon2 m_imu = new Pigeon2(20, Constants.kCanBusName);
+  private final Pigeon2 m_imu = new Pigeon2(20, Constants.kDrivetrainCanBus);
   private final StatusSignal<Double> yaw = m_imu.getYaw();
   private final Queue<Double> m_yawPositionQueue, m_yawTimestampQueue;
   private final StatusSignal<Double> yawVelocity = m_imu.getAngularVelocityZWorld();

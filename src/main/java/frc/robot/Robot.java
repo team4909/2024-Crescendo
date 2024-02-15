@@ -29,7 +29,7 @@ public class Robot extends LoggedRobot {
 
   public Robot() {
     recordMetadeta();
-    Logger.disableDeterministicTimestamps();
+    DriverStation.silenceJoystickConnectionWarning(true);
     switch (Constants.kCurrentMode) {
       case kReal:
         // TODO find out why this causes weird errors
@@ -37,7 +37,6 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new NT4Publisher());
         break;
       case kSim:
-        DriverStation.silenceJoystickConnectionWarning(true);
         Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         break;

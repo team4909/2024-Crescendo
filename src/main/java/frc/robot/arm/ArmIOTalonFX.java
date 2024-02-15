@@ -8,17 +8,20 @@ import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.Logger;
 
 public class ArmIOTalonFX implements ArmIO {
 
   // Offsets to the horizontal
-  private final double kElbowAbsoluteEncoderOffsetRad = 0.0;
-  private final double kWristAbsoluteEncoderOffsetRad = 0.0;
+  private final double kElbowAbsoluteEncoderOffsetRad = 1.439;
+  private final double kWristAbsoluteEncoderOffsetRad = 0.681;
   private final double kElbowRelativeEncoderOffsetRad = 0.0;
   private final double kWristRelativeEncoderOffsetRad = 0.0;
+  private final boolean kUseAbsoluteEncoders = true;
   private final double kCurrentLimitAmps = 80.0;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,
@@ -38,13 +41,15 @@ public class ArmIOTalonFX implements ArmIO {
       m_wristFollowerCurrentSignal;
 
   public ArmIOTalonFX() {
-    m_elbowLeftMotor = new TalonFX(9, Constants.kCanBusName);
-    m_elbowRightFollowerMotor = new TalonFX(10, Constants.kCanBusName);
-    m_wristLeftMotor = new TalonFX(12, Constants.kCanBusName);
-    m_wristRightFollowerMotor = new TalonFX(11, Constants.kCanBusName);
+    m_elbowLeftMotor = new TalonFX(15, Constants.kOtherCanBus);
+    m_elbowRightFollowerMotor = new TalonFX(17, Constants.kOtherCanBus);
+    m_wristLeftMotor = new TalonFX(16, Constants.kOtherCanBus);
+    m_wristRightFollowerMotor = new TalonFX(18, Constants.kOtherCanBus);
 
-    m_elbowAbsoluteEncoder = new DutyCycleEncoder(0);
-    m_wristAbsoluteEncoder = new DutyCycleEncoder(1);
+    m_elbowAbsoluteEncoder = new DutyCycleEncoder(8);
+    m_wristAbsoluteEncoder = new DutyCycleEncoder(9);
+
+    // m_elbowAbsoluteEncoder.setDistancePerRotation(kCurrentLimitAmps);
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
     currentLimitsConfig.StatorCurrentLimit = kCurrentLimitAmps;
@@ -110,17 +115,19 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.optimizeBusUtilization();
     m_wristRightFollowerMotor.optimizeBusUtilization();
 
-    if (m_elbowAbsoluteEncoder.isConnected()) {
+    if (kUseAbsoluteEncoders) {
       m_elbowAbsoluteEncoder.setPositionOffset(
-          Units.radiansToRotations(kElbowAbsoluteEncoderOffsetRad) * ArmModel.kElbowChainReduction);
+          Units.radiansToRotations(MathUtil.angleModulus(kElbowAbsoluteEncoderOffsetRad))
+              * ArmModel.kElbowChainReduction);
       m_elbowLeftMotor.setPosition(m_elbowAbsoluteEncoder.get() * ArmModel.kElbowGearboxReduction);
     } else
       m_elbowLeftMotor.setPosition(
           Units.radiansToRotations(kElbowRelativeEncoderOffsetRad) * ArmModel.kElbowFinalReduction);
 
-    if (m_wristAbsoluteEncoder.isConnected()) {
+    if (kUseAbsoluteEncoders) {
       m_wristAbsoluteEncoder.setPositionOffset(
-          Units.radiansToRotations(kWristAbsoluteEncoderOffsetRad) * ArmModel.kWristChainReduction);
+          Units.radiansToRotations(MathUtil.angleModulus(kWristAbsoluteEncoderOffsetRad))
+              * ArmModel.kWristChainReduction);
       m_wristLeftMotor.setPosition(m_wristAbsoluteEncoder.get() * ArmModel.kWristGearboxReduction);
     } else
       m_wristLeftMotor.setPosition(
@@ -131,6 +138,11 @@ public class ArmIOTalonFX implements ArmIO {
   }
 
   public void updateInputs(ArmIOInputs inputs) {
+
+    Logger.recordOutput(
+        "Arm/Elbow Absolute Native Position", m_elbowAbsoluteEncoder.getAbsolutePosition());
+    Logger.recordOutput(
+        "Arm/Wrist Absolute Native Position", m_wristAbsoluteEncoder.getAbsolutePosition());
 
     BaseStatusSignal.refreshAll(
         m_elbowPositionSignal,
