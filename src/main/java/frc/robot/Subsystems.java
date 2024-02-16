@@ -8,6 +8,9 @@ import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
 import frc.robot.drivetrain.ModuleIO;
 import frc.robot.drivetrain.ModuleIOTalonFX;
+import frc.robot.shooter.Shooter;
+import frc.robot.shooter.ShooterIO;
+import frc.robot.shooter.ShooterIOTalonFX;
 import frc.robot.vision.Vision;
 import frc.robot.vision.VisionIO;
 import frc.robot.vision.VisionIOPhotonVision;
@@ -36,5 +39,13 @@ public class Subsystems {
 
   public static Vision createBlankFourCameraVision() {
     return new Vision(new VisionIO() {}, new VisionIO() {}, new VisionIO() {}, new VisionIO() {});
+  }
+
+  public static Shooter createTalonFXShooter() {
+    return new Shooter(new ShooterIOTalonFX());
+  }
+
+  public static Shooter createBlankShooter() {
+    return new Shooter(new ShooterIO() {});
   }
 }

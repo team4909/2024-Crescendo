@@ -2,11 +2,9 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-// import com.playingwithfusion.TimeOfFlight;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
-// import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -16,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
-// import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
@@ -42,6 +39,7 @@ public class Robot extends LoggedRobot {
   // private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
   private final Arm m_arm = new Arm();
+  private final Shooter m_shooter;
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
@@ -75,15 +73,18 @@ public class Robot extends LoggedRobot {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
+        m_shooter = Subsystems.createTalonFXShooter();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
+        m_shooter = Subsystems.createTalonFXShooter();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
 
         m_vision = Subsystems.createBlankFourCameraVision();
+        m_shooter = Subsystems.createBlankShooter();
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
@@ -127,63 +128,56 @@ public class Robot extends LoggedRobot {
     // SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
 
     // ____________________driverController_______________________\\
-    // m_driverController
-    //     .rightTrigger()
-    //     .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
-    //     .onFalse(new InstantCommand(() -> speakerShot = false));
+    m_driverController
+        .rightTrigger()
+        .onTrue(new ParallelRaceGroup(m_shooter.runFeeder()))
+        .onFalse(new InstantCommand(() -> speakerShot = false));
 
-    // m_driverController
-    //     .rightBumper()
-    //     .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
+    m_driverController
+        .rightBumper()
+        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.spit()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    // m_driverController
-    //     .leftBumper()
-    //     .whileTrue(
-    //         new ParallelRaceGroup(m_intake.intake(false), m_shooter.FeederOn())
-    //             .repeatedly()
-    //             .until(
-    //                 () -> {
-    //                   double defaultIntakeStopCurrent = 10;
-    //                   return m_shooter.getCurrent() > SmartDashboard.getNumber(
-    //                       "Intake/CurrentStopInput", defaultIntakeStopCurrent);
-    //                 }))
-    //     .onFalse(
-    //         new ParallelRaceGroup(
-    //             m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
+    m_driverController
+        .leftBumper()
+        .whileTrue(
+            new ParallelRaceGroup(m_intake.intake(false), m_shooter.runFeeder()))
+        .onFalse(
+            new ParallelRaceGroup(
+                m_shooter.pullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
-    // m_driverController
-    //     .a()
-    //     .whileTrue(SensorIntake()).onFalse(Commands.sequence(
-    //         m_intake.Stop(),
-    //         m_shooter.FeederOff()));
+    m_driverController
+        .a()
+        .whileTrue(SensorIntake()).onFalse(Commands.sequence(
+            m_intake.Stop(),
+            m_shooter.FeederOff()));
 
-    // m_driverController.b().onTrue(m_arm.goToDeg(80, 0));
+    m_driverController.b().onTrue(m_arm.goToDeg(80, 0));
 
     // ___________________OperatorController______________________\\
-    // m_operatorController
-    //     .leftTrigger()
-    //     .onTrue(m_arm.goToDegSeq(100, 0, -70))
-    //     .onFalse(m_arm.goDown());
+    m_operatorController
+        .leftTrigger()
+        .onTrue(m_arm.goToDegSeq(100, 0, -70))
+        .onFalse(m_arm.goDown());
 
-    // m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
+    m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
 
-    // m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
+    m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
 
-    // m_operatorController
-    //     .povUp()
-    //     .onTrue(
-    //         new ParallelCommandGroup(
-    //             m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)))
-    //     .onFalse(m_arm.goDown());
+    m_operatorController
+        .povUp()
+        .onTrue(
+            new ParallelCommandGroup(
+                m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)))
+        .onFalse(m_arm.goDown());
 
-    // m_operatorController.y().onTrue(m_shooter.Shoot());
+    m_operatorController.y().onTrue(m_shooter.runShooter());
 
-    // m_operatorController
-    //     .leftBumper()
-    //     .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 30), m_shooter.Catch().repeatedly()))
-    //     .onFalse(m_shooter.Stop());
+    m_operatorController
+        .leftBumper()
+        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 30), m_shooter.Catch().repeatedly()))
+        .onFalse(m_shooter.Stop());
   }
 
   // public Command SensorIntake() {
