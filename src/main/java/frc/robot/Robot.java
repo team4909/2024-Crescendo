@@ -154,9 +154,10 @@ public class Robot extends LoggedRobot {
     // ___________________OperatorController______________________\\
     m_operatorController
         .leftTrigger()
-        .onTrue(m_arm.goToAmp())
+        .onTrue(Commands.sequence(m_arm.goToAmp(), m_shooter.ShooterOn()))
         .onFalse(Commands.sequence(
-          m_arm.goDown()
+          m_arm.goDown(),
+          m_shooter.ShooterOff()
         ));
 
     m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());

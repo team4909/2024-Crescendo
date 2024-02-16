@@ -149,6 +149,12 @@ public class Arm extends SubsystemBase {
   }
 
   public Command goToAmp() {
-      return goToDegSeq(100, 0, -70)
+      return goToDegSeq(100, 0, -70);
   }
+
+  public Command goToSubwoofer() {
+      return goToDeg(20, 25);
+  }
+
+
 }
