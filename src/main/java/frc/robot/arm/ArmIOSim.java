@@ -18,6 +18,7 @@ public class ArmIOSim implements ArmIO {
     m_elbowWristSimStates =
         m_model.simulate(
             m_elbowWristSimStates, VecBuilder.fill(m_elbowAppliedVolts, m_wristAppliedVolts), 0.02);
+    inputs.elbowAbsolutePositionRaw = 0.0;
     inputs.elbowAbsolutePositionRad = m_elbowWristSimStates.get(0, 0);
     inputs.elbowAbsoluteEncoderConnected = true;
     inputs.elbowRelativePositionRad = m_elbowWristSimStates.get(0, 0);
@@ -28,6 +29,7 @@ public class ArmIOSim implements ArmIO {
           ArmModel.kElbowGearbox.getCurrent(m_elbowWristSimStates.get(2, 0), m_elbowAppliedVolts)
         };
 
+    inputs.wristAbsolutePositionRaw = 0.0;
     inputs.wristAbsolutePositionRad = m_elbowWristSimStates.get(1, 0);
     inputs.wristAbsoluteEncoderConnected = true;
     inputs.wristRelativePositionRad = m_elbowWristSimStates.get(1, 0);

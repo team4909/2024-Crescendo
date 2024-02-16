@@ -47,7 +47,7 @@ public class ArmVisualizer {
 
   public void update(double elbowAngle, double wristAngle) {
     m_elbowLigament.setAngle(Units.radiansToDegrees(elbowAngle) - kShoulderAngleDegrees);
-    m_wristLigament.setAngle(Units.radiansToDegrees(wristAngle));
+    m_wristLigament.setAngle(Units.radiansToDegrees(wristAngle - elbowAngle));
     Logger.recordOutput("Mechanism2d/" + m_logKey, m_mechanism);
 
     Pose3d elbowPose =
