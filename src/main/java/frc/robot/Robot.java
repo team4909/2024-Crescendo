@@ -81,7 +81,7 @@ public class Robot extends LoggedRobot {
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     m_drivetrain.setDefaultCommand(
-        m_drivetrain.joystickDrive( 
+        m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
@@ -96,16 +96,15 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("FeederOn", m_shooter.FeederOn());
     NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
-    NamedCommands.registerCommand("SensorIntake",SensorIntake());
+    NamedCommands.registerCommand("SensorIntake", SensorIntake());
     // NamedCommands.registerCommand("ArmDown", m_arm.goDown());
     NamedCommands.registerCommand("goDownAuto", m_arm.goToDegSeq(10, 0, -2));
     NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
     NamedCommands.registerCommand("Stop Intake Shooter Feeder", Commands.sequence(
-      m_intake.Stop(),
-      m_shooter.Stop()
-    ));
+        m_intake.Stop(),
+        m_shooter.Stop()));
     NamedCommands.registerCommand("Arm Go Down", m_arm.goDown());
-    
+
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     m_intake.setDefaultCommand(m_intake.Stop().repeatedly());
@@ -125,16 +124,14 @@ public class Robot extends LoggedRobot {
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-
     // ____________________driverController_______________________\\
     m_driverController
         .rightTrigger()
         .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
         .onFalse(Commands.sequence(
-          new InstantCommand(() -> speakerShot = false),
-          m_shooter.ShooterOff(),
-          m_shooter.FeederOff()
-        ));
+            new InstantCommand(() -> speakerShot = false),
+            m_shooter.ShooterOff(),
+            m_shooter.FeederOff()));
 
     m_driverController
         .rightBumper()
@@ -145,9 +142,10 @@ public class Robot extends LoggedRobot {
     m_driverController
         .leftBumper()
         .whileTrue(SensorIntake());
-        // .onFalse(
-        //     new ParallelRaceGroup(
-        //         m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
+    // .onFalse(
+    // new ParallelRaceGroup(
+    // m_shooter.PullBack(),
+    // m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
     m_driverController
         .a()
@@ -160,11 +158,13 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .onTrue(Commands.sequence(m_arm.goToAmp(), m_shooter.ShooterOn()))
         .onFalse(Commands.sequence(
-          m_arm.goDown(),
-          m_shooter.ShooterOff()
-        ));
+            m_arm.goDown(),
+            m_shooter.ShooterOff()));
 
-    m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
+    // prep for climb
+    m_operatorController.rightBumper()
+        .onTrue(m_arm.goToDegSeq(110, 0, 0))
+        .onFalse(m_arm.goDown());
 
     m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
 
@@ -174,12 +174,10 @@ public class Robot extends LoggedRobot {
             new ParallelCommandGroup(
                 m_arm.goToDeg(20, 25),
                 new InstantCommand(() -> speakerShot = true),
-                m_shooter.ShooterOn()
-              ))
+                m_shooter.ShooterOn()))
         .onFalse(Commands.sequence(
-          m_arm.goDown(),
-          m_shooter.ShooterOff()
-        ));
+            m_arm.goDown(),
+            m_shooter.ShooterOff()));
 
     m_operatorController.y().onTrue(m_shooter.Shoot());
 
@@ -201,7 +199,6 @@ public class Robot extends LoggedRobot {
             m_intake.Stop(),
             m_shooter.FeederOff()));
   }
-
 
   /**
    * This function is called every robot packet, no matter the mode. Use this for
