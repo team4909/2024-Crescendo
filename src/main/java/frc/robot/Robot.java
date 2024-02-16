@@ -159,7 +159,7 @@ public class Robot extends LoggedRobot {
     //         m_intake.Stop(),
     //         m_shooter.FeederOff()));
 
-    // m_driverController.b().onTrue(m_arm.goToDeg(80, 0));
+    m_driverController.b().onTrue(m_arm.goToDegSeq(120, 0, -70));
 
     // ___________________OperatorController______________________\\
     // m_operatorController
