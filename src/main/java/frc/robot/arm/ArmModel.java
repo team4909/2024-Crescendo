@@ -76,7 +76,7 @@ public class ArmModel {
   public Vector<N2> feedforward(Vector<N2> position, Vector<N2> velocity) {
     return VecBuilder.fill(
         m_elbowFeedForward.calculate(position.get(0, 0), velocity.get(0, 0)),
-        m_wristFeedForward.calculate(position.get(0, 0) + position.get(1, 0), velocity.get(1, 0)));
+        m_wristFeedForward.calculate(position.get(0, 0), velocity.get(1, 0)));
   }
 
   /**
@@ -96,7 +96,7 @@ public class ArmModel {
     m_wristSim.update(dt);
     return VecBuilder.fill(
         m_elbowSim.getAngleRads(),
-        m_wristSim.getAngleRads() - m_elbowSim.getAngleRads(),
+        m_wristSim.getAngleRads(),
         m_elbowSim.getVelocityRadPerSec(),
         m_wristSim.getVelocityRadPerSec());
   }

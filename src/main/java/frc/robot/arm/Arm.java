@@ -56,14 +56,14 @@ public class Arm extends SubsystemBase {
   static {
     switch (Constants.kCurrentMode) {
       case kReal:
-        elbowkP.initDefault(0.0);
+        elbowkP.initDefault(0.1);
         elbowkD.initDefault(0);
-        elbowkS.initDefault(0.0);
+        elbowkS.initDefault(0.55);
         elbowCruiseVelocityRadPerSec.initDefault(1.0);
         elbowMaxAccelerationRadPerSecSq.initDefault(0.5);
-        wristkP.initDefault(0.0);
+        wristkP.initDefault(0.1);
         wristkD.initDefault(0);
-        wristkS.initDefault(0.0);
+        wristkS.initDefault(0.75);
         wristCruiseVelocityRadPerSec.initDefault(1.0);
         wristMaxAccelerationRadPerSecSq.initDefault(0.5);
         break;

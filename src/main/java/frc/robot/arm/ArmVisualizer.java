@@ -60,7 +60,7 @@ public class ArmVisualizer {
         elbowPose.transformBy(
             new Transform3d(
                 new Translation3d(ArmModel.kElbowLengthMeters, 0.0, 0.0),
-                new Rotation3d(0.0, -wristAngle, 0.0)));
+                new Rotation3d(0.0, -(wristAngle - elbowAngle), 0.0)));
     Logger.recordOutput("Mechanism3d/" + m_logKey, elbowPose, wristPose);
   }
 }
