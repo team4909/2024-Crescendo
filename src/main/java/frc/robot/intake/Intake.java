@@ -50,14 +50,9 @@ public class Intake extends SubsystemBase {
   }
 
   public Command Spit() {
-    return new RunCommand(
+    return new InstantCommand(
         () -> {
-          double FrontRollerSpeedSpit =
-              SmartDashboard.getNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeedSpit);
           topRoller.set(defaultFrontRollerSpeedSpit);
-
-          double BackRollerSpeedSpit =
-              SmartDashboard.getNumber("BackRollerSpeedSpit", defaultBackRollerSpeedSpit);
           bottomRoller.set(defaultBackRollerSpeedSpit);
         },
         this);

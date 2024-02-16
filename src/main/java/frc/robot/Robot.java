@@ -133,23 +133,31 @@ public class Robot extends LoggedRobot {
             m_shooter.ShooterOff(),
             m_shooter.FeederOff()));
 
+    // Spit
     m_driverController
         .rightBumper()
-        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
+        .whileTrue(Commands.sequence(
+            m_intake.Spit(),
+            m_shooter.FeederOut()).repeatedly())
+        .onFalse(Commands.sequence(
+            m_intake.Stop(),
+            m_shooter.FeederOff()));
 
+    // two squares
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    m_driverController
-        .leftBumper()
-        .whileTrue(SensorIntake());
+    // m_driverController
+    // .leftBumper()
+    // .whileTrue(SensorIntake());
     // .onFalse(
     // new ParallelRaceGroup(
     // m_shooter.PullBack(),
     // m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
     m_driverController
-        .a()
-        .whileTrue(SensorIntake()).onFalse(Commands.sequence(
+        .leftBumper()
+        .whileTrue(SensorIntake())
+        .onFalse(Commands.sequence(
             m_intake.Stop(),
             m_shooter.FeederOff()));
 
@@ -179,6 +187,7 @@ public class Robot extends LoggedRobot {
             m_arm.goDown(),
             m_shooter.ShooterOff()));
 
+    // turn on the shooter wheels
     m_operatorController.y().onTrue(m_shooter.Shoot());
 
     m_operatorController
