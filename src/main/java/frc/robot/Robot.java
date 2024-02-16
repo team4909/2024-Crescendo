@@ -130,7 +130,11 @@ public class Robot extends LoggedRobot {
     m_driverController
         .rightTrigger()
         .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
-        .onFalse(new InstantCommand(() -> speakerShot = false));
+        .onFalse(Commands.sequence(
+          new InstantCommand(() -> speakerShot = false),
+          m_shooter.ShooterOff(),
+          m_shooter.FeederOff()
+        ));
 
     m_driverController
         .rightBumper()

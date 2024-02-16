@@ -28,7 +28,7 @@ public class Shooter extends SubsystemBase {
   private TalonFX shooterTop = new TalonFX(17, "CANivore2");
   private TalonFX shooterBottom = new TalonFX(18, "CANivore2");
 
-  private DigitalInput m_noteSensor = new DigitalInput(3);
+  private DigitalInput m_noteSensor = new DigitalInput(0);
 
   public boolean hasNote() {
     return !m_noteSensor.get();
