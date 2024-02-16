@@ -40,7 +40,7 @@ public class Robot extends LoggedRobot {
   private final Intake m_intake = new Intake();
   private final Shooter m_shooter = new Shooter();
   // private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
-  
+
   private final Arm m_arm = new Arm();
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
@@ -145,17 +145,18 @@ public class Robot extends LoggedRobot {
                 .until(
                     () -> {
                       double defaultIntakeStopCurrent = 10;
-                      return m_shooter.getCurrent()
-                          > SmartDashboard.getNumber(
-                              "Intake/CurrentStopInput", defaultIntakeStopCurrent);
+                      return m_shooter.getCurrent() > SmartDashboard.getNumber(
+                          "Intake/CurrentStopInput", defaultIntakeStopCurrent);
                     }))
         .onFalse(
             new ParallelRaceGroup(
                 m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
     m_driverController
-    .a()
-    .onTrue(SensorIntake());
+        .a()
+        .whileTrue(SensorIntake()).onFalse(Commands.sequence(
+            m_intake.Stop(),
+            m_shooter.FeederOff()));
 
     // ___________________OperatorController______________________\\
     m_operatorController
@@ -182,8 +183,6 @@ public class Robot extends LoggedRobot {
         .onFalse(m_shooter.Stop());
   }
 
-
-
   public Command SensorIntake() {
     return new ParallelRaceGroup(
         new RepeatCommand(m_intake.intake(speakerShot)),
@@ -191,17 +190,21 @@ public class Robot extends LoggedRobot {
             .until(
                 () -> {
                   return m_shooter.hasNote();
-                })).andThen(Commands.sequence(
-                  m_intake.Stop(),
-                  m_shooter.FeederOff()
-                ));
+                }))
+        .andThen(Commands.sequence(
+            m_intake.Stop(),
+            m_shooter.FeederOff()));
   }
 
   /**
-   * This function is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
+   * This function is called every robot packet, no matter the mode. Use this for
+   * items like
+   * diagnostics that you want ran during disabled, autonomous, teleoperated and
+   * test.
    *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
+   * <p>
+   * This runs after the mode specific periodic functions, but before LiveWindow
+   * and
    * SmartDashboard integrated updating.
    */
   @Override
@@ -222,28 +225,36 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+  }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   @Override
   public void simulationPeriodic() {
