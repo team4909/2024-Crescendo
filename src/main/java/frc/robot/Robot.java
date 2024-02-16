@@ -176,7 +176,10 @@ public class Robot extends LoggedRobot {
                 new InstantCommand(() -> speakerShot = true),
                 m_shooter.ShooterOn()
               ))
-        .onFalse(m_arm.goDown());
+        .onFalse(Commands.sequence(
+          m_arm.goDown(),
+          m_shooter.ShooterOff()
+        ));
 
     m_operatorController.y().onTrue(m_shooter.Shoot());
 
