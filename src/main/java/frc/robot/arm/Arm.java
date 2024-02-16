@@ -29,9 +29,11 @@ public class Arm extends SubsystemBase {
   private TalonFX m_rJoint2 = new TalonFX(16, "CANivore2");
 
   // Change jerk if needed
-  // final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 1000, 200,
+  // final DynamicMotionMagicVoltage m_j1Request = new
+  // DynamicMotionMagicVoltage(0, 1000, 200,
   // 1000);
-  // final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 250);
+  // final DynamicMotionMagicVoltage m_j2Request = new
+  // DynamicMotionMagicVoltage(0, 1000, 200, 250);
   final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 1000, 200, 200);
   final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 200);
   final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 10, 20, 20);
@@ -65,8 +67,7 @@ public class Arm extends SubsystemBase {
 
     var l1_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
     l1_motionMagicConfigs.MotionMagicCruiseVelocity = 25; // Target cruise velocity of 80 rps
-    l1_motionMagicConfigs.MotionMagicAcceleration =
-        60; // Target acceleration of 160 rps/s (0.5 seconds)
+    l1_motionMagicConfigs.MotionMagicAcceleration = 60; // Target acceleration of 160 rps/s (0.5 seconds)
     l1_motionMagicConfigs.MotionMagicJerk = 100; // Target jerk of 1600 rps/s/s (0.1 seconds)
 
     // apply gains, 50 ms total timeout
@@ -83,8 +84,7 @@ public class Arm extends SubsystemBase {
 
     var l2_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
     l2_motionMagicConfigs.MotionMagicCruiseVelocity = 40; // Target cruise velocity of 80 rps
-    l2_motionMagicConfigs.MotionMagicAcceleration =
-        85; // Target acceleration of 160 rps/s (0.5 seconds)
+    l2_motionMagicConfigs.MotionMagicAcceleration = 85; // Target acceleration of 160 rps/s (0.5 seconds)
     l2_motionMagicConfigs.MotionMagicJerk = 100; // Target jerk of 1600 rps/s/s (0.1 seconds)
 
     // apply gains, 50 ms total timeout
@@ -119,8 +119,7 @@ public class Arm extends SubsystemBase {
             () -> {
               // System.out.println(m_lJoint1.getPosition().getValue() -
               // (-j1ParDeg*m_j1Ratio)/(360d));
-              return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg * m_j1Ratio) / (360d))
-                  <= 20;
+              return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg * m_j1Ratio) / (360d)) <= 20;
             }),
         goToDeg(m_lJoint2, m_j2Request, m_j2Ratio, j2SeqDeg));
   }
@@ -147,5 +146,9 @@ public class Arm extends SubsystemBase {
         new SequentialCommandGroup(
             goToDeg(m_lJoint1, m_goDownRequest, m_j1Ratio, 0),
             goToDeg(m_lJoint2, m_goDownRequest, m_j2Ratio, 0)));
+  }
+
+  public Command goToAmp() {
+      return goToDegSeq(100, 0, -70)
   }
 }

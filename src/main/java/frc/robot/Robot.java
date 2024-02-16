@@ -107,6 +107,12 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("ArmDown", m_arm.goDown());
     NamedCommands.registerCommand("goDownAuto", m_arm.goToDegSeq(10, 0, -2));
     NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
+    NamedCommands.registerCommand("Stop Intake Shooter Feeder", Commands.sequence(
+      m_intake.Stop(),
+      m_shooter.Stop()
+    ));
+    NamedCommands.registerCommand("Arm Go Down", m_arm.goDown());
+    
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_intake.setDefaultCommand(m_intake.Stop().repeatedly());
     // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
@@ -162,8 +168,10 @@ public class Robot extends LoggedRobot {
     // ___________________OperatorController______________________\\
     m_operatorController
         .leftTrigger()
-        .onTrue(m_arm.goToDegSeq(100, 0, -70))
-        .onFalse(m_arm.goDown());
+        .onTrue(m_arm.goToAmp())
+        .onFalse(Commands.sequence(
+          m_arm.goDown()
+        ));
 
     m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
 
@@ -173,7 +181,10 @@ public class Robot extends LoggedRobot {
         .povUp()
         .onTrue(
             new ParallelCommandGroup(
-                m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)))
+                m_arm.goToDeg(20, 25),
+                new InstantCommand(() -> speakerShot = true),
+                m_shooter.ShooterOn()
+              ))
         .onFalse(m_arm.goDown());
 
     m_operatorController.y().onTrue(m_shooter.Shoot());
