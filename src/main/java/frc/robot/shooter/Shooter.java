@@ -7,6 +7,8 @@ package frc.robot.shooter;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.BionicWaitCommand;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,15 +28,19 @@ public class Shooter extends SubsystemBase {
   private TalonFX shooterTop = new TalonFX(17, "CANivore2");
   private TalonFX shooterBottom = new TalonFX(18, "CANivore2");
 
+  private DigitalInput m_noteSensor = new DigitalInput(3);
+
+  public boolean hasNote() {
+    return !m_noteSensor.get();
+  }
+
   /** Creates a new Rev_1Shooter. */
   public Shooter() {
-    SmartDashboard.putNumber("ShooterDelay", defaultDelay);
-    shooterTop.getConfigurator().apply(new TalonFXConfiguration());
-    shooterBottom.getConfigurator().apply(new TalonFXConfiguration());
-    feeder.getConfigurator().apply(new TalonFXConfiguration());
+    SmartDashboard.putNumber("ShooterDelay", defaultDelay);   
 
     TalonFXConfiguration brakeMode = new TalonFXConfiguration();
     brakeMode.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
 
     shooterTop.getConfigurator().apply(brakeMode);
     shooterBottom.getConfigurator().apply(brakeMode);
@@ -83,10 +89,15 @@ public class Shooter extends SubsystemBase {
   public Command FeederOn() {
     return new InstantCommand(
         () -> {
-          System.out.println("InSpeed");
-          SmartDashboard.putNumber("ShooterSpeed", InSpeed);
-
           feeder.set(InSpeed);
+        },
+        this);
+  }
+
+  public Command FeederOn(double speed) {
+    return new InstantCommand(
+        () -> {
+          feeder.set(speed);
         },
         this);
   }
@@ -114,6 +125,12 @@ public class Shooter extends SubsystemBase {
         .repeatedly()
         .withTimeout(1)
         .finallyDo(() -> Stop());
+  }
+
+  public Command FeederOff() {
+    return new InstantCommand(() -> {
+      feeder.set(0);
+    });
   }
 
   public double getCurrent() {

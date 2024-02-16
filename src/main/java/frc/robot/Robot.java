@@ -3,13 +3,20 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 // import com.playingwithfusion.TimeOfFlight;
+
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
+// import com.playingwithfusion.TimeOfFlight;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
+// import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
@@ -33,6 +40,7 @@ public class Robot extends LoggedRobot {
   private final Intake m_intake = new Intake();
   private final Shooter m_shooter = new Shooter();
   // private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
+  
   private final Arm m_arm = new Arm();
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
@@ -74,6 +82,7 @@ public class Robot extends LoggedRobot {
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
+
         m_vision = Subsystems.createBlankFourCameraVision();
         break;
     }
@@ -95,10 +104,10 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("FeederOn", m_shooter.FeederOn());
     NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     // NamedCommands.registerCommand("ArmDown", m_arm.goDown());
-    NamedCommands.registerCommand("goDownAuto", m_arm.goDownAuto());
-    NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 15));
+    NamedCommands.registerCommand("goDownAuto", m_arm.goToDegSeq(10, 0, -2));
+    NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
-    m_intake.setDefaultCommand(m_intake.Stop());
+    m_intake.setDefaultCommand(m_intake.Stop().repeatedly());
     // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
     // m_arm.setDefaultCommand(m_arm.goDown());
 
@@ -144,6 +153,10 @@ public class Robot extends LoggedRobot {
             new ParallelRaceGroup(
                 m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
+    m_driverController
+    .a()
+    .onTrue(SensorIntake());
+
     // ___________________OperatorController______________________\\
     m_operatorController
         .leftTrigger()
@@ -169,20 +182,20 @@ public class Robot extends LoggedRobot {
         .onFalse(m_shooter.Stop());
   }
 
-  // public Command SensorIntake() {
-  //   final double defaultStopDistance = 35;
 
-  // //   // this is here to make the value be editable on the dashboard
-  //   SmartDashboard.putNumber("StopDistance", defaultStopDistance);
-  //   return new ParallelRaceGroup(
-  //       new RepeatCommand(m_intake.intake(speakerShot)),
-  //       new RepeatCommand(m_shooter.Intake())
-  //           .until(
-  //               () -> {
-  //                 return mytimeofflight.getRange()
-  //                     <= SmartDashboard.getNumber("StopDistance", defaultStopDistance);
-  //               }));
-  // }
+
+  public Command SensorIntake() {
+    return new ParallelRaceGroup(
+        new RepeatCommand(m_intake.intake(speakerShot)),
+        new RepeatCommand(m_shooter.FeederOn())
+            .until(
+                () -> {
+                  return m_shooter.hasNote();
+                })).andThen(Commands.sequence(
+                  m_intake.Stop(),
+                  m_shooter.FeederOff()
+                ));
+  }
 
   /**
    * This function is called every robot packet, no matter the mode. Use this for items like
@@ -195,8 +208,9 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_vision.periodic();
-    // SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
+    // SmartDashboard.putNumber("SensorDistance", mytimeofflight.getRange());
     SmartDashboard.putNumber("Intake/Current", m_shooter.getCurrent());
+    SmartDashboard.putBoolean("Shooter/Sensor", m_shooter.hasNote());
   }
 
   @Override

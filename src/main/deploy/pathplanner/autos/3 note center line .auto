@@ -1,0 +1,67 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.64,
+      "y": 6.45
+    },
+    "rotation": 58.884491903383555
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "ShooterOn"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "sub shot"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "FeederOn"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "to center line"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "1st note to spike"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "spike to 2nd note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "2nd note to spike"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
