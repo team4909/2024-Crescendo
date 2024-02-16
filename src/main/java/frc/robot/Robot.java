@@ -88,7 +88,7 @@ public class Robot extends LoggedRobot {
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     m_drivetrain.setDefaultCommand(
-        m_drivetrain.joystickDrive(
+        m_drivetrain.joystickDrive( 
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
@@ -103,6 +103,7 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("FeederOn", m_shooter.FeederOn());
     NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
+    NamedCommands.registerCommand("SensorIntake",SensorIntake());
     // NamedCommands.registerCommand("ArmDown", m_arm.goDown());
     NamedCommands.registerCommand("goDownAuto", m_arm.goToDegSeq(10, 0, -2));
     NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
