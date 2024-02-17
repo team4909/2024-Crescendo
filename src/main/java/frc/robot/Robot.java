@@ -37,8 +37,8 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Command> m_autoChooser;
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
-  // private final Intake m_intake = new Intake();
-  // private final Shooter m_shooter = new Shooter();
+  private final Intake m_intake = new Intake();
+  private final Shooter m_shooter = new Shooter();
   // private TimeOfFlight mytimeofflight = new TimeOfFlight(12);
 
   private final Arm m_arm = new Arm();
@@ -127,77 +127,73 @@ public class Robot extends LoggedRobot {
     // SmartDashboard.putNumber("Distance", mytimeofflight.getRange());
 
     // ____________________driverController_______________________\\
-    // m_driverController
-    //     .rightTrigger()
-    //     .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
-    //     .onFalse(new InstantCommand(() -> speakerShot = false));
+    m_driverController
+        .rightTrigger()
+        .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
+        .onFalse(new InstantCommand(() -> speakerShot = false));
 
-    // m_driverController
-    //     .rightBumper()
-    //     .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
+    m_driverController
+        .rightBumper()
+        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    // m_driverController
-    //     .leftBumper()
-    //     .whileTrue(
-    //         new ParallelRaceGroup(m_intake.intake(false), m_shooter.FeederOn())
-    //             .repeatedly()
-    //             .until(
-    //                 () -> {
-    //                   double defaultIntakeStopCurrent = 10;
-    //                   return m_shooter.getCurrent() > SmartDashboard.getNumber(
-    //                       "Intake/CurrentStopInput", defaultIntakeStopCurrent);
-    //                 }))
-    //     .onFalse(
-    //         new ParallelRaceGroup(
-    //             m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
+    m_driverController
+        .leftBumper()
+        .whileTrue(
+            new ParallelRaceGroup(m_intake.intake(false), m_shooter.FeederOn())
+                .repeatedly()
+                .until(
+                    () -> {
+                      double defaultIntakeStopCurrent = 10;
+                      return m_shooter.getCurrent() > SmartDashboard.getNumber(
+                          "Intake/CurrentStopInput", defaultIntakeStopCurrent);
+                    }))
+        .onFalse(
+            new ParallelRaceGroup(
+                m_shooter.PullBack(), m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
-    // m_driverController
-    //     .a()
-    //     .whileTrue(SensorIntake()).onFalse(Commands.sequence(
-    //         m_intake.Stop(),
-    //         m_shooter.FeederOff()));
-
-    m_driverController.b().onTrue(m_arm.goToDegSeq(120, 0, -70));
+    m_driverController
+        .a()
+        .whileTrue(SensorIntake()).onFalse(Commands.sequence(
+            m_intake.Stop(),
+            m_shooter.FeederOff()));
 
     // ___________________OperatorController______________________\\
-    // m_operatorController
-    //     .leftTrigger()
-    //     .onTrue(m_arm.goToDegSeq(100, 0, -70))
-    //     .onFalse(m_arm.goDown());
+    m_operatorController
+        .leftTrigger()
+        .onTrue(m_arm.goToDegSeq(100, 0, -70))
+        .onFalse(m_arm.goDown());
 
-    // m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
+    m_operatorController.a().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
 
-    // m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
+    m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
 
-    // m_operatorController
-    //     .povUp()
-    //     .onTrue(
-    //         new ParallelCommandGroup(
-    //             m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)))
-    //     .onFalse(m_arm.goDown());
+    m_operatorController
+        .povUp()
+        .onTrue(
+            new ParallelCommandGroup(
+                m_arm.goToDeg(20, 25), new InstantCommand(() -> speakerShot = true)))
+        .onFalse(m_arm.goDown());
 
-    // m_operatorController.y().onTrue(m_shooter.Shoot());
-
-    // m_operatorController
-    //     .leftBumper()
-    //     .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 30), m_shooter.Catch().repeatedly()))
-    //     .onFalse(m_shooter.Stop());
+    m_operatorController
+        .leftBumper()
+        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 30), m_shooter.Catch().repeatedly()))
+        .onFalse(new ParallelCommandGroup(m_shooter.Stop(), m_arm.goDown()));
   }
 
-  // public Command SensorIntake() {
-  //   return new ParallelRaceGroup(
-  //       new RepeatCommand(m_intake.intake(speakerShot)),
-  //       new RepeatCommand(m_shooter.FeederOn())
-  //           .until(
-  //               () -> {
-  //                 return m_shooter.hasNote();
-  //               }))
-  //       .andThen(Commands.sequence(
-  //           m_intake.Stop(),
-  //           m_shooter.FeederOff()));
-  // }
+  public Command SensorIntake() {
+    return new ParallelRaceGroup(
+        new RepeatCommand(m_intake.intake(speakerShot)),
+        new RepeatCommand(m_shooter.FeederOn())
+            .until(
+                () -> {
+                  return m_shooter.hasNote();
+                }))
+        .andThen(Commands.sequence(
+            m_intake.Stop(),
+            m_shooter.FeederOff()));
+  }
 
   /**
    * This function is called every robot packet, no matter the mode. Use this for
@@ -207,7 +203,7 @@ public class Robot extends LoggedRobot {
    *
    * <p>
    * This runs after the mode specific periodic functions, but before LiveWindow
-   * and
+   * and`
    * SmartDashboard integrated updating.
    */
   @Override

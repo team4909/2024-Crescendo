@@ -35,7 +35,7 @@ public class Arm extends SubsystemBase {
   final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 18
   , 17, 0);
   final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 24, 12, 0);
-  final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 10, 10, 0);
+  final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 12, 24, 0);
 
   /** Creates a new Rev_2Arm. */
   public Arm() {
