@@ -69,13 +69,13 @@ public class Arm extends SubsystemBase {
         break;
       case kSim:
         // We should not need kS in simulation
-        elbowkP.initDefault(3.0);
+        elbowkP.initDefault(5.0);
         elbowkD.initDefault(0.0);
         elbowCruiseVelocityRadPerSec.initDefault(3.0);
         elbowMaxAccelerationRadPerSecSq.initDefault(2.0);
-        wristkP.initDefault(6.0);
+        wristkP.initDefault(20.0);
         wristkD.initDefault(0.0);
-        wristCruiseVelocityRadPerSec.initDefault(3.0);
+        wristCruiseVelocityRadPerSec.initDefault(5.0);
         wristMaxAccelerationRadPerSecSq.initDefault(2.0);
         break;
       default:
@@ -147,7 +147,9 @@ public class Arm extends SubsystemBase {
     Logger.recordOutput("Arm/Goal Elbow Angle", elbowAngle);
     Logger.recordOutput("Arm/Goal Wrist Angle", wristAngle);
     m_setpointVisualizer.update(elbowAngle, wristAngle);
+    m_elbowController.reset(m_elbowPositionRad);
     m_elbowController.setGoal(elbowAngle);
+    m_wristController.reset(m_wristPositionRad);
     m_wristController.setGoal(wristAngle);
     m_profileInitialAngles = VecBuilder.fill(m_elbowPositionRad, m_wristPositionRad);
   }
@@ -239,6 +241,20 @@ public class Arm extends SubsystemBase {
 
     public Translation2d forward(Vector<N2> angles) {
 
+      double elbowAngle = angles.get(0, 0);
+      double wristAngle = angles.get(1, 0);
+
+      return new Translation2d(
+          ArmModel.kOrigin.getX()
+              + ArmModel.kElbowLengthMeters * Math.cos(elbowAngle)
+              + ArmModel.kWristLengthMeters * Math.cos(elbowAngle + (wristAngle - elbowAngle)),
+          ArmModel.kOrigin.getY()
+              + ArmModel.kElbowLengthMeters * Math.sin(elbowAngle)
+              + ArmModel.kWristLengthMeters * Math.sin(elbowAngle + (wristAngle - elbowAngle)));
+    }
+
+    public Translation2d forwardWristRelativeToElbow(Vector<N2> angles) {
+
       return new Translation2d(
           ArmModel.kOrigin.getX()
               + ArmModel.kElbowLengthMeters * Math.cos(angles.get(0, 0))
@@ -248,6 +264,7 @@ public class Arm extends SubsystemBase {
               + ArmModel.kWristLengthMeters * Math.sin(angles.get(0, 0) + angles.get(1, 0)));
     }
 
+    // This is still broken
     public Optional<Vector<N2>> inverse(Translation2d position) {
       Translation2d relativePosition = position.minus(ArmModel.kOrigin);
 
@@ -276,7 +293,8 @@ public class Arm extends SubsystemBase {
 
       // Invert shoulder angle if invalid
       Translation2d testPosition =
-          forward(VecBuilder.fill(elbowAngle, wristAngle)).minus(ArmModel.kOrigin);
+          forwardWristRelativeToElbow(VecBuilder.fill(elbowAngle, wristAngle))
+              .minus(ArmModel.kOrigin);
       if (testPosition.getDistance(relativePosition) > 1e-3) {
         elbowAngle += Math.PI;
       }

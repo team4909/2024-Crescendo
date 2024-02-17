@@ -1,5 +1,6 @@
 package frc.robot.arm;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.numbers.N4;
@@ -42,10 +43,10 @@ public class ArmIOSim implements ArmIO {
   }
 
   public void setElbowVoltage(double volts) {
-    m_elbowAppliedVolts = volts;
+    m_elbowAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
   }
 
   public void setWristVoltage(double volts) {
-    m_wristAppliedVolts = volts;
+    m_wristAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
   }
 }

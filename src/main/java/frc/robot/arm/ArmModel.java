@@ -25,8 +25,8 @@ public class ArmModel {
   private final double kElbowMassKg = Units.lbsToKilograms(7.0);
   private final double kElbowMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kElbowLengthMeters, kElbowMassKg);
-  private final double elbowkG = 0.53;
-  private final double elbowkV = 0.27;
+  private final double elbowkG = 0.31;
+  private final double elbowkV = 0.44;
 
   public static final double kWristGearboxReduction = 15.0;
   public static final double kWristChainReduction = 36.0 / 22.0;
@@ -38,8 +38,8 @@ public class ArmModel {
   private final double kWristMassKg = Units.lbsToKilograms(11.5);
   private final double kWristMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kWristLengthMeters, kWristMassKg);
-  private final double wristkG = 0.8;
-  private final double wristkV = 0.2;
+  private final double wristkG = 0.41;
+  private final double wristkV = 0.44;
 
   private final ArmFeedforward m_elbowFeedForward, m_wristFeedForward;
   private final SingleJointedArmSim m_elbowSim, m_wristSim;
@@ -89,7 +89,7 @@ public class ArmModel {
    */
   public Vector<N4> simulate(Vector<N4> state, Vector<N2> voltage, double dt) {
     m_elbowSim.setState(state.get(0, 0), state.get(2, 0));
-    m_wristSim.setState(state.get(0, 0) + state.get(1, 0), state.get(3, 0));
+    m_wristSim.setState(state.get(1, 0), state.get(3, 0));
     m_elbowSim.setInputVoltage(voltage.get(0, 0));
     m_wristSim.setInputVoltage(voltage.get(1, 0));
     m_elbowSim.update(dt);
