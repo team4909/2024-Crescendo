@@ -3,6 +3,8 @@ package frc.robot.drivetrain;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -53,6 +55,8 @@ public class Drivetrain extends SubsystemBase {
   private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
   private final SwerveDrivePoseEstimator m_poseEstimator;
   private final Consumer<VisionUpdate> m_visionUpdateConsumer;
+  private final PathConstraints m_pathfindingConstraints =
+      new PathConstraints(3.0, 3.0, Units.degreesToRadians(540.0), Units.degreesToRadians(720.0));
   private final SysIdRoutine m_sysIdRoutine;
   private final SwerveDriveKinematics m_kinematics =
       new SwerveDriveKinematics(
@@ -147,8 +151,6 @@ public class Drivetrain extends SubsystemBase {
         m_lastModulePositions[moduleIndex] = newModulePositions[moduleIndex];
       }
       if (Constants.kIsSim) {
-        Logger.recordOutput(
-            "Drivetrain/dtheta", m_kinematics.toTwist2d(modulePositionDeltas).dtheta);
         /**
          * TODO we cannot update the gyro sim state in the same loop we read it, it will always be
          * behind causing inaccurate behavior. The solution might literally be move this before any
@@ -222,6 +224,11 @@ public class Drivetrain extends SubsystemBase {
 
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.dynamic(direction);
+  }
+
+  public Command pathfindToHumanPlayerStation() {
+    var path = PathPlannerPath.fromPathFile("SourceApproach");
+    return AutoBuilder.pathfindThenFollowPath(path, m_pathfindingConstraints);
   }
 
   private void configurePathing() {

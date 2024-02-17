@@ -27,7 +27,6 @@ public class Arm extends SubsystemBase {
   private final ArmVisualizer m_setpointVisualizer;
   private ProfiledPIDController m_elbowController =
       new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0));
-
   private ProfiledPIDController m_wristController =
       new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0));
 

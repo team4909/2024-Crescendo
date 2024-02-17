@@ -20,7 +20,7 @@ public class ArmIOTalonFX implements ArmIO {
   private final double kElbowRelativeEncoderOffsetRad = 0.0;
   private final double kWristRelativeEncoderOffsetRad = 0.0;
   private final boolean kInvertWristAbsoluteEncoder = false;
-  private final boolean kInvertElbowAbsoluteEncoder = true;
+  private final boolean kInvertElbowAbsoluteEncoder = false;
   private final double kCurrentLimitAmps = 80.0;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,

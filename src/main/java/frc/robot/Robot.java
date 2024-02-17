@@ -95,6 +95,7 @@ public class Robot extends LoggedRobot {
     m_driverController.a().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
     m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
     m_driverController.start().onTrue(m_arm.goToSetpoint(0.0, 0.0));
+    m_driverController.povUp().onTrue(m_drivetrain.pathfindToHumanPlayerStation());
   }
 
   /**
