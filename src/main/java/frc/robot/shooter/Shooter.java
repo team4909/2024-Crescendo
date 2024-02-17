@@ -55,7 +55,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command ShooterOn() {
-    return new InstantCommand(
+    return new RunCommand(
         () -> {
           shooterTop.set(OutSpeed);
           shooterBottom.set(OutSpeed);
@@ -105,7 +105,7 @@ public class Shooter extends SubsystemBase {
   public Command Catch() {
     return new InstantCommand(
         () -> {
-          feeder.set(OutSpeed);
+          feeder.set(-0.15);
           shooterTop.set(-OutSpeed);
           shooterBottom.set(-OutSpeed);
         },
@@ -113,7 +113,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command PullBack() {
-    return new RunCommand(() -> feeder.set(0.3), this).repeatedly().withTimeout(0.25);
+    return new RunCommand(() -> feeder.set(0.3), this);
   }
 
   public Command Feeder() {

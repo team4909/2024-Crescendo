@@ -36,7 +36,7 @@ public class Arm extends SubsystemBase {
   final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 18
   , 17, 0);
   final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 24, 12, 0);
-  final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 12, 24, 0);
+  final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 10, 10, 0);
 
   /** Creates a new Rev_2Arm. */
   public Arm() {
@@ -150,4 +150,13 @@ public class Arm extends SubsystemBase {
             goToDeg(m_lJoint1, m_goDownRequest, m_j1Ratio, 0),
             goToDeg(m_lJoint2, m_goDownRequest, m_j2Ratio, 0)));
   }
+
+  public Command goToAmp() {
+    return goToDegSeq(107, -5, -67);
+  }
+
+  public Command goToSubwoofer() {
+      return goToDeg(20, 25);
+  }
+
 }

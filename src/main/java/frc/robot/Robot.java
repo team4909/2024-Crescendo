@@ -19,6 +19,9 @@ import frc.robot.drivetrain.Drivetrain;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.Vision;
+
+import javax.naming.PartialResultException;
+
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -90,7 +93,7 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake(speakerShot));
     NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
-    NamedCommands.registerCommand("sub shot", m_arm.goToSubwoofer());
+    // NamedCommands.registerCommand("sub shot", m_arm.goToSubwoofer());
     NamedCommands.registerCommand("arm down", m_arm.goDown());
     NamedCommands.registerCommand("feed", m_shooter.Feeder());
     NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
@@ -108,6 +111,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     m_intake.setDefaultCommand(m_intake.Stop().repeatedly());
+    m_shooter.setDefaultCommand(m_shooter.Stop());
     // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
     // m_arm.setDefaultCommand(m_arm.goDown());
 
@@ -128,43 +132,25 @@ public class Robot extends LoggedRobot {
     m_driverController
         .rightTrigger()
         .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
-        .onFalse(Commands.sequence(
-            new InstantCommand(() -> speakerShot = false),
-            m_shooter.ShooterOff(),
-            m_shooter.FeederOff()));
+        .onFalse(new InstantCommand(() -> speakerShot = false));
 
-    // Spit
     m_driverController
         .rightBumper()
-        .whileTrue(Commands.sequence(
-            m_intake.Spit(),
-            m_shooter.FeederOut()).repeatedly())
-        .onFalse(Commands.sequence(
-            m_intake.Stop(),
-            m_shooter.FeederOff()));
+        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
 
-    // two squares
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
-
-    // m_driverController
-    // .leftBumper()
-    // .whileTrue(SensorIntake());
-    // .onFalse(
-    // new ParallelRaceGroup(
-    // m_shooter.PullBack(),
-    // m_intake.intake(speakerShot).repeatedly().withTimeout(0.25)));
 
     m_driverController
         .leftBumper()
-        .whileTrue(SensorIntake())
-        .onFalse(Commands.sequence(
-            m_intake.Stop(),
-            m_shooter.FeederOff()));
+        .onTrue(new ParallelCommandGroup(m_intake.intake(false), m_shooter.FeederOn()).repeatedly())
+        .onFalse(
+            new ParallelRaceGroup(
+                m_shooter.PullBack(), m_intake.intake(speakerShot).withTimeout(0.25)).finallyDo(() -> m_shooter.Stop()));
 
     // ___________________OperatorController______________________\\
     m_operatorController
         .leftTrigger()
-        .onTrue(Commands.sequence(m_arm.goToAmp(), m_shooter.ShooterOn()))
+        .onTrue(Commands.parallel(m_intake.release(),m_arm.goToAmp(), m_shooter.ShooterOn()))
         .onFalse(Commands.sequence(
             m_arm.goDown(),
             m_shooter.ShooterOff()));
@@ -192,8 +178,8 @@ public class Robot extends LoggedRobot {
 
     m_operatorController
         .leftBumper()
-        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 10), m_shooter.Catch().repeatedly()))
-        .onFalse(m_shooter.Stop());
+        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 20), m_shooter.Catch().repeatedly()))
+        .onFalse(new ParallelCommandGroup( m_arm.goDown(), m_shooter.Stop()));
   }
 
   public Command SensorIntake() {
