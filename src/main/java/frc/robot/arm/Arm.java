@@ -122,7 +122,7 @@ public class Arm extends SubsystemBase {
               // System.out.println(m_lJoint1.getPosition().getValue() -
               // (-j1ParDeg*m_j1Ratio)/(360d));
               return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg * m_j1Ratio) / (360d))
-                  <= 5;
+                  <= 8;
             }),
         goToDeg(m_lJoint2, m_j2Request, m_j2Ratio, j2SeqDeg));
   }
@@ -152,7 +152,7 @@ public class Arm extends SubsystemBase {
   }
 
   public Command goToAmp() {
-    return goToDegSeq(107, -5, -67);
+    return goToDegSeq(107, 0, -67);
   }
 
   public Command goToSubwoofer() {
