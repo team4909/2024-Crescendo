@@ -23,26 +23,26 @@ public class Arm extends SubsystemBase {
   private double m_j2Ratio;
   private double m_MPRatio;
 
-  private TalonFX m_lJoint1 = new TalonFX(13, "CANivore2");
-  private TalonFX m_lJoint2 = new TalonFX(15, "CANivore2");
-  private TalonFX m_rJoint1 = new TalonFX(14, "CANivore2");
-  private TalonFX m_rJoint2 = new TalonFX(16, "CANivore2");
+  private TalonFX m_lJoint1 = new TalonFX(15, "CANivore2");
+  private TalonFX m_lJoint2 = new TalonFX(16, "CANivore2");
+  private TalonFX m_rJoint1 = new TalonFX(17, "CANivore2");
+  private TalonFX m_rJoint2 = new TalonFX(18, "CANivore2");
 
   // Change jerk if needed
   // final DynamicMotionMagicVoltage m_j1Request = new
   // DynamicMotionMagicVoltage(0, 1000, 200,
   // 1000);
-  // final DynamicMotionMagicVoltage m_j2Request = new
-  // DynamicMotionMagicVoltage(0, 1000, 200, 250);
-  final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 1000, 200, 200);
-  final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 200);
-  final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 10, 20, 20);
+  // final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 250);
+  final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 18
+  , 17, 0);
+  final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 24, 12, 0);
+  final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 12, 24, 0);
 
   /** Creates a new Rev_2Arm. */
   public Arm() {
     m_MPRatio = 15d;
-    m_j1Ratio = 48d / 17d * m_MPRatio;
-    m_j2Ratio = 36d / 17d * m_MPRatio;
+    m_j1Ratio = 36d / 22d * m_MPRatio;
+    m_j2Ratio = 36d / 22d * m_MPRatio;
 
     // ArmMotorFirstP.setPosition(High);
     m_rJoint1.setControl(new Follower(m_lJoint1.getDeviceID(), true));
@@ -61,7 +61,7 @@ public class Arm extends SubsystemBase {
     l_joint1Configs.kS = 0.15;
     l_joint1Configs.kV = 0.25;
     l_joint1Configs.kA = 0.01;
-    l_joint1Configs.kP = 0.5;
+    l_joint1Configs.kP = 1.5;
     l_joint1Configs.kI = 0;
     l_joint1Configs.kD = 0;
 
@@ -78,13 +78,14 @@ public class Arm extends SubsystemBase {
     l_joint2Configs.kS = 0.15;
     l_joint2Configs.kV = 0.25;
     l_joint2Configs.kA = 0.05;
-    l_joint2Configs.kP = 0.65;
+    l_joint2Configs.kP = 1.5;
     l_joint2Configs.kI = 0;
     l_joint2Configs.kD = 0;
 
     var l2_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
-    l2_motionMagicConfigs.MotionMagicCruiseVelocity = 40; // Target cruise velocity of 80 rps
-    l2_motionMagicConfigs.MotionMagicAcceleration = 85; // Target acceleration of 160 rps/s (0.5 seconds)
+    l2_motionMagicConfigs.MotionMagicCruiseVelocity = 25; // Target cruise velocity of 80 rps
+    l2_motionMagicConfigs.MotionMagicAcceleration =
+        60; // Target acceleration of 160 rps/s (0.5 seconds)
     l2_motionMagicConfigs.MotionMagicJerk = 100; // Target jerk of 1600 rps/s/s (0.1 seconds)
 
     // apply gains, 50 ms total timeout
@@ -115,11 +116,13 @@ public class Arm extends SubsystemBase {
   public Command goToDegSeq(double j1ParDeg, double j2ParDeg, double j2SeqDeg) {
     return new SequentialCommandGroup(
         goToDeg(j1ParDeg, j2ParDeg),
+
         new WaitUntilCommand(
             () -> {
               // System.out.println(m_lJoint1.getPosition().getValue() -
               // (-j1ParDeg*m_j1Ratio)/(360d));
-              return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg * m_j1Ratio) / (360d)) <= 20;
+              return Math.abs(m_lJoint1.getPosition().getValue() - (-j1ParDeg * m_j1Ratio) / (360d))
+                  <= 5;
             }),
         goToDeg(m_lJoint2, m_j2Request, m_j2Ratio, j2SeqDeg));
   }
@@ -147,14 +150,4 @@ public class Arm extends SubsystemBase {
             goToDeg(m_lJoint1, m_goDownRequest, m_j1Ratio, 0),
             goToDeg(m_lJoint2, m_goDownRequest, m_j2Ratio, 0)));
   }
-
-  public Command goToAmp() {
-      return goToDegSeq(100, 0, -70);
-  }
-
-  public Command goToSubwoofer() {
-      return goToDeg(20, 25);
-  }
-
-
 }

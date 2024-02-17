@@ -86,7 +86,7 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
             () -> -m_driverController.getRightX()));
-    NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
+    // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake(speakerShot));
     NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
@@ -217,7 +217,7 @@ public class Robot extends LoggedRobot {
    *
    * <p>
    * This runs after the mode specific periodic functions, but before LiveWindow
-   * and
+   * and`
    * SmartDashboard integrated updating.
    */
   @Override

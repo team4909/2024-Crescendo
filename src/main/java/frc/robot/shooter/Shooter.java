@@ -25,8 +25,8 @@ public class Shooter extends SubsystemBase {
   private double defaultDelay = .3;
 
   private TalonFX feeder = new TalonFX(19, "CANivore2");
-  private TalonFX shooterTop = new TalonFX(17, "CANivore2");
-  private TalonFX shooterBottom = new TalonFX(18, "CANivore2");
+  private TalonFX shooterTop = new TalonFX(20, "CANivore2");
+  private TalonFX shooterBottom = new TalonFX(21, "CANivore2");
 
   private DigitalInput m_noteSensor = new DigitalInput(0);
 
