@@ -17,11 +17,10 @@ import frc.robot.Constants;
 public class ArmIOTalonFX implements ArmIO {
 
   // Offsets to the horizontal
-  private final double kElbowAbsoluteEncoderOffsetRaw = 0.219;
   private final double kElbowRelativeEncoderOffsetRad = 0.0;
   private final double kWristRelativeEncoderOffsetRad = 0.0;
-  private final boolean kUseAbsoluteEncoders = true;
   private final boolean kInvertWristAbsoluteEncoder = false;
+  private final boolean kInvertElbowAbsoluteEncoder = true;
   private final double kCurrentLimitAmps = 80.0;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,
@@ -118,13 +117,6 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.optimizeBusUtilization();
     m_wristRightFollowerMotor.optimizeBusUtilization();
 
-    if (kUseAbsoluteEncoders) {
-      m_elbowAbsoluteEncoder.setPositionOffset(kElbowAbsoluteEncoderOffsetRaw);
-      m_elbowLeftMotor.setPosition(m_elbowAbsoluteEncoder.get() * ArmModel.kElbowGearboxReduction);
-    } else
-      m_elbowLeftMotor.setPosition(
-          Units.radiansToRotations(kElbowRelativeEncoderOffsetRad) * ArmModel.kElbowFinalReduction);
-
     m_elbowControl = new VoltageOut(0.0, true, true, false, false);
     m_wristControl = new VoltageOut(0.0, true, true, false, false);
   }
@@ -145,7 +137,9 @@ public class ArmIOTalonFX implements ArmIO {
     inputs.elbowAbsolutePositionRaw = m_elbowAbsoluteEncoder.getAbsolutePosition();
     inputs.elbowAbsolutePositionRad =
         MathUtil.angleModulus(
-            Units.rotationsToRadians(m_elbowAbsoluteEncoder.get() / ArmModel.kElbowChainReduction));
+            Units.rotationsToRadians(m_elbowAbsoluteEncoder.get() / ArmModel.kElbowChainReduction)
+                    * (kInvertElbowAbsoluteEncoder ? -1 : 1)
+                - elbowAbsoluteEncoderOffset.getRadians());
     inputs.elbowAbsoluteEncoderConnected = m_elbowAbsoluteEncoder.isConnected();
     inputs.elbowRelativePositionRad =
         Units.rotationsToRadians(m_elbowPositionSignal.getValue() / ArmModel.kElbowFinalReduction);
