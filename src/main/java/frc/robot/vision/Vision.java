@@ -1,18 +1,23 @@
 package frc.robot.vision;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
 import frc.robot.vision.VisionIO.VisionIOInputs;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -29,8 +34,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class Vision {
 
-  private final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
-  private final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
+  private static final double kTargetLogTimeSecs = 0.1;
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
   private final PhotonPoseEstimator[] m_poseEstimators;
@@ -38,6 +42,9 @@ public class Vision {
   private final AprilTagFieldLayout kTagLayout =
       AprilTagFields.kDefaultField.loadAprilTagLayoutField();
   private Consumer<VisionUpdate> m_visionUpdateConsumer = null;
+  private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
+  private double xyStdDevCoefficient = 0.1;
+  private double thetaStdDevCoefficient = 0.1;
 
   public Vision(VisionIO... io) {
     this.io = io;
@@ -45,7 +52,8 @@ public class Vision {
     m_poseEstimators = new PhotonPoseEstimator[io.length];
     for (int i = 0; i < io.length; i++) {
       m_inputs[i] = new VisionIOInputs();
-      io[i].updateInputs(m_inputs[i]); // This is for setting camera names and offsets.
+      io[i].updateInputs(
+          m_inputs[i]); // This is for initializing camera names and offsets into inputs.
       m_poseEstimators[i] =
           new PhotonPoseEstimator(
               kTagLayout,
@@ -64,6 +72,13 @@ public class Vision {
         m_visionSimSystem.addCamera(cameraSim, m_inputs[index].robotToCamera);
       }
     }
+
+    kTagLayout
+        .getTags()
+        .forEach(
+            (AprilTag tag) -> {
+              m_lastDetectionTimeIds.put(tag.ID, 0.0);
+            });
   }
 
   public void periodic() {
@@ -72,8 +87,7 @@ public class Vision {
       Logger.processInputs("Vision/Cam" + Integer.toString(index), m_inputs[index]);
     }
 
-    final List<Pose2d> posesToLog = new ArrayList<>();
-    final List<Pose3d> tagPosesToLog = new ArrayList<>();
+    final List<Pose2d> robotPosesToLog = new ArrayList<>();
     for (int i = 0; i < io.length; i++) {
       for (PhotonPipelineResult result : m_inputs[i].results) {
         Optional<EstimatedRobotPose> poseOptional = m_poseEstimators[i].update(result);
@@ -85,9 +99,12 @@ public class Vision {
                   target -> {
                     kTagLayout
                         .getTagPose(target.getFiducialId())
-                        .ifPresent(tagPose -> tagPosesToLog.add(tagPose));
+                        .ifPresent(
+                            tagPose ->
+                                m_lastDetectionTimeIds.put(
+                                    target.getFiducialId(), Timer.getFPGATimestamp()));
                   });
-              posesToLog.add(estimatedPose);
+              robotPosesToLog.add(estimatedPose);
               m_visionUpdateConsumer.accept(
                   new VisionUpdate(
                       estimatedPose,
@@ -96,37 +113,50 @@ public class Vision {
             });
       }
     }
-    Logger.recordOutput("Vision/EstimatedPoses", posesToLog.toArray(new Pose2d[posesToLog.size()]));
-    Logger.recordOutput("Vision/TagPoses", tagPosesToLog.toArray(new Pose3d[tagPosesToLog.size()]));
+
+    Logger.recordOutput(
+        "Vision/EstimatedPoses", robotPosesToLog.toArray(new Pose2d[robotPosesToLog.size()]));
+    List<Pose3d> targetPose3ds = new ArrayList<>();
+    for (Map.Entry<Integer, Double> detectionEntry : m_lastDetectionTimeIds.entrySet())
+      if (Timer.getFPGATimestamp() - detectionEntry.getValue() < kTargetLogTimeSecs)
+        kTagLayout.getTagPose(detectionEntry.getKey()).ifPresent(pose -> targetPose3ds.add(pose));
+
+    Logger.recordOutput("Vision/TagPoses", targetPose3ds.toArray(new Pose3d[targetPose3ds.size()]));
     Logger.recordOutput(
         "Vision/TagPoses2D",
-        tagPosesToLog.stream()
+        targetPose3ds.stream()
             .map(p -> p.toPose2d())
             .collect(Collectors.toList())
-            .toArray(new Pose2d[tagPosesToLog.size()]));
+            .toArray(new Pose2d[targetPose3ds.size()]));
   }
 
   public Matrix<N3, N1> getEstimationStdDevs(
       Pose2d estimatedPose, List<PhotonTrackedTarget> targets) {
-    var estimatedStdDevs = kSingleTagStdDevs;
-    int numTags = 0;
-    double avgDist = 0;
-    // TODO add in ambiguity checks and set max stddevs if it exceeds a certain threshold
+    Vector<N3> rejectTagStdDev =
+        VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+    int tagCount = 0;
+    double totalDistance = 0;
     for (var target : targets) {
       var tagPose = kTagLayout.getTagPose(target.getFiducialId());
+      // Ignore tags whose ids are not in the field layout.
       if (tagPose.isEmpty()) continue;
-      numTags++;
-      avgDist +=
+      tagCount++;
+      totalDistance +=
           tagPose.get().toPose2d().getTranslation().getDistance(estimatedPose.getTranslation());
     }
-    if (numTags == 0) return estimatedStdDevs;
-    avgDist /= numTags;
-    if (numTags > 1) estimatedStdDevs = kMultiTagStdDevs;
-    // After 4 meters we can't trust vision
-    if (numTags == 1 && avgDist > 4)
-      estimatedStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-    else estimatedStdDevs = estimatedStdDevs.times(1 + (avgDist * avgDist / 30));
-    return estimatedStdDevs;
+    double averageDistance = totalDistance / tagCount;
+
+    /**
+     * Reject tags is there are no valid tags OR there is only one tag and it has a high pose
+     * ambiguity OR there is only one tag and the tag is too far.
+     */
+    if ((tagCount == 0)
+        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.3)
+        || (tagCount == 1 && averageDistance > 4)) return rejectTagStdDev;
+
+    double xyStdDev = xyStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount;
+    double thetaStdDev = thetaStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount;
+    return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
   }
 
   private SimCameraProperties getSimCameraProperties() {
