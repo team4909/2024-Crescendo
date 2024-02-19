@@ -9,7 +9,8 @@ import org.littletonrobotics.junction.Logger;
 public class Module {
 
   // https://www.swervedrivespecialties.com/products/mk4i-swerve-module
-  public static final double kDriveRatio = 6.75;
+  // However, our first stage is 50:13 instead fo 50:14 because we do not have the right part.
+  public static final double kDriveRatio = (50.0 / 13.0) * (16.0 / 28.0) * (45.0 / 15.0);
   public static final double kSteerRatio = 150.0 / 7.0;
   private final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
   private final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;

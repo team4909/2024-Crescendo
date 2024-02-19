@@ -55,7 +55,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final DCMotorSim m_driveSim =
       new DCMotorSim(DCMotor.getKrakenX60Foc(1), Module.kDriveRatio, 0.025);
   private final DCMotorSim m_steerSim =
-      new DCMotorSim(DCMotor.getKrakenX60Foc(1), Module.kSteerRatio, 0.004);
+      new DCMotorSim(DCMotor.getFalcon500Foc(1), Module.kSteerRatio, 0.004);
   private final int m_index;
 
   public ModuleIOTalonFX(int index) {

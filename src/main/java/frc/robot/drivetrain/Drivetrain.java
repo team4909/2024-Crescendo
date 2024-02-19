@@ -47,9 +47,9 @@ public class Drivetrain extends SubsystemBase {
   public final double kWheelbaseMeters = Units.inchesToMeters(26.0);
   private final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
-  private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
+  private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
-  private final double kDeadband = 0.07;
+  private final double kDeadband = 0.1;
   private final boolean kUseVisionCorrection = true;
   private final ImuIO m_imuIO;
   private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
@@ -186,14 +186,14 @@ public class Drivetrain extends SubsystemBase {
 
   public Command joystickDrive(
       DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier omegaSupplier) {
-    UnaryOperator<Double> squareAxis =
-        (Double axisMagnitude) -> Math.copySign(Math.pow(axisMagnitude, 2), axisMagnitude);
+    UnaryOperator<Double> cubeAxis =
+        (Double axisMagnitude) -> Math.copySign(Math.pow(axisMagnitude, 3), axisMagnitude);
     return this.run(
             () -> {
-              var x = squareAxis.apply(MathUtil.applyDeadband(xSupplier.getAsDouble(), kDeadband));
-              var y = squareAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
+              var x = cubeAxis.apply(MathUtil.applyDeadband(xSupplier.getAsDouble(), kDeadband));
+              var y = cubeAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
               double omega =
-                  squareAxis.apply(MathUtil.applyDeadband(omegaSupplier.getAsDouble(), kDeadband));
+                  cubeAxis.apply(MathUtil.applyDeadband(omegaSupplier.getAsDouble(), kDeadband));
               runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       x * kMaxLinearSpeedMetersPerSecond,

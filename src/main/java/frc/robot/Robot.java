@@ -55,7 +55,7 @@ public class Robot extends LoggedRobot {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createBlankFourCameraVision();
-        m_arm = Subsystems.createTalonFXArm();
+        m_arm = Subsystems.createBlankArm();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
