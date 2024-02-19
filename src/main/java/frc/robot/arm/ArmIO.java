@@ -21,6 +21,8 @@ public interface ArmIO {
     public double wristVelocityRadPerSec = 0.0;
     public double wristAppliedVolts = 0.0;
     public double[] wristCurrentAmps = new double[] {};
+
+    public boolean allMotorsConnected = false;
   }
 
   public default void updateInputs(ArmIOInputs inputs) {}

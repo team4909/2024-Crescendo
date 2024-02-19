@@ -6,7 +6,7 @@ import edu.wpi.first.math.util.Units;
 
 public enum ArmSetpoints {
   kStowed(new Translation2d(0.005, 0.609), 0.0, 0.0),
-  kFun(-0.125, 0.679, 0.8, 0.0),
+  kFun(new Translation2d(0.62, 0.508), 0.8, 0.0),
   kTrap(19.8, 30, 0.0, 0.0);
 
   private final Translation2d m_setpoint;

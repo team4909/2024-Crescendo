@@ -26,12 +26,12 @@ public class ArmVisualizer {
   public ArmVisualizer(String logKey) {
     m_logKey = logKey;
     m_mechanism = new Mechanism2d(4, 3, new Color8Bit(Color.kGray));
-    m_mechanismRoot = m_mechanism.getRoot("Arm", 2 + ArmModel.kOrigin.getX(), 0);
+    m_mechanismRoot = m_mechanism.getRoot("Arm", 2 + ArmModel.origin.getX(), 0);
     m_fixedShoulderLigament =
         m_mechanismRoot.append(
             new MechanismLigament2d(
                 "Shoulder",
-                ArmModel.kOrigin.getY(),
+                ArmModel.origin.getY(),
                 kShoulderAngleDegrees,
                 6,
                 new Color8Bit(Color.kBlack)));
@@ -52,9 +52,9 @@ public class ArmVisualizer {
 
     Pose3d elbowPose =
         new Pose3d(
-            ArmModel.kOrigin.getX(),
+            ArmModel.origin.getX(),
             0.0,
-            ArmModel.kOrigin.getY(),
+            ArmModel.origin.getY(),
             new Rotation3d(0.0, -elbowAngle, 0.0));
     Pose3d wristPose =
         elbowPose.transformBy(

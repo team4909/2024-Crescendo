@@ -244,10 +244,10 @@ public class Arm extends SubsystemBase {
       double wristAngle = angles.get(1, 0);
 
       return new Translation2d(
-          ArmModel.kOrigin.getX()
+          ArmModel.origin.getX()
               + ArmModel.kElbowLengthMeters * Math.cos(elbowAngle)
               + ArmModel.kWristLengthMeters * Math.cos(elbowAngle + (wristAngle - elbowAngle)),
-          ArmModel.kOrigin.getY()
+          ArmModel.origin.getY()
               + ArmModel.kElbowLengthMeters * Math.sin(elbowAngle)
               + ArmModel.kWristLengthMeters * Math.sin(elbowAngle + (wristAngle - elbowAngle)));
     }
@@ -255,17 +255,17 @@ public class Arm extends SubsystemBase {
     public Translation2d forwardWristRelativeToElbow(Vector<N2> angles) {
 
       return new Translation2d(
-          ArmModel.kOrigin.getX()
+          ArmModel.origin.getX()
               + ArmModel.kElbowLengthMeters * Math.cos(angles.get(0, 0))
               + ArmModel.kWristLengthMeters * Math.cos(angles.get(0, 0) + angles.get(1, 0)),
-          ArmModel.kOrigin.getY()
+          ArmModel.origin.getY()
               + ArmModel.kElbowLengthMeters * Math.sin(angles.get(0, 0))
               + ArmModel.kWristLengthMeters * Math.sin(angles.get(0, 0) + angles.get(1, 0)));
     }
 
     // This is still broken
     public Optional<Vector<N2>> inverse(Translation2d position) {
-      Translation2d relativePosition = position.minus(ArmModel.kOrigin);
+      Translation2d relativePosition = position.minus(ArmModel.origin);
 
       // Flip when X is negative
       boolean isFlipped = relativePosition.getX() < 0.0;
@@ -290,10 +290,10 @@ public class Arm extends SubsystemBase {
                   (ArmModel.kElbowLengthMeters
                       + ArmModel.kWristLengthMeters * Math.cos(wristAngle)));
 
-      // Invert shoulder angle if invalid
+      // Invert elbow angle if invalid
       Translation2d testPosition =
           forwardWristRelativeToElbow(VecBuilder.fill(elbowAngle, wristAngle))
-              .minus(ArmModel.kOrigin);
+              .minus(ArmModel.origin);
       if (testPosition.getDistance(relativePosition) > 1e-3) {
         elbowAngle += Math.PI;
       }
@@ -315,7 +315,7 @@ public class Arm extends SubsystemBase {
           || wristAngle > ArmModel.kWristMaxAngleRad) {
         return Optional.empty();
       }
-      return Optional.of(VecBuilder.fill(elbowAngle, wristAngle));
+      return Optional.of(VecBuilder.fill(elbowAngle, wristAngle + elbowAngle));
     }
   }
 }

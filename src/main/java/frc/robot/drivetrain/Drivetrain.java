@@ -3,8 +3,6 @@ package frc.robot.drivetrain;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -15,6 +13,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -32,6 +31,7 @@ import frc.robot.vision.Vision.VisionUpdate;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
@@ -41,6 +41,7 @@ import org.littletonrobotics.junction.Logger;
 public class Drivetrain extends SubsystemBase {
 
   public static final Lock odometryLock = new ReentrantLock();
+  public final BooleanSupplier onRedAllianceSupplier;
 
   public final double kTrackwidthMeters = Units.inchesToMeters(26.0);
   public final double kWheelbaseMeters = Units.inchesToMeters(26.0);
@@ -55,8 +56,6 @@ public class Drivetrain extends SubsystemBase {
   private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
   private final SwerveDrivePoseEstimator m_poseEstimator;
   private final Consumer<VisionUpdate> m_visionUpdateConsumer;
-  private final PathConstraints m_pathfindingConstraints =
-      new PathConstraints(3.0, 3.0, Units.degreesToRadians(540.0), Units.degreesToRadians(720.0));
   private final SysIdRoutine m_sysIdRoutine;
   private final SwerveDriveKinematics m_kinematics =
       new SwerveDriveKinematics(
@@ -64,7 +63,10 @@ public class Drivetrain extends SubsystemBase {
           new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0));
+  private final Pose2d m_sourcePoseBlueOrigin =
+      new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
 
+  private Twist2d m_fieldVelocity = new Twist2d();
   // For calculating chassis position deltas in simulation.
   private SwerveModulePosition[] m_lastModulePositions;
 
@@ -94,6 +96,10 @@ public class Drivetrain extends SubsystemBase {
               visionUpdate.timestampSeconds(),
               visionUpdate.standardDeviations());
         };
+    onRedAllianceSupplier =
+        () ->
+            DriverStation.getAlliance().isPresent()
+                && DriverStation.getAlliance().get() == Alliance.Red;
     m_sysIdRoutine =
         new SysIdRoutine(
             new SysIdRoutine.Config(
@@ -124,7 +130,7 @@ public class Drivetrain extends SubsystemBase {
 
     odometryLock.unlock();
     Logger.processInputs("DrivetrainInputs/IMU", m_imuInputs);
-    for (var module : m_modules) {
+    for (Module module : m_modules) {
       module.periodic();
     }
 
@@ -135,6 +141,16 @@ public class Drivetrain extends SubsystemBase {
         module.stop();
       }
     }
+
+    ChassisSpeeds chassisSpeeds = m_kinematics.toChassisSpeeds(getModuleStates());
+    Translation2d linearFieldVelocity =
+        new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond)
+            .rotateBy(getPose().getRotation());
+    m_fieldVelocity =
+        new Twist2d(
+            linearFieldVelocity.getX(),
+            linearFieldVelocity.getY(),
+            m_imuInputs.yawVelocityRadPerSec);
 
     double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
     for (int updateIndex = 0; updateIndex < sampleTimestamps.length; updateIndex++) {
@@ -168,7 +184,7 @@ public class Drivetrain extends SubsystemBase {
     }
   }
 
-  private void runVelocity(ChassisSpeeds speeds) {
+  public void runVelocity(ChassisSpeeds speeds) {
     if (Constants.kIsSim) {
       m_imuIO.updateSim(speeds.omegaRadiansPerSecond * 0.02);
     }
@@ -186,14 +202,6 @@ public class Drivetrain extends SubsystemBase {
     Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
   }
 
-  public Command testDrive() {
-    return this.run(
-            () -> {
-              runVelocity(new ChassisSpeeds(1, 1, 0));
-            })
-        .withName("Test Drive");
-  }
-
   public Command joystickDrive(
       DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier omegaSupplier) {
     UnaryOperator<Double> squareAxis =
@@ -202,7 +210,7 @@ public class Drivetrain extends SubsystemBase {
             () -> {
               var x = squareAxis.apply(MathUtil.applyDeadband(xSupplier.getAsDouble(), kDeadband));
               var y = squareAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
-              var omega =
+              double omega =
                   squareAxis.apply(MathUtil.applyDeadband(omegaSupplier.getAsDouble(), kDeadband));
               runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -226,11 +234,6 @@ public class Drivetrain extends SubsystemBase {
     return m_sysIdRoutine.dynamic(direction);
   }
 
-  public Command pathfindToHumanPlayerStation() {
-    var path = PathPlannerPath.fromPathFile("SourceApproach");
-    return AutoBuilder.pathfindThenFollowPath(path, m_pathfindingConstraints);
-  }
-
   private void configurePathing() {
     AutoBuilder.configureHolonomic(
         this::getPose,
@@ -243,9 +246,7 @@ public class Drivetrain extends SubsystemBase {
             kMaxLinearSpeedMetersPerSecond,
             kDriveBaseRadius,
             new ReplanningConfig()),
-        () ->
-            DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == Alliance.Red,
+        onRedAllianceSupplier,
         this);
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
@@ -273,7 +274,15 @@ public class Drivetrain extends SubsystemBase {
     return m_poseEstimator.getEstimatedPosition();
   }
 
-  public void setPose(Pose2d pose) {
+  public Twist2d getFieldVelocity() {
+    return m_fieldVelocity;
+  }
+
+  public double getYawVelocity() {
+    return m_imuInputs.yawVelocityRadPerSec;
+  }
+
+  private void setPose(Pose2d pose) {
     m_poseEstimator.resetPosition(m_imuInputs.yawPosition, getModulePositions(), pose);
   }
 

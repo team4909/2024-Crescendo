@@ -87,15 +87,14 @@ public class Robot extends LoggedRobot {
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
-            // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> -m_driverController.getRawAxis(2)));
+            () -> -m_driverController.getRightX()));
     m_arm.setDefaultCommand(m_arm.stop());
 
     m_driverController.y().onTrue(m_drivetrain.zeroGyro());
     m_driverController.a().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
     m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
+    m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kFun));
     m_driverController.start().onTrue(m_arm.goToSetpoint(0.0, 0.0));
-    m_driverController.povUp().onTrue(m_drivetrain.pathfindToHumanPlayerStation());
   }
 
   /**

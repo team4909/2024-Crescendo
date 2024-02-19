@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class ArmModel {
 
-  public static final Translation2d kOrigin =
+  public static final Translation2d origin =
       new Translation2d(Units.inchesToMeters(-9.2), Units.inchesToMeters(20));
 
   public static final double kElbowGearboxReduction = 15.0;

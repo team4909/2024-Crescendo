@@ -40,6 +40,8 @@ public class ArmIOSim implements ArmIO {
         new double[] {
           ArmModel.kWristGearbox.getCurrent(m_elbowWristSimStates.get(3, 0), m_wristAppliedVolts)
         };
+
+    inputs.allMotorsConnected = true;
   }
 
   public void setElbowVoltage(double volts) {

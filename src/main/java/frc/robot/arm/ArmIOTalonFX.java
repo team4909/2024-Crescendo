@@ -1,6 +1,7 @@
 package frc.robot.arm;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -122,17 +123,19 @@ public class ArmIOTalonFX implements ArmIO {
   }
 
   public void updateInputs(ArmIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
-        m_elbowPositionSignal,
-        m_elbowVelocitySignal,
-        m_elbowAppliedVoltsSignal,
-        m_elbowCurrentSignal,
-        m_elbowFollowerCurrentSignal,
-        m_wristPositionSignal,
-        m_wristVelocitySignal,
-        m_wristAppliedVoltsSignal,
-        m_wristCurrentSignal,
-        m_wristFollowerCurrentSignal);
+    inputs.allMotorsConnected =
+        BaseStatusSignal.refreshAll(
+                m_elbowPositionSignal,
+                m_elbowVelocitySignal,
+                m_elbowAppliedVoltsSignal,
+                m_elbowCurrentSignal,
+                m_elbowFollowerCurrentSignal,
+                m_wristPositionSignal,
+                m_wristVelocitySignal,
+                m_wristAppliedVoltsSignal,
+                m_wristCurrentSignal,
+                m_wristFollowerCurrentSignal)
+            .equals(StatusCode.OK);
 
     inputs.elbowAbsolutePositionRaw = m_elbowAbsoluteEncoder.getAbsolutePosition();
     inputs.elbowAbsolutePositionRad =
