@@ -97,7 +97,9 @@ public class Robot extends LoggedRobot {
     m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kFun));
     m_driverController.start().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStraight));
     // m_driverController.start().onTrue(m_arm.goToSetpoint(0.0, 0.0));
-    m_driverController.povUp().whileTrue(new DriveToPose(m_drivetrain.m_sourcePoseBlueOrigin, m_drivetrain));
+    m_driverController
+        .povUp()
+        .whileTrue(new DriveToPose(m_drivetrain.m_sourcePoseBlueOrigin, m_drivetrain));
   }
 
   /**

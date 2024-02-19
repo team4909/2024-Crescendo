@@ -67,8 +67,6 @@ public class Drivetrain extends SubsystemBase {
       new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
 
   private Twist2d m_fieldVelocity = new Twist2d();
-  // For calculating chassis position deltas in simulation.
-  private SwerveModulePosition[] m_lastModulePositions;
 
   public Drivetrain(
       ImuIO imuIO,
@@ -115,7 +113,6 @@ public class Drivetrain extends SubsystemBase {
                 },
                 null,
                 this));
-    m_lastModulePositions = getModulePositions();
     configurePathing();
   }
 
@@ -155,24 +152,9 @@ public class Drivetrain extends SubsystemBase {
     double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
     for (int updateIndex = 0; updateIndex < sampleTimestamps.length; updateIndex++) {
       SwerveModulePosition[] newModulePositions = new SwerveModulePosition[m_modules.length];
-      SwerveModulePosition[] modulePositionDeltas = new SwerveModulePosition[4];
       for (int moduleIndex = 0; moduleIndex < m_modules.length; moduleIndex++) {
         newModulePositions[moduleIndex] =
             m_modules[moduleIndex].getOdometryPositions()[updateIndex];
-        modulePositionDeltas[moduleIndex] =
-            new SwerveModulePosition(
-                newModulePositions[moduleIndex].distanceMeters
-                    - m_lastModulePositions[moduleIndex].distanceMeters,
-                newModulePositions[moduleIndex].angle);
-        m_lastModulePositions[moduleIndex] = newModulePositions[moduleIndex];
-      }
-      if (Constants.kIsSim) {
-        /**
-         * TODO we cannot update the gyro sim state in the same loop we read it, it will always be
-         * behind causing inaccurate behavior. The solution might literally be move this before any
-         * odometry logic.
-         */
-        // m_imuIO.updateSim(m_kinematics.toTwist2d(moduleDeltas).dtheta);
       }
 
       // The reason we are bothering with timestamps here is so vision updates can be properly
