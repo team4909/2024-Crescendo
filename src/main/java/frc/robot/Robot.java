@@ -5,6 +5,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.BionicWaitCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -12,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
@@ -128,6 +130,8 @@ public class Robot extends LoggedRobot {
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    SmartDashboard.putNumber("CatchDelay", 1);
+
     // ____________________driverController_______________________\\
     m_driverController
         .rightTrigger()
@@ -193,6 +197,20 @@ public class Robot extends LoggedRobot {
         .andThen(Commands.sequence(
             m_intake.Stop(),
             m_shooter.FeederOff()));
+  }
+
+  public Command SensorCatch() {
+    return new ParallelCommandGroup(
+      m_arm.goToDeg(0, 20),
+      new RepeatCommand(m_shooter.Catch())
+        .until(
+          () -> {
+          return m_shooter.hasNote();
+        }))
+      .andThen(Commands.sequence(
+        new BionicWaitCommand(() -> SmartDashboard.getNumber("CatchDelay", 1)),
+        m_arm.goDown(),
+        m_shooter.Stop()));
   }
 
   /**
