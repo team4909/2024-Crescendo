@@ -232,7 +232,6 @@ public class Arm extends SubsystemBase {
               m_io.setElbowVoltage(0.0);
               m_io.setWristVoltage(0.0);
             })
-        .ignoringDisable(true)
         .withName("Stop");
   }
 
@@ -275,14 +274,14 @@ public class Arm extends SubsystemBase {
       // Calculate angles
       double wristAngle =
           -Math.acos(
-              (Math.pow(relativePosition.getX(), 2)
-                      + Math.pow(relativePosition.getY(), 2)
-                      - Math.pow(ArmModel.kElbowLengthMeters, 2)
-                      - Math.pow(ArmModel.kWristLengthMeters, 2))
-                  / (2 * ArmModel.kElbowLengthMeters * ArmModel.kWristLengthMeters));
-      if (Double.isNaN(wristAngle)) {
-        return Optional.empty();
-      }
+              MathUtil.clamp(
+                  (Math.pow(relativePosition.getX(), 2)
+                          + Math.pow(relativePosition.getY(), 2)
+                          - Math.pow(ArmModel.kElbowLengthMeters, 2)
+                          - Math.pow(ArmModel.kWristLengthMeters, 2))
+                      / (2 * ArmModel.kElbowLengthMeters * ArmModel.kWristLengthMeters),
+                  -1.0,
+                  1.0));
       double elbowAngle =
           Math.atan2(relativePosition.getY(), relativePosition.getX())
               - Math.atan2(

@@ -7,6 +7,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -157,9 +158,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_steerVelocitySignal,
         m_steerAppliedVoltsSignal,
         m_steerCurrentSignal);
-    m_driveMotor.optimizeBusUtilization();
-    m_steerMotor.optimizeBusUtilization();
-    m_azimuthEncoder.optimizeBusUtilization();
+    ParentDevice.optimizeBusUtilizationForAll(m_driveMotor, m_steerMotor, m_azimuthEncoder);
 
     m_steerControl = new MotionMagicExpoVoltage(0.0, true, 0.0, 0, true, false, false);
     m_driveControl = new VelocityVoltage(0.0, 0.0, true, 0.0, 0, true, false, false);

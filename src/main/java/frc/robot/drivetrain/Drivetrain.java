@@ -63,7 +63,7 @@ public class Drivetrain extends SubsystemBase {
           new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0));
-  private final Pose2d m_sourcePoseBlueOrigin =
+  public final Pose2d m_sourcePoseBlueOrigin =
       new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
 
   private Twist2d m_fieldVelocity = new Twist2d();

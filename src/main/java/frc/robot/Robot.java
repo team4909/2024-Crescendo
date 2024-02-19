@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.ArmSetpoints;
+import frc.robot.drivetrain.DriveToPose;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -94,7 +95,9 @@ public class Robot extends LoggedRobot {
     m_driverController.a().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
     m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
     m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kFun));
-    m_driverController.start().onTrue(m_arm.goToSetpoint(0.0, 0.0));
+    m_driverController.start().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStraight));
+    // m_driverController.start().onTrue(m_arm.goToSetpoint(0.0, 0.0));
+    m_driverController.povUp().whileTrue(new DriveToPose(m_drivetrain.m_sourcePoseBlueOrigin, m_drivetrain));
   }
 
   /**

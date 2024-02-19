@@ -12,17 +12,18 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 
 public class DriveToPose extends Command {
 
   private final Drivetrain m_drivetrain;
-  private final Pose2d m_goalPose;
   private final ProfiledPIDController m_translationController, m_thetaController;
   private Translation2d m_lastSetpointTranslation;
+  private Pose2d m_pose;
+  private Pose2d m_goalPose;
 
   public DriveToPose(Pose2d pose, Drivetrain drivetrain) {
-    m_goalPose =
-        drivetrain.onRedAllianceSupplier.getAsBoolean() ? GeometryUtil.flipFieldPose(pose) : pose;
+    m_pose = pose;
     m_translationController =
         new ProfiledPIDController(2.0, 0.0, 0.0, new TrapezoidProfile.Constraints(3.5, 2.2));
     m_thetaController =
@@ -34,6 +35,10 @@ public class DriveToPose extends Command {
 
   @Override
   public void initialize() {
+    m_goalPose =
+        m_drivetrain.onRedAllianceSupplier.getAsBoolean()
+            ? GeometryUtil.flipFieldPose(m_pose)
+            : m_pose;
     m_translationController.setTolerance(0.01);
     m_thetaController.setTolerance(Units.degreesToRadians(1.0));
     m_thetaController.enableContinuousInput(-Math.PI, Math.PI);
@@ -60,8 +65,6 @@ public class DriveToPose extends Command {
     Pose2d currentPose = m_drivetrain.getPose();
     double currentDistance = currentPose.getTranslation().getDistance(m_goalPose.getTranslation());
     double ffScaler = MathUtil.clamp((currentDistance - 0.2) / (0.8 - 0.2), 0.0, 1.0);
-    m_translationController.reset(ffScaler);
-
     m_translationController.reset(
         m_lastSetpointTranslation.getDistance(m_goalPose.getTranslation()),
         m_translationController.getSetpoint().velocity);
@@ -97,5 +100,16 @@ public class DriveToPose extends Command {
     m_drivetrain.runVelocity(
         ChassisSpeeds.fromFieldRelativeSpeeds(
             driveVelocity.getX(), driveVelocity.getY(), thetaVelocity, currentPose.getRotation()));
+
+    Logger.recordOutput("DriveToPose/DistanceMeasured", currentDistance);
+    Logger.recordOutput(
+        "DriveToPose/DistanceSetpoint", m_translationController.getSetpoint().position);
+    Logger.recordOutput("DriveToPose/ThetaMeasured", currentPose.getRotation().getRadians());
+    Logger.recordOutput("DriveToPose/ThetaSetpoint", m_thetaController.getSetpoint().position);
+    Logger.recordOutput(
+        "Odometry/DriveToPoseSetpoint",
+        new Pose2d(
+            m_lastSetpointTranslation, new Rotation2d(m_thetaController.getSetpoint().position)));
+    Logger.recordOutput("Odometry/DriveToPoseGoal", m_goalPose);
   }
 }

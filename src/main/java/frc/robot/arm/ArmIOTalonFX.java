@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -113,10 +114,8 @@ public class ArmIOTalonFX implements ArmIO {
         m_wristCurrentSignal,
         m_wristFollowerCurrentSignal);
 
-    m_elbowLeftMotor.optimizeBusUtilization();
-    m_elbowRightFollowerMotor.optimizeBusUtilization();
-    m_wristLeftMotor.optimizeBusUtilization();
-    m_wristRightFollowerMotor.optimizeBusUtilization();
+    ParentDevice.optimizeBusUtilizationForAll(
+        m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
 
     m_elbowControl = new VoltageOut(0.0, true, true, false, false);
     m_wristControl = new VoltageOut(0.0, true, true, false, false);
