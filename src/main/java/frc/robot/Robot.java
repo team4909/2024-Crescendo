@@ -2,7 +2,6 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,9 +18,6 @@ import frc.robot.drivetrain.Drivetrain;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.Vision;
-
-import javax.naming.PartialResultException;
-
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -103,9 +99,8 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("ArmDown", m_arm.goDown());
     NamedCommands.registerCommand("goDownAuto", m_arm.goToDegSeq(10, 0, -2));
     NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
-    NamedCommands.registerCommand("Stop Intake Shooter Feeder", Commands.sequence(
-        m_intake.Stop(),
-        m_shooter.Stop()));
+    NamedCommands.registerCommand(
+        "Stop Intake Shooter Feeder", Commands.sequence(m_intake.Stop(), m_shooter.Stop()));
     NamedCommands.registerCommand("Arm Go Down", m_arm.goDown());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
@@ -145,20 +140,17 @@ public class Robot extends LoggedRobot {
         .onTrue(new ParallelCommandGroup(m_intake.intake(false), m_shooter.FeederOn()).repeatedly())
         .onFalse(
             new ParallelRaceGroup(
-                m_shooter.PullBack(), m_intake.intake(speakerShot).withTimeout(0.25)).finallyDo(() -> m_shooter.Stop()));
+                    m_shooter.PullBack(), m_intake.intake(speakerShot).withTimeout(0.25))
+                .finallyDo(() -> m_shooter.Stop()));
 
     // ___________________OperatorController______________________\\
     m_operatorController
         .leftTrigger()
-        .onTrue(Commands.parallel(m_intake.release(),m_arm.goToAmp(), m_shooter.ShooterOn()))
-        .onFalse(Commands.sequence(
-            m_arm.goDown(),
-            m_shooter.ShooterOff()));
+        .onTrue(Commands.parallel(m_intake.release(), m_arm.goToAmp(), m_shooter.ShooterOn()))
+        .onFalse(Commands.sequence(m_arm.goDown(), m_shooter.ShooterOff()));
 
     // prep for climb
-    m_operatorController.rightBumper()
-        .onTrue(m_arm.goToDegSeq(110, 0, 0))
-        .onFalse(m_arm.goDown());
+    m_operatorController.rightBumper().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
 
     m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
 
@@ -169,9 +161,7 @@ public class Robot extends LoggedRobot {
                 m_arm.goToDeg(20, 25),
                 new InstantCommand(() -> speakerShot = true),
                 m_shooter.ShooterOn()))
-        .onFalse(Commands.sequence(
-            m_arm.goDown(),
-            m_shooter.ShooterOff()));
+        .onFalse(Commands.sequence(m_arm.goDown(), m_shooter.ShooterOff()));
 
     // turn on the shooter wheels
     m_operatorController.y().onTrue(m_shooter.Shoot());
@@ -179,31 +169,25 @@ public class Robot extends LoggedRobot {
     m_operatorController
         .leftBumper()
         .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 20), m_shooter.Catch().repeatedly()))
-        .onFalse(new ParallelCommandGroup( m_arm.goDown(), m_shooter.Stop()));
+        .onFalse(new ParallelCommandGroup(m_arm.goDown(), m_shooter.Stop()));
   }
 
   public Command SensorIntake() {
     return new ParallelRaceGroup(
-        new RepeatCommand(m_intake.intake(speakerShot)),
-        new RepeatCommand(m_shooter.FeederOn())
-            .until(
-                () -> {
-                  return m_shooter.hasNote();
-                }))
-        .andThen(Commands.sequence(
-            m_intake.Stop(),
-            m_shooter.FeederOff()));
+            new RepeatCommand(m_intake.intake(speakerShot)),
+            new RepeatCommand(m_shooter.FeederOn())
+                .until(
+                    () -> {
+                      return m_shooter.hasNote();
+                    }))
+        .andThen(Commands.sequence(m_intake.Stop(), m_shooter.FeederOff()));
   }
 
   /**
-   * This function is called every robot packet, no matter the mode. Use this for
-   * items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and
-   * test.
+   * This function is called every robot packet, no matter the mode. Use this for items like
+   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
    *
-   * <p>
-   * This runs after the mode specific periodic functions, but before LiveWindow
-   * and`
+   * <p>This runs after the mode specific periodic functions, but before LiveWindow and`
    * SmartDashboard integrated updating.
    */
   @Override
@@ -224,36 +208,28 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {
-  }
+  public void autonomousPeriodic() {}
 
   @Override
-  public void teleopInit() {
-  }
+  public void teleopInit() {}
 
   @Override
-  public void teleopPeriodic() {
-  }
+  public void teleopPeriodic() {}
 
   @Override
-  public void disabledInit() {
-  }
+  public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {
-  }
+  public void disabledPeriodic() {}
 
   @Override
-  public void testInit() {
-  }
+  public void testInit() {}
 
   @Override
-  public void testPeriodic() {
-  }
+  public void testPeriodic() {}
 
   @Override
-  public void simulationInit() {
-  }
+  public void simulationInit() {}
 
   @Override
   public void simulationPeriodic() {

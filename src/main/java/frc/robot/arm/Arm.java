@@ -33,8 +33,7 @@ public class Arm extends SubsystemBase {
   // DynamicMotionMagicVoltage(0, 1000, 200,
   // 1000);
   // final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 1000, 200, 250);
-  final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 18
-  , 17, 0);
+  final DynamicMotionMagicVoltage m_j1Request = new DynamicMotionMagicVoltage(0, 18, 17, 0);
   final DynamicMotionMagicVoltage m_j2Request = new DynamicMotionMagicVoltage(0, 24, 12, 0);
   final DynamicMotionMagicVoltage m_goDownRequest = new DynamicMotionMagicVoltage(0, 10, 10, 0);
 
@@ -67,7 +66,8 @@ public class Arm extends SubsystemBase {
 
     var l1_motionMagicConfigs = new TalonFXConfiguration().MotionMagic;
     l1_motionMagicConfigs.MotionMagicCruiseVelocity = 25; // Target cruise velocity of 80 rps
-    l1_motionMagicConfigs.MotionMagicAcceleration = 60; // Target acceleration of 160 rps/s (0.5 seconds)
+    l1_motionMagicConfigs.MotionMagicAcceleration =
+        60; // Target acceleration of 160 rps/s (0.5 seconds)
     l1_motionMagicConfigs.MotionMagicJerk = 100; // Target jerk of 1600 rps/s/s (0.1 seconds)
 
     // apply gains, 50 ms total timeout
@@ -116,7 +116,6 @@ public class Arm extends SubsystemBase {
   public Command goToDegSeq(double j1ParDeg, double j2ParDeg, double j2SeqDeg) {
     return new SequentialCommandGroup(
         goToDeg(j1ParDeg, j2ParDeg),
-
         new WaitUntilCommand(
             () -> {
               // System.out.println(m_lJoint1.getPosition().getValue() -
@@ -156,7 +155,6 @@ public class Arm extends SubsystemBase {
   }
 
   public Command goToSubwoofer() {
-      return goToDeg(20, 25);
+    return goToDeg(20, 25);
   }
-
 }

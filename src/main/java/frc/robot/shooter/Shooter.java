@@ -7,7 +7,6 @@ package frc.robot.shooter;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.BionicWaitCommand;
@@ -36,11 +35,10 @@ public class Shooter extends SubsystemBase {
 
   /** Creates a new Rev_1Shooter. */
   public Shooter() {
-    SmartDashboard.putNumber("ShooterDelay", defaultDelay);   
+    SmartDashboard.putNumber("ShooterDelay", defaultDelay);
 
     TalonFXConfiguration brakeMode = new TalonFXConfiguration();
     brakeMode.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
 
     shooterTop.getConfigurator().apply(brakeMode);
     shooterBottom.getConfigurator().apply(brakeMode);
@@ -128,9 +126,10 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command FeederOff() {
-    return new InstantCommand(() -> {
-      feeder.set(0);
-    });
+    return new InstantCommand(
+        () -> {
+          feeder.set(0);
+        });
   }
 
   public double getCurrent() {

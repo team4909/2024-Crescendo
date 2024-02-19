@@ -6,8 +6,6 @@ package frc.robot.intake;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkMax;
-
-import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -17,15 +15,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Intake extends SubsystemBase {
   // private final double Speed = 1;
   private final double StopSpeed = 0;
-  private double defaultFrontRollerSpeed = .8;
-  private double defaultBackRollerSpeed = .8;
-  private double defaultFrontRollerSpeedSpit = -.8;
-  private double defaultBackRollerSpeedSpit = -.8;
+  private final double defaultFrontRollerSpeed = .8;
+  private final double defaultBackRollerSpeed = .8;
+  private final double defaultFrontRollerSpeedSpit = -.8;
+  private final double defaultBackRollerSpeedSpit = -.8;
+  private final double CenteringBagSpeed = 0.5;
+  private final double SpitCenteringBagSpeed = 0.5;
 
   private CANSparkMax topRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
   private CANSparkMax bottomRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
-  private Talon centeringMotors = new Talon(7);
-  
+  private CANSparkMax centeringBagMotors = new CANSparkMax(8, CANSparkMax.MotorType.kBrushed);
 
   public Intake() {
     SmartDashboard.putNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
@@ -35,6 +34,8 @@ public class Intake extends SubsystemBase {
 
     topRoller.setIdleMode(IdleMode.kBrake);
     bottomRoller.setIdleMode(IdleMode.kBrake);
+
+    centeringBagMotors.setSmartCurrentLimit(15); // leaving this to high so Bag motors dont burn out
 
     // frontRoller.getFault(FaultID.)
   }
@@ -49,7 +50,7 @@ public class Intake extends SubsystemBase {
         () -> {
           topRoller.set(StopSpeed);
           bottomRoller.set(StopSpeed);
-          centeringMotors.set(StopSpeed);
+          centeringBagMotors.set(StopSpeed);
         },
         this);
   }
@@ -59,7 +60,7 @@ public class Intake extends SubsystemBase {
         () -> {
           topRoller.set(defaultFrontRollerSpeedSpit);
           bottomRoller.set(defaultBackRollerSpeedSpit);
-          centeringMotors.set(-0.5);
+          centeringBagMotors.set(SpitCenteringBagSpeed);
         },
         this);
   }
@@ -70,17 +71,17 @@ public class Intake extends SubsystemBase {
         () -> {
           topRoller.set(direction * defaultFrontRollerSpeed);
           bottomRoller.set(direction * defaultBackRollerSpeed);
-          centeringMotors.set(0.5);
+          centeringBagMotors.set(direction * CenteringBagSpeed);
         },
         this);
   }
 
-    public Command release() {
+  public Command release() {
     return new RunCommand(
         () -> {
           topRoller.set(0.4);
           bottomRoller.set(0.4);
-          centeringMotors.set(0.5);
+          centeringBagMotors.set(CenteringBagSpeed);
         },
         this);
   }
