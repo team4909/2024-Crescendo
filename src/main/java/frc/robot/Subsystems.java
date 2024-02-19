@@ -3,6 +3,9 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import frc.robot.climber.Climber;
+import frc.robot.climber.ClimberIO;
+import frc.robot.climber.ClimberIOSparkMAX;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
@@ -36,5 +39,13 @@ public class Subsystems {
 
   public static Vision createBlankFourCameraVision() {
     return new Vision(new VisionIO() {}, new VisionIO() {}, new VisionIO() {}, new VisionIO() {});
+  }
+
+  public static Climber createSparkMAXClimber() {
+    return new Climber(new ClimberIOSparkMAX());
+  }
+
+  public static Climber createBlankClimber() {
+    return new Climber(new ClimberIO() {});
   }
 }
