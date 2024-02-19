@@ -100,13 +100,14 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("goDownAuto", m_arm.goToDegSeq(10, 0, -2));
     NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
     NamedCommands.registerCommand(
-        "Stop Intake Shooter Feeder", Commands.sequence(m_intake.Stop(), m_shooter.Stop()));
+        "Stop Intake Shooter Feeder",
+        Commands.sequence(m_intake.Stop(), m_shooter.StopRepeatedly()));
     NamedCommands.registerCommand("Arm Go Down", m_arm.goDown());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     m_intake.setDefaultCommand(m_intake.Stop().repeatedly());
-    m_shooter.setDefaultCommand(m_shooter.Stop());
+    m_shooter.setDefaultCommand(m_shooter.StopRepeatedly());
     // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
     // m_arm.setDefaultCommand(m_arm.goDown());
 
@@ -131,7 +132,8 @@ public class Robot extends LoggedRobot {
 
     m_driverController
         .rightBumper()
-        .whileTrue(new ParallelRaceGroup(m_intake.Spit(), m_shooter.FeederOut()));
+        .whileTrue(Commands.sequence(m_intake.Spit(), m_shooter.FeederOut().repeatedly()))
+        .onFalse(Commands.sequence(m_shooter.Stop(), m_intake.Stop()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
@@ -141,7 +143,7 @@ public class Robot extends LoggedRobot {
         .onFalse(
             new ParallelRaceGroup(
                     m_shooter.PullBack(), m_intake.intake(speakerShot).withTimeout(0.25))
-                .finallyDo(() -> m_shooter.Stop()));
+                .finallyDo(() -> m_shooter.StopRepeatedly()));
 
     // ___________________OperatorController______________________\\
     m_operatorController
@@ -169,7 +171,7 @@ public class Robot extends LoggedRobot {
     m_operatorController
         .leftBumper()
         .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 20), m_shooter.Catch().repeatedly()))
-        .onFalse(new ParallelCommandGroup(m_arm.goDown(), m_shooter.Stop()));
+        .onFalse(new ParallelCommandGroup(m_arm.goDown(), m_shooter.StopRepeatedly()));
   }
 
   public Command SensorIntake() {

@@ -71,7 +71,7 @@ public class Shooter extends SubsystemBase {
         this);
   }
 
-  public Command Stop() {
+  public Command StopRepeatedly() {
     return new InstantCommand(
             () -> {
               SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
@@ -82,6 +82,18 @@ public class Shooter extends SubsystemBase {
             },
             this)
         .repeatedly();
+  }
+
+  public Command Stop() {
+    return new InstantCommand(
+        () -> {
+          SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
+
+          shooterTop.set(StopSpeed);
+          shooterBottom.set(StopSpeed);
+          feeder.set(StopSpeed);
+        },
+        this);
   }
 
   public Command FeederOn() {
@@ -122,7 +134,7 @@ public class Shooter extends SubsystemBase {
             this)
         .repeatedly()
         .withTimeout(1)
-        .finallyDo(() -> Stop());
+        .finallyDo(() -> StopRepeatedly());
   }
 
   public Command FeederOff() {
@@ -138,13 +150,10 @@ public class Shooter extends SubsystemBase {
 
   public Command FeederOut() {
     return new InstantCommand(
-            () -> {
-              feeder.set(OutSpeed);
-            },
-            this)
-        .repeatedly()
-        .withTimeout(1)
-        .finallyDo(() -> Stop());
+        () -> {
+          feeder.set(OutSpeed);
+        },
+        this);
   }
 
   public Command ShooterDelay() {

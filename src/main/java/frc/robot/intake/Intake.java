@@ -20,7 +20,7 @@ public class Intake extends SubsystemBase {
   private final double defaultFrontRollerSpeedSpit = -.8;
   private final double defaultBackRollerSpeedSpit = -.8;
   private final double CenteringBagSpeed = 0.5;
-  private final double SpitCenteringBagSpeed = 0.5;
+  private final double SpitCenteringBagSpeed = -0.5;
 
   private CANSparkMax topRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
   private CANSparkMax bottomRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command Spit() {
-    return new RunCommand(
+    return new InstantCommand(
         () -> {
           topRoller.set(defaultFrontRollerSpeedSpit);
           bottomRoller.set(defaultBackRollerSpeedSpit);
