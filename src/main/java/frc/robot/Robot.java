@@ -39,7 +39,7 @@ public class Robot extends LoggedRobot {
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
 
   public Robot() {
-    recordMetadeta();
+    // recordMetadeta();
     DriverStation.silenceJoystickConnectionWarning(true);
     switch (Constants.kCurrentMode) {
       case kReal:
@@ -230,22 +230,22 @@ public class Robot extends LoggedRobot {
     m_vision.updateSim(m_drivetrain.getPose());
   }
 
-  private void recordMetadeta() {
-    Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
-    Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
-    Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
-    Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
-    Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
-    switch (BuildConstants.DIRTY) {
-      case 0:
-        Logger.recordMetadata("GitDirty", "All changes committed");
-        break;
-      case 1:
-        Logger.recordMetadata("GitDirty", "Uncomitted changes");
-        break;
-      default:
-        Logger.recordMetadata("GitDirty", "Unknown");
-        break;
-    }
-  }
+  // private void recordMetadeta() {
+  //   Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+  //   Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+  //   Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+  //   Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+  //   Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+  //   switch (BuildConstants.DIRTY) {
+  //     case 0:
+  //       Logger.recordMetadata("GitDirty", "All changes committed");
+  //       break;
+  //     case 1:
+  //       Logger.recordMetadata("GitDirty", "Uncomitted changes");
+  //       break;
+  //     default:
+  //       Logger.recordMetadata("GitDirty", "Unknown");
+  //       break;
+  //   }
+  // }
 }
