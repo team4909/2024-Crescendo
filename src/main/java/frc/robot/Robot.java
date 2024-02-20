@@ -9,8 +9,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
@@ -84,10 +84,10 @@ public class Robot extends LoggedRobot {
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
-            () -> -m_driverController.getLeftY(),
-            () -> -m_driverController.getLeftX(),
+            () -> m_driverController.getLeftY(),
+            () -> m_driverController.getLeftX(),
             // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> -m_driverController.getRightX()));
+            () -> m_driverController.getRightX()));
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
@@ -110,7 +110,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
     m_intake.setDefaultCommand(m_intake.idle().repeatedly());
-    m_shooter.setDefaultCommand(m_shooter.StopRepeatedly());
+    // m_shooter.setDefaultCommand(m_shooter.StopRepeatedly());
     // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
     // m_arm.setDefaultCommand(m_arm.goDown());
 
@@ -140,12 +140,14 @@ public class Robot extends LoggedRobot {
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    m_driverController
-        .leftBumper()
-        .onTrue(new ParallelCommandGroup(m_intake.intake(), m_shooter.FeederOn()).repeatedly())
-        .onFalse(
-            new ParallelRaceGroup(m_shooter.PullBack(), m_intake.intake().withTimeout(0.25))
-                .finallyDo(() -> m_shooter.StopRepeatedly()));
+    // m_driverController
+    //     .leftBumper()
+    //     .onTrue(new ParallelCommandGroup(m_intake.intake(), m_shooter.FeederOn()).repeatedly())
+    //     .onFalse(
+    //         new ParallelRaceGroup(m_shooter.PullBack(), m_intake.intake().withTimeout(0.25))
+    //             .finallyDo(() -> m_shooter.StopRepeatedly()));
+
+    m_driverController.leftBumper().whileTrue(SensorIntake());
 
     // ___________________OperatorController______________________\\
     m_operatorController
@@ -172,19 +174,18 @@ public class Robot extends LoggedRobot {
 
     m_operatorController
         .leftBumper()
-        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 20), m_shooter.Catch().repeatedly()))
+        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 20), SensorCatch()))
         .onFalse(new ParallelCommandGroup(m_arm.goDown(), m_shooter.StopRepeatedly()));
   }
 
   public Command SensorIntake() {
-    return new ParallelRaceGroup(
-            new RepeatCommand(m_intake.intake()),
-            new RepeatCommand(m_shooter.FeederOn())
-                .until(
-                    () -> {
-                      return m_shooter.hasNote();
-                    }))
-        .andThen(Commands.sequence(m_intake.idle(), m_shooter.FeederOff()));
+    return new ParallelDeadlineGroup(
+        m_shooter.FeederOn().until(() -> m_shooter.hasNote()), m_intake.intake());
+  }
+
+  public Command SensorCatch() {
+    return new ParallelDeadlineGroup(
+        m_shooter.Catch().until(() -> m_shooter.hasNote()), m_intake.intake());
   }
 
   /**

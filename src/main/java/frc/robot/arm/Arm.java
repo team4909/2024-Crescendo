@@ -21,7 +21,8 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 public class Arm extends SubsystemBase {
   private double m_j1Ratio;
   private double m_j2Ratio;
-  private double m_MPRatio;
+  private double m_MP1Ratio;
+  private double m_MP2Ratio;
 
   private TalonFX m_lJoint1 = new TalonFX(15, "CANivore2");
   private TalonFX m_lJoint2 = new TalonFX(16, "CANivore2");
@@ -39,9 +40,10 @@ public class Arm extends SubsystemBase {
 
   /** Creates a new Rev_2Arm. */
   public Arm() {
-    m_MPRatio = 15d;
-    m_j1Ratio = 36d / 22d * m_MPRatio;
-    m_j2Ratio = 36d / 22d * m_MPRatio;
+    m_MP1Ratio = 75d;
+    m_MP2Ratio = 15d;
+    m_j1Ratio = 36d / 22d * m_MP1Ratio;
+    m_j2Ratio = 36d / 22d * m_MP2Ratio;
 
     // ArmMotorFirstP.setPosition(High);
     m_rJoint1.setControl(new Follower(m_lJoint1.getDeviceID(), true));

@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
@@ -30,7 +31,7 @@ public class Shooter extends SubsystemBase {
   private DigitalInput m_noteSensor = new DigitalInput(0);
 
   public boolean hasNote() {
-    return !m_noteSensor.get();
+    return m_noteSensor.get();
   }
 
   /** Creates a new Rev_1Shooter. */
@@ -43,10 +44,14 @@ public class Shooter extends SubsystemBase {
     shooterTop.getConfigurator().apply(brakeMode);
     shooterBottom.getConfigurator().apply(brakeMode);
     feeder.getConfigurator().apply(brakeMode);
+    setDefaultCommand(PullBack().until(() -> !hasNote()));
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+    Logger.recordOutput(
+        "Shooter Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
+  }
 
   public Command Shoot() {
     return ShooterOn().repeatedly();
@@ -85,23 +90,25 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command Stop() {
-    return new InstantCommand(
-        () -> {
-          SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
+    return new RunCommand(
+            () -> {
+              SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
 
-          shooterTop.set(StopSpeed);
-          shooterBottom.set(StopSpeed);
-          feeder.set(StopSpeed);
-        },
-        this);
+              shooterTop.set(StopSpeed);
+              shooterBottom.set(StopSpeed);
+              feeder.set(StopSpeed);
+            },
+            this)
+        .withName("Stop");
   }
 
   public Command FeederOn() {
-    return new InstantCommand(
-        () -> {
-          feeder.set(InSpeed);
-        },
-        this);
+    return new RunCommand(
+            () -> {
+              feeder.set(InSpeed);
+            },
+            this)
+        .withName("FeederOn");
   }
 
   public Command FeederOn(double speed) {
@@ -113,7 +120,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command Catch() {
-    return new InstantCommand(
+    return new RunCommand(
         () -> {
           feeder.set(-0.15);
           shooterTop.set(-OutSpeed);
