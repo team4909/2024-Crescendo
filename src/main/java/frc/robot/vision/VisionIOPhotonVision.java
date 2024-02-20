@@ -51,11 +51,10 @@ public class VisionIOPhotonVision implements VisionIO {
     }
 
     if (dataQueue.length > 0) {
+      inputs.connected = true;
       m_disconnectedTimer.reset();
     } else if (m_disconnectedTimer.hasElapsed(kDisconnectedTimeout)) {
       inputs.connected = false;
-    } else {
-      inputs.connected = true;
     }
   }
 }

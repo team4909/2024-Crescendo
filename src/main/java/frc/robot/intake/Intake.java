@@ -10,7 +10,7 @@ public class Intake extends SubsystemBase {
 
   public Intake(IntakeIO io) {
     m_io = io;
-    setDefaultCommand(null);
+    setDefaultCommand(idle());
   }
 
   @Override

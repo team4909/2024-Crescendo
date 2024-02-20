@@ -7,13 +7,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
+import frc.robot.arm.ArmSetpoints;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
@@ -33,15 +33,14 @@ public class Robot extends LoggedRobot {
   private final Vision m_vision;
   private final Intake m_intake;
   private final Shooter m_shooter = new Shooter();
-  private final Arm m_arm = new Arm();
+  private final Arm m_arm;
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
-  private boolean speakerShot = false;
 
   public Robot() {
     recordMetadeta();
-
+    DriverStation.silenceJoystickConnectionWarning(true);
     switch (Constants.kCurrentMode) {
       case kReal:
         // TODO find out why this causes weird errors
@@ -49,7 +48,6 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new NT4Publisher());
         break;
       case kSim:
-        DriverStation.silenceJoystickConnectionWarning(true);
         Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         break;
@@ -66,54 +64,37 @@ public class Robot extends LoggedRobot {
     switch (Constants.kCurrentMode) {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
-        m_vision = Subsystems.createFourCameraVision();
         m_intake = Subsystems.createSparkMAXIntake();
+        m_vision = Subsystems.createBlankFourCameraVision();
+        m_arm = Subsystems.createTalonFXArm();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
         m_intake = Subsystems.createBlankIntake();
+        m_arm = Subsystems.createSimArm();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
-
+        m_arm = Subsystems.createBlankArm();
         m_vision = Subsystems.createBlankFourCameraVision();
         m_intake = Subsystems.createBlankIntake();
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
-    m_drivetrain.setDefaultCommand(
-        m_drivetrain.joystickDrive(
-            () -> m_driverController.getLeftY(),
-            () -> m_driverController.getLeftX(),
-            // This needs to be getRawAxis(2) when using sim on a Mac
-            () -> m_driverController.getRightX()));
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
     // NamedCommands.registerCommand("sub shot", m_arm.goToSubwoofer());
-    NamedCommands.registerCommand("arm down", m_arm.goDown());
     NamedCommands.registerCommand("feed", m_shooter.Feeder());
     NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("FeederOn", m_shooter.FeederOn());
     NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("SensorIntake", SensorIntake());
-    // NamedCommands.registerCommand("ArmDown", m_arm.goDown());
-    NamedCommands.registerCommand("goDownAuto", m_arm.goToDegSeq(10, 0, -2));
-    NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
-    NamedCommands.registerCommand(
-        "Stop Intake Shooter Feeder",
-        Commands.sequence(m_intake.idle(), m_shooter.StopRepeatedly()));
-    NamedCommands.registerCommand("Arm Go Down", m_arm.goDown());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
-
-    m_intake.setDefaultCommand(m_intake.idle().repeatedly());
-    // m_shooter.setDefaultCommand(m_shooter.StopRepeatedly());
-    // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
-    // m_arm.setDefaultCommand(m_arm.goDown());
-
+    m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     m_autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
         m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
@@ -127,11 +108,15 @@ public class Robot extends LoggedRobot {
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-    // ____________________driverController_______________________\\
+    m_drivetrain.setDefaultCommand(
+        m_drivetrain.joystickDrive(
+            () -> m_driverController.getLeftY(),
+            () -> m_driverController.getLeftX(),
+            () -> m_driverController.getRightX()));
+            
     m_driverController
         .rightTrigger()
-        .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()))
-        .onFalse(new InstantCommand(() -> speakerShot = false));
+        .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()));
 
     m_driverController
         .rightBumper()
@@ -146,37 +131,42 @@ public class Robot extends LoggedRobot {
     //     .onFalse(
     //         new ParallelRaceGroup(m_shooter.PullBack(), m_intake.intake().withTimeout(0.25))
     //             .finallyDo(() -> m_shooter.StopRepeatedly()));
-
     m_driverController.leftBumper().whileTrue(SensorIntake());
 
-    // ___________________OperatorController______________________\\
     m_operatorController
         .leftTrigger()
-        .onTrue(Commands.parallel(m_intake.feed(), m_arm.goToAmp(), m_shooter.ShooterOn()))
-        .onFalse(Commands.sequence(m_arm.goDown(), m_shooter.ShooterOff()));
+        .whileTrue(
+            Commands.parallel(
+                m_intake.feed(),
+                m_arm.goToSetpoint(1.232, -2.753, 0.0, 0.0),
+                m_shooter.ShooterOn()))
+        .onFalse(
+            Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
     // prep for climb
-    m_operatorController.rightBumper().onTrue(m_arm.goToDegSeq(110, 0, 0));
-    m_operatorController.leftStick().onTrue(m_arm.climb()).onFalse(m_arm.stop());
+    // m_operatorController.rightBumper().onTrue(m_arm.goToDegSeq(110, 0, 0));
+    // m_operatorController.leftStick().onTrue(m_arm.climb()).onFalse(m_arm.stop());
 
-    m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
+    m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_operatorController
         .povUp()
         .onTrue(
             new ParallelCommandGroup(
-                m_arm.goToDeg(20, 25),
-                new InstantCommand(() -> speakerShot = true),
-                m_shooter.ShooterOn()))
-        .onFalse(Commands.sequence(m_arm.goDown(), m_shooter.ShooterOff()));
+                m_arm.goToSetpoint(ArmSetpoints.kSubwoofer), m_shooter.ShooterOn()))
+        .onFalse(
+            Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
     // turn on the shooter wheels
     m_operatorController.y().onTrue(m_shooter.Shoot());
 
     m_operatorController
         .leftBumper()
-        .onTrue(new ParallelCommandGroup(m_arm.goToDeg(0, 20), SensorCatch()))
-        .onFalse(new ParallelCommandGroup(m_arm.goDown(), m_shooter.StopRepeatedly()));
+        .onTrue(
+            new ParallelCommandGroup(m_arm.goToSetpoint(ArmSetpoints.kSourceCatch), SensorCatch()))
+        .onFalse(
+            new ParallelCommandGroup(
+                m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.StopRepeatedly()));
   }
 
   public Command SensorIntake() {

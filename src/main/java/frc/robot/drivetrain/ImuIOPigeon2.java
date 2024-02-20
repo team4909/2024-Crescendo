@@ -9,10 +9,11 @@ import com.ctre.phoenix6.sim.Pigeon2SimState;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.Constants;
 import java.util.Queue;
 
 public class ImuIOPigeon2 implements ImuIO {
-  private final Pigeon2 m_imu = new Pigeon2(20, "CANivore1");
+  private final Pigeon2 m_imu = new Pigeon2(20, Constants.kDrivetrainCanBus);
   private final StatusSignal<Double> yaw = m_imu.getYaw();
   private final Queue<Double> m_yawPositionQueue, m_yawTimestampQueue;
   private final StatusSignal<Double> yawVelocity = m_imu.getAngularVelocityZWorld();
