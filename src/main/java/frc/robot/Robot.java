@@ -55,7 +55,7 @@ public class Robot extends LoggedRobot {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createBlankFourCameraVision();
-        m_arm = Subsystems.createBlankArm();
+        m_arm = Subsystems.createTalonFXArm();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
@@ -92,11 +92,11 @@ public class Robot extends LoggedRobot {
     m_arm.setDefaultCommand(m_arm.stop());
 
     m_driverController.y().onTrue(m_drivetrain.zeroGyro());
-    m_driverController.a().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
-    m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
-    m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kFun));
-    m_driverController.start().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStraight));
-    // m_driverController.start().onTrue(m_arm.goToSetpoint(0.0, 0.0));
+    // m_driverController.a().onTrue(m_arm.goToSetpoint(-0.197, 2.747, 0.0, 0.0));
+    m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+    // m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kFun));
+    // m_driverController.start().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStraight));
+    m_driverController.start().onTrue(m_arm.goToSetpoint(1.232, -2.753, 0.0, 0.0));
     m_driverController
         .povUp()
         .whileTrue(new DriveToPose(m_drivetrain.m_sourcePoseBlueOrigin, m_drivetrain));

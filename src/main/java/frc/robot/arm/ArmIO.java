@@ -6,7 +6,6 @@ public interface ArmIO {
 
   @AutoLog
   public static class ArmIOInputs {
-    public double elbowAbsolutePositionRaw = 0.0;
     public double elbowAbsolutePositionRad = 0.0;
     public boolean elbowAbsoluteEncoderConnected = false;
     public double elbowRelativePositionRad = 0.0;
@@ -14,7 +13,6 @@ public interface ArmIO {
     public double elbowAppliedVolts = 0.0;
     public double[] elbowCurrentAmps = new double[] {};
 
-    public double wristAbsolutePositionRaw = 0.0;
     public double wristAbsolutePositionRad = 0.0;
     public boolean wristAbsoluteEncoderConnected = false;
     public double wristRelativePositionRad = 0.0;

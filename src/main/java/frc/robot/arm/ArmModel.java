@@ -25,7 +25,7 @@ public class ArmModel {
   private final double kElbowMassKg = Units.lbsToKilograms(7.0);
   private final double kElbowMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kElbowLengthMeters, kElbowMassKg);
-  private final double elbowkG = 0.05;
+  private final double elbowkG = 0.15;
   private final double elbowkV = 2.31;
 
   public static final double kWristGearboxReduction = 3.0 * 5.0;
@@ -38,8 +38,8 @@ public class ArmModel {
   private final double kWristMassKg = Units.lbsToKilograms(11.5);
   private final double kWristMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kWristLengthMeters, kWristMassKg);
-  private final double wristkG = 0.41;
-  private final double wristkV = 0.44;
+  private final double wristkG = 0.51;
+  private final double wristkV = 0.8;
 
   private final ArmFeedforward m_elbowFeedForward, m_wristFeedForward;
   private final SingleJointedArmSim m_elbowSim, m_wristSim;

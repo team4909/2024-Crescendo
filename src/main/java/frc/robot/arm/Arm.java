@@ -7,6 +7,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -55,19 +56,19 @@ public class Arm extends SubsystemBase {
   static {
     switch (Constants.kCurrentMode) {
       case kReal:
-        elbowkP.initDefault(0.1);
+        elbowkP.initDefault(3.8);
         elbowkD.initDefault(0);
         elbowkS.initDefault(0.55);
-        elbowCruiseVelocityRadPerSec.initDefault(1.0);
-        elbowMaxAccelerationRadPerSecSq.initDefault(0.5);
-        wristkP.initDefault(0.1);
+        elbowCruiseVelocityRadPerSec.initDefault(5.0);
+        elbowMaxAccelerationRadPerSecSq.initDefault(8.0);
+        wristkP.initDefault(0.8);
         wristkD.initDefault(0);
-        wristkS.initDefault(0.75);
-        wristCruiseVelocityRadPerSec.initDefault(1.0);
-        wristMaxAccelerationRadPerSecSq.initDefault(0.5);
+        wristkS.initDefault(0.3);
+        wristCruiseVelocityRadPerSec.initDefault(4.0);
+        wristMaxAccelerationRadPerSecSq.initDefault(8.0);
         break;
       case kSim:
-        // We should not need kS in simulation
+        // We do not want kS in simulation
         elbowkP.initDefault(5.0);
         elbowkD.initDefault(0.0);
         elbowCruiseVelocityRadPerSec.initDefault(3.0);
@@ -86,6 +87,9 @@ public class Arm extends SubsystemBase {
     m_io = io;
     m_measuredVisualizer = new ArmVisualizer("ArmMeasured");
     m_setpointVisualizer = new ArmVisualizer("ArmSetpoint");
+    m_wristController.enableContinuousInput(-Math.PI, Math.PI);
+    m_elbowController.setTolerance(Units.degreesToRadians(0.25));
+    m_wristController.setTolerance(Units.degreesToRadians(0.25));
   }
 
   public void periodic() {
@@ -205,10 +209,6 @@ public class Arm extends SubsystemBase {
     m_io.setWristVoltage(wristFeedbackVolts + wristFeedForwardVolts);
   }
 
-  private void runSetpoint() {
-    runSetpoint(0.0, 0.0);
-  }
-
   public Command goToSetpoint(ArmSetpoints setpoint) {
     return this.runOnce(
             () -> {
@@ -220,9 +220,10 @@ public class Arm extends SubsystemBase {
         .withName("Set Inverse Setpoint");
   }
 
-  public Command goToSetpoint(double elbowAngleRad, double wristAngleRad) {
+  public Command goToSetpoint(
+      double elbowAngleRad, double wristAngleRad, double elbowDelay, double wristDelay) {
     return this.runOnce(() -> setSetpoint(VecBuilder.fill(elbowAngleRad, wristAngleRad)))
-        .andThen(this.run(this::runSetpoint))
+        .andThen(this.run(() -> runSetpoint(elbowDelay, wristDelay)))
         .withName("Set Forward Setpoint");
   }
 
@@ -267,7 +268,7 @@ public class Arm extends SubsystemBase {
       Translation2d relativePosition = position.minus(ArmModel.origin);
 
       // Flip when X is negative
-      boolean isFlipped = relativePosition.getX() < 0.0;
+      boolean isFlipped = true; //relativePosition.getX() < 0.0;
       if (isFlipped)
         relativePosition = new Translation2d(-relativePosition.getX(), relativePosition.getY());
 
