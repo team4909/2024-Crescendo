@@ -135,11 +135,7 @@ public class Robot extends LoggedRobot {
 
     m_operatorController
         .leftTrigger()
-        .whileTrue(
-            Commands.parallel(
-                m_intake.feed(),
-                m_arm.goToSetpoint(1.232, -2.753, 0.0, 0.0),
-                m_shooter.ShooterOn()))
+        .whileTrue(Commands.parallel(m_intake.feed(), m_arm.goToSetpoint(1.232, -2.753, 0.0, 0.0)))
         .onFalse(
             Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
