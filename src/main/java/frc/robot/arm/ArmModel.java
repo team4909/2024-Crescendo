@@ -15,7 +15,7 @@ public class ArmModel {
   public static final Translation2d origin =
       new Translation2d(Units.inchesToMeters(-9.2), Units.inchesToMeters(20));
 
-  public static final double kElbowGearboxReduction = 15.0;
+  public static final double kElbowGearboxReduction = 3.0 * 5.0 * 5.0;
   public static final double kElbowChainReduction = 36.0 / 22.0;
   public static final double kElbowFinalReduction = kElbowGearboxReduction * kElbowChainReduction;
   public static final double kElbowLengthMeters = Units.inchesToMeters(19.0);
@@ -25,10 +25,10 @@ public class ArmModel {
   private final double kElbowMassKg = Units.lbsToKilograms(7.0);
   private final double kElbowMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kElbowLengthMeters, kElbowMassKg);
-  private final double elbowkG = 0.31;
-  private final double elbowkV = 0.44;
+  private final double elbowkG = 0.05;
+  private final double elbowkV = 2.31;
 
-  public static final double kWristGearboxReduction = 15.0;
+  public static final double kWristGearboxReduction = 3.0 * 5.0;
   public static final double kWristChainReduction = 36.0 / 22.0;
   public static final double kWristFinalReduction = kWristGearboxReduction * kWristChainReduction;
   public static final double kWristLengthMeters = Units.inchesToMeters(15.0);

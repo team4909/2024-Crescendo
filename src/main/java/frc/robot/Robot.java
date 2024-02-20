@@ -86,9 +86,9 @@ public class Robot extends LoggedRobot {
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
-            () -> -m_driverController.getLeftY(),
-            () -> -m_driverController.getLeftX(),
-            () -> -m_driverController.getRightX()));
+            () -> m_driverController.getLeftY(),
+            () -> m_driverController.getLeftX(),
+            () -> m_driverController.getRightX()));
     m_arm.setDefaultCommand(m_arm.stop());
 
     m_driverController.y().onTrue(m_drivetrain.zeroGyro());
