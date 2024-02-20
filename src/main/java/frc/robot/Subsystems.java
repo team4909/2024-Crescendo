@@ -8,6 +8,9 @@ import frc.robot.arm.Arm;
 import frc.robot.arm.ArmIO;
 import frc.robot.arm.ArmIOSim;
 import frc.robot.arm.ArmIOTalonFX;
+import frc.robot.climber.Climber;
+import frc.robot.climber.ClimberIO;
+import frc.robot.climber.ClimberIOSparkMAX;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
@@ -73,5 +76,13 @@ public class Subsystems {
 
   public static Arm createBlankArm() {
     return new Arm(new ArmIO() {});
+  }
+
+  public static Climber createSparkMAXClimber() {
+    return new Climber(new ClimberIOSparkMAX());
+  }
+
+  public static Climber createBlankClimber() {
+    return new Climber(new ClimberIO() {});
   }
 }
