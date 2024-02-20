@@ -64,8 +64,8 @@ public class Robot extends LoggedRobot {
     switch (Constants.kCurrentMode) {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
-        m_intake = Subsystems.createSparkMAXIntake();
         m_vision = Subsystems.createBlankFourCameraVision();
+        m_intake = Subsystems.createSparkMAXIntake();
         m_arm = Subsystems.createTalonFXArm();
         break;
       case kSim:
@@ -76,9 +76,9 @@ public class Robot extends LoggedRobot {
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
-        m_arm = Subsystems.createBlankArm();
         m_vision = Subsystems.createBlankFourCameraVision();
         m_intake = Subsystems.createBlankIntake();
+        m_arm = Subsystems.createBlankArm();
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
@@ -113,7 +113,7 @@ public class Robot extends LoggedRobot {
             () -> m_driverController.getLeftY(),
             () -> m_driverController.getLeftX(),
             () -> m_driverController.getRightX()));
-            
+
     m_driverController
         .rightTrigger()
         .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()));
@@ -143,9 +143,8 @@ public class Robot extends LoggedRobot {
         .onFalse(
             Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
-    // prep for climb
-    // m_operatorController.rightBumper().onTrue(m_arm.goToDegSeq(110, 0, 0));
-    // m_operatorController.leftStick().onTrue(m_arm.climb()).onFalse(m_arm.stop());
+    m_operatorController.rightBumper().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
+    m_operatorController.leftStick().whileTrue(m_arm.climb());
 
     m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
@@ -157,7 +156,6 @@ public class Robot extends LoggedRobot {
         .onFalse(
             Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
-    // turn on the shooter wheels
     m_operatorController.y().onTrue(m_shooter.Shoot());
 
     m_operatorController

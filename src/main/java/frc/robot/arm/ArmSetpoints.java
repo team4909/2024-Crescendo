@@ -7,7 +7,8 @@ import edu.wpi.first.math.util.Units;
 public enum ArmSetpoints {
   kStowed(new Translation2d(-0.102, 0.515), 0.0, 0.0),
   kSubwoofer(new Translation2d(-0.053, -0.015), 0.0, 0.0),
-  kSourceCatch(new Translation2d(), 0.0, 0.0);
+  kSourceCatch(new Translation2d(), 0.0, 0.0),
+  kClimbPreparation(new Translation2d(), 0.0, 0.0);
 
   private final Translation2d m_setpoint;
   private final double m_elbowDelay;

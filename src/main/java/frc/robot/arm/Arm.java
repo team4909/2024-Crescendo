@@ -237,6 +237,15 @@ public class Arm extends SubsystemBase {
         .withName("Idle");
   }
 
+  public Command climb() {
+    return this.run(
+            () -> {
+              m_io.setElbowVoltage(6.0);
+              m_io.setWristVoltage(0.0);
+            })
+        .withName("Climb");
+  }
+
   class ArmKinematics {
 
     public Translation2d forward(Vector<N2> angles) {
