@@ -8,6 +8,9 @@ import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
 import frc.robot.drivetrain.ModuleIO;
 import frc.robot.drivetrain.ModuleIOTalonFX;
+import frc.robot.intake.Intake;
+import frc.robot.intake.IntakeIO;
+import frc.robot.intake.IntakeIOSparkMAX;
 import frc.robot.vision.Vision;
 import frc.robot.vision.VisionIO;
 import frc.robot.vision.VisionIOPhotonVision;
@@ -36,5 +39,13 @@ public class Subsystems {
 
   public static Vision createBlankFourCameraVision() {
     return new Vision(new VisionIO() {}, new VisionIO() {}, new VisionIO() {}, new VisionIO() {});
+  }
+
+  public static Intake createSparkMAXIntake() {
+    return new Intake(new IntakeIOSparkMAX());
+  }
+
+  public static Intake createBlankIntake() {
+    return new Intake(new IntakeIO() {});
   }
 }

@@ -1,32 +1,33 @@
-// package frc.robot.intake;
+package frc.robot.intake;
 
-// import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.AutoLog;
 
-// public interface IntakeIO {
-// @AutoLog
-// public class IntakeIOInputs {
-// public double topRollerVelocityRadPerSec = 0.0;
-// public double topRollerAppliedVolts = 0.0;
-// public double topRollerCurrentAmps = 0.0;
+public interface IntakeIO {
+    @AutoLog
+    public class IntakeIOInputs {
+        public double topRollerVelocityRadPerSec = 0.0;
+        public double topRollerAppliedVolts = 0.0;
+        public double topRollerCurrentAmps = 0.0;
 
-// public double bottomRollerVelocityRadPerSec = 0.0;
-// public double bottomRollerAppliedVolts = 0.0;
-// public double bottomRollerCurrentAmps = 0.0;
+        public double bottomRollerVelocityRadPerSec = 0.0;
+        public double bottomRollerAppliedVolts = 0.0;
+        public double bottomRollerCurrentAmps = 0.0;
 
-// public double centeringBagMotorsAppliedVolts = 0.0;
-// public double centeringBagMotorsCurrentAmps = 0.0;
+        public double centeringBagMotorsAppliedVolts = 0.0;
+        public double centeringBagMotorsCurrentAmps = 0.0;
 
-// }
+    }
 
-// public default void updateInputs(IntakeIOInputs Inputs) {
-// }
+    public default void updateInputs(IntakeIOInputs inputs) {
+    }
 
-// public default void setTopRollerDutyCycle(double outDutyCycle) {
-// }
+    public default void setTopRollerDutyCycle(double outputDutyCycle) {
+    }
 
-// public default void setbottomRollerDutyCycle(double outDutyCycle) {
-// }
+    public default void setBottomRollerDutyCycle(double outputDutyCycle) {
+    }
 
-// public default void setbagMotorDutyCycle(double outDutyCycle) {
-// }
-// }
+    public default void setCenteringMotorsDutyCycle(double outputDutyCycle) {
+    }
+
+}

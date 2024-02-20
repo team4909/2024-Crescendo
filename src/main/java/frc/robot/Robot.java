@@ -31,7 +31,7 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Command> m_autoChooser;
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
-  private final Intake m_intake = new Intake();
+  private final Intake m_intake;
   private final Shooter m_shooter = new Shooter();
   private final Arm m_arm = new Arm();
 
@@ -67,15 +67,18 @@ public class Robot extends LoggedRobot {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
+        m_intake = Subsystems.createSparkMAXIntake();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
+        m_intake = Subsystems.createBlankIntake();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
 
         m_vision = Subsystems.createBlankFourCameraVision();
+        m_intake = Subsystems.createBlankIntake();
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
@@ -87,7 +90,7 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getRightX()));
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
-    NamedCommands.registerCommand("intake", m_intake.intake(speakerShot));
+    NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
     // NamedCommands.registerCommand("sub shot", m_arm.goToSubwoofer());
     NamedCommands.registerCommand("arm down", m_arm.goDown());
@@ -101,12 +104,12 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("2ndNoteShot", m_arm.goToDeg(10, 12));
     NamedCommands.registerCommand(
         "Stop Intake Shooter Feeder",
-        Commands.sequence(m_intake.Stop(), m_shooter.StopRepeatedly()));
+        Commands.sequence(m_intake.idle(), m_shooter.StopRepeatedly()));
     NamedCommands.registerCommand("Arm Go Down", m_arm.goDown());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
 
-    m_intake.setDefaultCommand(m_intake.Stop().repeatedly());
+    m_intake.setDefaultCommand(m_intake.idle().repeatedly());
     m_shooter.setDefaultCommand(m_shooter.StopRepeatedly());
     // m_arm.setDefaultCommand(m_arm.goToDeg(20, 25));
     // m_arm.setDefaultCommand(m_arm.goDown());
@@ -127,28 +130,27 @@ public class Robot extends LoggedRobot {
     // ____________________driverController_______________________\\
     m_driverController
         .rightTrigger()
-        .onTrue(new ParallelRaceGroup(m_intake.intake(speakerShot), m_shooter.Feeder()))
+        .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()))
         .onFalse(new InstantCommand(() -> speakerShot = false));
 
     m_driverController
         .rightBumper()
-        .whileTrue(Commands.sequence(m_intake.Spit(), m_shooter.FeederOut().repeatedly()))
-        .onFalse(Commands.sequence(m_shooter.Stop(), m_intake.Stop()));
+        .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.FeederOut().repeatedly()))
+        .onFalse(Commands.sequence(m_shooter.Stop(), m_intake.idle()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
     m_driverController
         .leftBumper()
-        .onTrue(new ParallelCommandGroup(m_intake.intake(false), m_shooter.FeederOn()).repeatedly())
+        .onTrue(new ParallelCommandGroup(m_intake.intake(), m_shooter.FeederOn()).repeatedly())
         .onFalse(
-            new ParallelRaceGroup(
-                    m_shooter.PullBack(), m_intake.intake(speakerShot).withTimeout(0.25))
+            new ParallelRaceGroup(m_shooter.PullBack(), m_intake.intake().withTimeout(0.25))
                 .finallyDo(() -> m_shooter.StopRepeatedly()));
 
     // ___________________OperatorController______________________\\
     m_operatorController
         .leftTrigger()
-        .onTrue(Commands.parallel(m_intake.release(), m_arm.goToAmp(), m_shooter.ShooterOn()))
+        .onTrue(Commands.parallel(m_intake.feed(), m_arm.goToAmp(), m_shooter.ShooterOn()))
         .onFalse(Commands.sequence(m_arm.goDown(), m_shooter.ShooterOff()));
 
     // prep for climb
@@ -176,13 +178,13 @@ public class Robot extends LoggedRobot {
 
   public Command SensorIntake() {
     return new ParallelRaceGroup(
-            new RepeatCommand(m_intake.intake(speakerShot)),
+            new RepeatCommand(m_intake.intake()),
             new RepeatCommand(m_shooter.FeederOn())
                 .until(
                     () -> {
                       return m_shooter.hasNote();
                     }))
-        .andThen(Commands.sequence(m_intake.Stop(), m_shooter.FeederOff()));
+        .andThen(Commands.sequence(m_intake.idle(), m_shooter.FeederOff()));
   }
 
   /**
