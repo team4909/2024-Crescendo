@@ -140,6 +140,14 @@ public class Arm extends SubsystemBase {
             goToDeg(m_lJoint2, m_goDownRequest, m_j2Ratio, 0)));
   }
 
+  public Command climb() {
+    return this.run(() -> m_lJoint1.set(0.25));
+  }
+
+  public Command stop() {
+    return this.run(() -> m_lJoint1.set(0.0));
+  }
+
   public Command goDownAuto() {
     return new SequentialCommandGroup(
         goToDeg(m_lJoint1, m_j1Request, m_j1Ratio, -10),

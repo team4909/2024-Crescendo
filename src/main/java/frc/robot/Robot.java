@@ -156,7 +156,8 @@ public class Robot extends LoggedRobot {
         .onFalse(Commands.sequence(m_arm.goDown(), m_shooter.ShooterOff()));
 
     // prep for climb
-    m_operatorController.rightBumper().onTrue(m_arm.goToDegSeq(110, 0, 0)).onFalse(m_arm.goDown());
+    m_operatorController.rightBumper().onTrue(m_arm.goToDegSeq(110, 0, 0));
+    m_operatorController.leftStick().onTrue(m_arm.climb()).onFalse(m_arm.stop());
 
     m_operatorController.rightTrigger().onTrue(m_arm.goDown()).onFalse(m_arm.goDown());
 
