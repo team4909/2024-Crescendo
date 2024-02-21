@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.ArmSetpoints;
+import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
@@ -34,6 +35,7 @@ public class Robot extends LoggedRobot {
   private final Intake m_intake;
   private final Shooter m_shooter = new Shooter();
   private final Arm m_arm;
+  private final Climber m_climber;
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
@@ -67,18 +69,21 @@ public class Robot extends LoggedRobot {
         m_vision = Subsystems.createBlankFourCameraVision();
         m_intake = Subsystems.createSparkMAXIntake();
         m_arm = Subsystems.createTalonFXArm();
+        m_climber = Subsystems.createSparkMAXClimber();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createSimArm();
+        m_climber = Subsystems.createBlankClimber();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
         m_vision = Subsystems.createBlankFourCameraVision();
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createBlankArm();
+        m_climber = Subsystems.createBlankClimber();
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
@@ -125,17 +130,30 @@ public class Robot extends LoggedRobot {
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    // m_driverController
-    //     .leftBumper()
-    //     .onTrue(new ParallelCommandGroup(m_intake.intake(), m_shooter.FeederOn()).repeatedly())
-    //     .onFalse(
-    //         new ParallelRaceGroup(m_shooter.PullBack(), m_intake.intake().withTimeout(0.25))
-    //             .finallyDo(() -> m_shooter.StopRepeatedly()));
+    // Unwinch
+    m_driverController.a().whileTrue(m_climber.release()).onFalse(m_climber.idle());
+
+    // Winch
+    m_driverController.y().whileTrue(m_climber.winchDown()).onFalse(m_climber.idle());
+
+    // First
+    m_driverController.povUp().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
+
+    // Climb
+    m_driverController
+        .b()
+        .onTrue(new ParallelCommandGroup(m_arm.climb(), m_climber.winchDown()))
+        .onFalse(m_arm.setBrake());
+
     m_driverController.leftBumper().whileTrue(SensorIntake());
 
+    m_driverController.povDown().whileTrue(m_arm.setCoast()).onFalse(m_arm.setBrake());
+
+    // elbow = 1.147 rad
+    // wrist = 3.805 rad
     m_operatorController
         .leftTrigger()
-        .whileTrue(Commands.parallel(m_intake.feed(), m_arm.goToSetpoint(1.232, -2.753, 0.0, 0.0)))
+        .whileTrue(Commands.parallel(m_intake.feed(), m_arm.goToSetpoint(1.147, 3.805, 0.0, 0.0)))
         .onFalse(
             Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
@@ -153,11 +171,10 @@ public class Robot extends LoggedRobot {
             Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
     m_operatorController.y().onTrue(m_shooter.Shoot());
-
+    // wrist = 2.028
     m_operatorController
         .leftBumper()
-        .onTrue(
-            new ParallelCommandGroup(m_arm.goToSetpoint(ArmSetpoints.kSourceCatch), SensorCatch()))
+        .onTrue(new ParallelCommandGroup(m_arm.goToSetpoint(-0.558, 2.028, 0, 0), SensorCatch()))
         .onFalse(
             new ParallelCommandGroup(
                 m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.StopRepeatedly()));

@@ -31,8 +31,16 @@ public class Climber extends SubsystemBase {
   public Command winchDown() {
     return this.run(
         () -> {
-          m_climberIO.setLeftDutyCycle(0.5);
-          m_climberIO.setRightDutyCycle(0.5);
+          m_climberIO.setLeftDutyCycle(1.0);
+          m_climberIO.setRightDutyCycle(1.0);
+        });
+  }
+
+  public Command release() {
+    return this.run(
+        () -> {
+          m_climberIO.setLeftDutyCycle(-0.25);
+          m_climberIO.setRightDutyCycle(-0.25);
         });
   }
 }

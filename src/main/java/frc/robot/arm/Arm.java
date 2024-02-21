@@ -61,9 +61,9 @@ public class Arm extends SubsystemBase {
         elbowkS.initDefault(0.55);
         elbowCruiseVelocityRadPerSec.initDefault(5.0);
         elbowMaxAccelerationRadPerSecSq.initDefault(8.0);
-        wristkP.initDefault(1.3);
+        wristkP.initDefault(3.3);
         wristkD.initDefault(0);
-        wristkS.initDefault(0.3);
+        wristkS.initDefault(0.4);
         wristCruiseVelocityRadPerSec.initDefault(4.0);
         wristMaxAccelerationRadPerSecSq.initDefault(8.0);
         break;
@@ -97,14 +97,8 @@ public class Arm extends SubsystemBase {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("ArmInputs", m_inputs);
 
-    m_elbowPositionRad =
-        m_inputs.elbowAbsoluteEncoderConnected
-            ? m_inputs.elbowAbsolutePositionRad
-            : m_inputs.elbowRelativePositionRad;
-    m_wristPositionRad =
-        m_inputs.wristAbsoluteEncoderConnected
-            ? m_inputs.wristAbsolutePositionRad
-            : m_inputs.wristRelativePositionRad;
+    m_elbowPositionRad = m_inputs.elbowRelativePositionRad;
+    m_wristPositionRad = m_inputs.wristRelativePositionRad;
 
     if (DriverStation.isDisabled()) {
       m_io.setElbowVoltage(0.0);
@@ -240,10 +234,27 @@ public class Arm extends SubsystemBase {
   public Command climb() {
     return this.run(
             () -> {
-              m_io.setElbowVoltage(6.0);
+              m_io.setElbowVoltage(0.0);
               m_io.setWristVoltage(0.0);
+              m_io.setCoast();
             })
         .withName("Climb");
+  }
+
+  public Command setCoast() {
+    return this.run(
+            () -> {
+              m_io.setCoast();
+            })
+        .withName("Coast");
+  }
+
+  public Command setBrake() {
+    return this.run(
+            () -> {
+              m_io.setBrake();
+            })
+        .withName("Brake");
   }
 
   class ArmKinematics {

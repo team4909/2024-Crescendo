@@ -8,6 +8,7 @@ public interface ArmIO {
   public static class ArmIOInputs {
     public double elbowAbsolutePositionRad = 0.0;
     public boolean elbowAbsoluteEncoderConnected = false;
+    public double elbowEncoderRaw = 0.0;
     public double elbowRelativePositionRad = 0.0;
     public double elbowVelocityRadPerSec = 0.0;
     public double elbowAppliedVolts = 0.0;
@@ -15,6 +16,7 @@ public interface ArmIO {
 
     public double wristAbsolutePositionRad = 0.0;
     public boolean wristAbsoluteEncoderConnected = false;
+    public double wristEncoderRaw = 0.0;
     public double wristRelativePositionRad = 0.0;
     public double wristVelocityRadPerSec = 0.0;
     public double wristAppliedVolts = 0.0;
@@ -28,4 +30,8 @@ public interface ArmIO {
   public default void setElbowVoltage(double volts) {}
 
   public default void setWristVoltage(double volts) {}
+
+  public default void setCoast() {}
+
+  public default void setBrake() {}
 }

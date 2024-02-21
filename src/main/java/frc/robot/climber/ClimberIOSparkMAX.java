@@ -1,5 +1,6 @@
 package frc.robot.climber;
 
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.util.Units;
@@ -12,11 +13,14 @@ public class ClimberIOSparkMAX implements ClimberIO {
 
   public ClimberIOSparkMAX() {
 
-    m_leftWinchMotor = new CANSparkMax(8, CANSparkMax.MotorType.kBrushless);
-    m_rightWinchMotor = new CANSparkMax(9, CANSparkMax.MotorType.kBrushless);
+    m_leftWinchMotor = new CANSparkMax(9, CANSparkMax.MotorType.kBrushless);
+    m_rightWinchMotor = new CANSparkMax(10, CANSparkMax.MotorType.kBrushless);
 
     m_leftWinchEncoder = m_leftWinchMotor.getEncoder();
     m_rightWinchEncoder = m_rightWinchMotor.getEncoder();
+
+    m_leftWinchMotor.setIdleMode(IdleMode.kBrake);
+    m_rightWinchMotor.setIdleMode(IdleMode.kBrake);
   }
 
   @Override
