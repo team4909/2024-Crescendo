@@ -135,9 +135,7 @@ public class Robot extends LoggedRobot {
     // First
     m_driverController.povUp().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
 
-    m_driverController
-        .b()
-        .whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
+    m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
 
     m_driverController.leftBumper().whileTrue(SensorIntake());
 
