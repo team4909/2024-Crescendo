@@ -4,10 +4,10 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.ParentDevice;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.Logger;
@@ -43,7 +43,7 @@ public class PhoenixOdometryThread extends Thread {
   }
 
   public Queue<Double> registerSignal(ParentDevice device, StatusSignal<Double> signal) {
-    Queue<Double> queue = new ArrayDeque<>(100);
+    Queue<Double> queue = new ArrayBlockingQueue<>(20);
     signalsLock.lock();
     Drivetrain.odometryLock.lock();
     try {
@@ -61,7 +61,7 @@ public class PhoenixOdometryThread extends Thread {
   }
 
   public Queue<Double> makeTimestampQueue() {
-    Queue<Double> queue = new ArrayDeque<>(100);
+    Queue<Double> queue = new ArrayBlockingQueue<>(20);
     Drivetrain.odometryLock.lock();
     try {
       timestampQueues.add(queue);
