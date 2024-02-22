@@ -104,10 +104,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveMotorConfig.Slot0.kP = kDrivekP;
     driveMotorConfig.Slot0.kS = kDrivekS;
     driveMotorConfig.Slot0.kV = kDrivekV;
-    driveMotorConfig.TorqueCurrent.PeakForwardTorqueCurrent = kSlipCurrent;
-    driveMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -kSlipCurrent;
-    driveMotorConfig.CurrentLimits.StatorCurrentLimit = kSlipCurrent;
-    driveMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    driveMotorConfig.CurrentLimits.SupplyCurrentLimit = kSlipCurrent;
+    driveMotorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     driveMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_driveMotor.getConfigurator().apply(driveMotorConfig);
     m_driveMotor.setPosition(0.0);
@@ -132,11 +130,11 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_drivePositionSignal = m_driveMotor.getPosition();
     m_driveVelocitySignal = m_driveMotor.getVelocity();
     m_driveAppliedVoltsSignal = m_driveMotor.getMotorVoltage();
-    m_driveCurrentSignal = m_driveMotor.getStatorCurrent();
+    m_driveCurrentSignal = m_driveMotor.getSupplyCurrent();
     m_steerPositionSignal = m_steerMotor.getPosition();
     m_steerVelocitySignal = m_steerMotor.getVelocity();
     m_steerAppliedVoltsSignal = m_steerMotor.getMotorVoltage();
-    m_steerCurrentSignal = m_steerMotor.getStatorCurrent();
+    m_steerCurrentSignal = m_steerMotor.getSupplyCurrent();
     m_steerAbsolutePositionSignal = m_azimuthEncoder.getAbsolutePosition();
 
     m_drivePositionQueue =

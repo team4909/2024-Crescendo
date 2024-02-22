@@ -6,7 +6,6 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TorqueCurrentConfigs;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.ParentDevice;
@@ -61,37 +60,29 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
-    currentLimitsConfig.StatorCurrentLimit = kCurrentLimitAmps;
-    currentLimitsConfig.StatorCurrentLimitEnable = true;
-    final TorqueCurrentConfigs torqueCurrentConfig = new TorqueCurrentConfigs();
-    torqueCurrentConfig.PeakForwardTorqueCurrent = kCurrentLimitAmps;
-    torqueCurrentConfig.PeakReverseTorqueCurrent = -kCurrentLimitAmps;
-
+    currentLimitsConfig.SupplyCurrentLimit = kCurrentLimitAmps;
+    currentLimitsConfig.SupplyCurrentLimitEnable = true;
     final TalonFXConfiguration elbowLeftMotorConfig = new TalonFXConfiguration();
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
-    elbowLeftMotorConfig.TorqueCurrent = torqueCurrentConfig;
     elbowLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
 
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
     wristLeftMotorConfig.CurrentLimits = currentLimitsConfig;
-    wristLeftMotorConfig.TorqueCurrent = torqueCurrentConfig;
     wristLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig);
     elbowRightMotorConfig.CurrentLimits = currentLimitsConfig;
-    elbowRightMotorConfig.TorqueCurrent = torqueCurrentConfig;
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig);
     m_elbowRightFollowerMotor.setControl(new Follower(m_elbowLeftMotor.getDeviceID(), true));
 
     final TalonFXConfiguration wristRightMotorConfig = new TalonFXConfiguration();
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig);
     wristRightMotorConfig.CurrentLimits = currentLimitsConfig;
-    wristRightMotorConfig.TorqueCurrent = torqueCurrentConfig;
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig);
     m_wristRightFollowerMotor.setControl(new Follower(m_wristLeftMotor.getDeviceID(), true));
 
