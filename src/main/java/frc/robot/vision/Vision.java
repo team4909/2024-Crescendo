@@ -87,13 +87,13 @@ public class Vision {
       Logger.processInputs("Vision/Cam" + Integer.toString(index), m_inputs[index]);
     }
 
-    final List<Pose2d> robotPosesToLog = new ArrayList<>();
+    final List<Pose3d> estimatedPosesToLog = new ArrayList<>();
     for (int i = 0; i < io.length; i++) {
       for (PhotonPipelineResult result : m_inputs[i].results) {
         Optional<EstimatedRobotPose> poseOptional = m_poseEstimators[i].update(result);
         poseOptional.ifPresent(
             pose -> {
-              Pose2d estimatedPose = pose.estimatedPose.toPose2d();
+              Pose3d estimatedPose = pose.estimatedPose;
               List<PhotonTrackedTarget> targets = result.getTargets();
               targets.forEach(
                   target -> {
@@ -104,18 +104,19 @@ public class Vision {
                                 m_lastDetectionTimeIds.put(
                                     target.getFiducialId(), Timer.getFPGATimestamp()));
                   });
-              robotPosesToLog.add(estimatedPose);
+              estimatedPosesToLog.add(estimatedPose);
               m_visionUpdateConsumer.accept(
                   new VisionUpdate(
-                      estimatedPose,
+                      estimatedPose.toPose2d(),
                       result.getTimestampSeconds(),
-                      getEstimationStdDevs(estimatedPose, targets)));
+                      getEstimationStdDevs(estimatedPose.toPose2d(), targets)));
             });
       }
     }
 
     Logger.recordOutput(
-        "Vision/EstimatedPoses", robotPosesToLog.toArray(new Pose2d[robotPosesToLog.size()]));
+        "Vision/EstimatedPoses",
+        estimatedPosesToLog.toArray(new Pose3d[estimatedPosesToLog.size()]));
     List<Pose3d> targetPose3ds = new ArrayList<>();
     for (Map.Entry<Integer, Double> detectionEntry : m_lastDetectionTimeIds.entrySet())
       if (Timer.getFPGATimestamp() - detectionEntry.getValue() < kTargetLogTimeSecs)
@@ -125,7 +126,7 @@ public class Vision {
     Logger.recordOutput(
         "Vision/TagPoses2D",
         targetPose3ds.stream()
-            .map(p -> p.toPose2d())
+            .map(pose3d -> pose3d.toPose2d())
             .collect(Collectors.toList())
             .toArray(new Pose2d[targetPose3ds.size()]));
   }
