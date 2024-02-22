@@ -113,8 +113,8 @@ public class ArmIOTalonFX implements ArmIO {
     ParentDevice.optimizeBusUtilizationForAll(
         m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
 
-    m_elbowControl = new VoltageOut(0.0, true, true, false, false);
-    m_wristControl = new VoltageOut(0.0, true, true, false, false);
+    m_elbowControl = new VoltageOut(0.0, true, false, false, false);
+    m_wristControl = new VoltageOut(0.0, true, false, false, false);
   }
 
   public void updateInputs(ArmIOInputs inputs) {
@@ -174,33 +174,12 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.setControl(m_wristControl.withOutput(volts));
   }
 
-  public void setCoast() {
-    m_elbowLeftMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
-    m_elbowRightFollowerMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
-    m_wristLeftMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
-    m_wristRightFollowerMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
-  }
-
-  public void setBrake() {
-    m_elbowLeftMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
-    m_elbowRightFollowerMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
-    m_wristLeftMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
-    m_wristRightFollowerMotor
-        .getConfigurator()
-        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+  public void setBrakeMode(boolean enableBrakeMode) {
+    final NeutralModeValue neutralModeValue =
+        enableBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+    m_elbowLeftMotor.setNeutralMode(neutralModeValue);
+    m_wristLeftMotor.setNeutralMode(neutralModeValue);
+    m_elbowRightFollowerMotor.setNeutralMode(neutralModeValue);
+    m_wristRightFollowerMotor.setNeutralMode(neutralModeValue);
   }
 }

@@ -231,30 +231,16 @@ public class Arm extends SubsystemBase {
         .withName("Idle");
   }
 
-  public Command climb() {
-    return this.run(
-            () -> {
-              m_io.setElbowVoltage(0.0);
-              m_io.setWristVoltage(0.0);
-              m_io.setCoast();
-            })
-        .withName("Climb");
-  }
-
-  public Command setCoast() {
-    return this.run(
-            () -> {
-              m_io.setCoast();
-            })
-        .withName("Coast");
-  }
-
-  public Command setBrake() {
-    return this.run(
-            () -> {
-              m_io.setBrake();
-            })
-        .withName("Brake");
+  public Command idleCoast() {
+    return this.runOnce(() -> m_io.setBrakeMode(false))
+        .andThen(
+            this.run(
+                () -> {
+                  m_io.setElbowVoltage(0.0);
+                  m_io.setWristVoltage(0.0);
+                }))
+        .finallyDo(() -> m_io.setBrakeMode(true))
+        .withName("Idle Coast");
   }
 
   class ArmKinematics {

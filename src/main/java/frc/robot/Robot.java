@@ -3,7 +3,6 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -136,15 +135,11 @@ public class Robot extends LoggedRobot {
     // First
     m_driverController.povUp().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
 
-    // Climb
     m_driverController
         .b()
-        .onTrue(new ParallelCommandGroup(m_arm.climb(), m_climber.windWinch()))
-        .onFalse(m_arm.setBrake());
+        .whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
 
     m_driverController.leftBumper().whileTrue(SensorIntake());
-
-    m_driverController.povDown().whileTrue(m_arm.setCoast()).onFalse(m_arm.setBrake());
 
     // elbow = 1.147 rad
     // wrist = 3.805 rad
@@ -154,8 +149,7 @@ public class Robot extends LoggedRobot {
         .onFalse(
             Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
 
-    m_operatorController.rightBumper().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
-    m_operatorController.leftStick().whileTrue(m_arm.climb());
+    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
 
     m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
@@ -198,9 +192,6 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_vision.periodic();
-
-    SmartDashboard.putNumber("Intake/Current", m_shooter.getCurrent());
-    SmartDashboard.putBoolean("Shooter/Sensor", m_shooter.hasNote());
   }
 
   @Override

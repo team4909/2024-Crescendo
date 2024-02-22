@@ -31,7 +31,5 @@ public interface ArmIO {
 
   public default void setWristVoltage(double volts) {}
 
-  public default void setCoast() {}
-
-  public default void setBrake() {}
+  public default void setBrakeMode(boolean enableBrakeMode) {}
 }
