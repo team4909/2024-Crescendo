@@ -41,7 +41,7 @@ public class Robot extends LoggedRobot {
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
 
   public Robot() {
-    // recordMetadeta();
+    recordMetadeta();
     DriverStation.silenceJoystickConnectionWarning(true);
     switch (Constants.kCurrentMode) {
       case kReal:
@@ -130,11 +130,8 @@ public class Robot extends LoggedRobot {
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    // Unwinch
-    m_driverController.a().whileTrue(m_climber.release()).onFalse(m_climber.idle());
-
-    // Winch
-    m_driverController.y().whileTrue(m_climber.winchDown()).onFalse(m_climber.idle());
+    m_driverController.a().whileTrue(m_climber.unwindWinch());
+    m_driverController.y().whileTrue(m_climber.windWinch());
 
     // First
     m_driverController.povUp().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
@@ -142,7 +139,7 @@ public class Robot extends LoggedRobot {
     // Climb
     m_driverController
         .b()
-        .onTrue(new ParallelCommandGroup(m_arm.climb(), m_climber.winchDown()))
+        .onTrue(new ParallelCommandGroup(m_arm.climb(), m_climber.windWinch()))
         .onFalse(m_arm.setBrake());
 
     m_driverController.leftBumper().whileTrue(SensorIntake());
@@ -243,22 +240,22 @@ public class Robot extends LoggedRobot {
     m_vision.updateSim(m_drivetrain.getPose());
   }
 
-  // private void recordMetadeta() {
-  //   Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
-  //   Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
-  //   Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
-  //   Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
-  //   Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
-  //   switch (BuildConstants.DIRTY) {
-  //     case 0:
-  //       Logger.recordMetadata("GitDirty", "All changes committed");
-  //       break;
-  //     case 1:
-  //       Logger.recordMetadata("GitDirty", "Uncomitted changes");
-  //       break;
-  //     default:
-  //       Logger.recordMetadata("GitDirty", "Unknown");
-  //       break;
-  //   }
-  // }
+  private void recordMetadeta() {
+    Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+    Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+    Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+    Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+    Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+    switch (BuildConstants.DIRTY) {
+      case 0:
+        Logger.recordMetadata("GitDirty", "All changes committed");
+        break;
+      case 1:
+        Logger.recordMetadata("GitDirty", "Uncomitted changes");
+        break;
+      default:
+        Logger.recordMetadata("GitDirty", "Unknown");
+        break;
+    }
+  }
 }
