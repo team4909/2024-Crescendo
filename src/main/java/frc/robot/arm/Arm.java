@@ -178,20 +178,18 @@ public class Arm extends SubsystemBase {
             / Math.abs(m_wristController.getGoal().position - m_profileInitialAngles.get(1, 0));
     Logger.recordOutput("Arm/Elbow Progress", elbowProgress);
     Logger.recordOutput("Arm/Wrist Progress", wristProgress);
-    double elbowFeedbackVolts =
-        m_deadbandkS.apply(m_elbowController.calculate(m_elbowPositionRad), elbowkS.get());
-    double wristFeedbackVolts =
-        m_deadbandkS.apply(m_wristController.calculate(m_wristPositionRad), wristkS.get());
+    double elbowFeedbackVolts = 0.0;
+    double wristFeedbackVolts = 0.0;
     if (wristProgress < elbowDelay) {
       elbowGoalPosition = m_elbowPositionRad;
       elbowGoalVelocity = 0.0;
-      elbowFeedbackVolts = 0.0;
-    }
+    } else
+      elbowFeedbackVolts =
+          m_deadbandkS.apply(m_elbowController.calculate(m_elbowPositionRad), elbowkS.get());
     if (elbowProgress < wristDelay) {
       wristGoalPosition = m_wristPositionRad;
       wristGoalVelocity = 0.0;
-      wristFeedbackVolts = 0.0;
-    }
+    } else m_deadbandkS.apply(m_wristController.calculate(m_wristPositionRad), wristkS.get());
     Vector<N2> feedforwardVolts =
         m_armModel.feedforward(
             VecBuilder.fill(elbowGoalPosition, wristGoalPosition),
