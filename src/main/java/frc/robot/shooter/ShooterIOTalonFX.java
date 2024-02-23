@@ -4,6 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -27,7 +28,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     m_bottomRoller = new TalonFX(21, Constants.kOtherCanBus);
 
     final Slot0Configs slot0Configs = new Slot0Configs();
-    slot0Configs.kP = 0.1;
+    slot0Configs.kP = 0.4;
     m_topRoller.getConfigurator().apply(slot0Configs);
     m_bottomRoller.getConfigurator().apply(slot0Configs);
 
@@ -71,13 +72,13 @@ public class ShooterIOTalonFX implements ShooterIO {
                 m_bottomRollerCurrentSignal)
             .equals(StatusCode.OK);
 
-    inputs.topRollerVelocityRps = m_topRollerVelocitySignal.getValue();
-    inputs.topRollerAccelerationRpsSq = m_topRollerAccelerationSignal.getValue();
+    inputs.topRollerVelocityRpm = m_topRollerVelocitySignal.getValue() * 60.0;
+    inputs.topRollerAccelerationRpmSq = m_topRollerAccelerationSignal.getValue() * 60.0;
     inputs.topRollerAppliedVolts = m_topRollerAppliedVoltageSignal.getValue();
     inputs.topRollerCurrentAmps = m_topRollerCurrentSignal.getValue();
-    inputs.bottomRollerVelocityRps = m_bottomRollerVelocitySignal.getValue();
-    inputs.bottomRollerAccelerationRpsSq = m_bottomRollerAccelerationSignal.getValue();
-    inputs.bottomRollerAppliedVolts = m_bottomRollerAppliedVoltageSignal.getValue();
+    inputs.bottomRollerVelocityRpm = m_bottomRollerVelocitySignal.getValue();
+    inputs.bottomRollerAccelerationRpmSq = m_bottomRollerAccelerationSignal.getValue() * 60.0;
+    inputs.bottomRollerAppliedVolts = m_bottomRollerAppliedVoltageSignal.getValue() * 60.0;
     inputs.bottomRollerCurrentAmps = m_bottomRollerCurrentSignal.getValue();
   }
 
@@ -85,5 +86,10 @@ public class ShooterIOTalonFX implements ShooterIO {
   public void setRollersRPS(double velocityRPS) {
     m_topRoller.setControl(m_topRollerControl.withVelocity(velocityRPS));
     m_bottomRoller.setControl(m_bottomRollerControl.withVelocity(velocityRPS));
+  }
+
+  public void setRollerDutyCycle(double volts) {
+    m_topRoller.setControl(new DutyCycleOut(volts));
+    m_bottomRoller.setControl(new DutyCycleOut(volts));
   }
 }

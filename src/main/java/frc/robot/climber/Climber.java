@@ -28,11 +28,14 @@ public class Climber extends SubsystemBase {
   }
 
   public Command windWinch() {
-    return this.run(
-        () -> {
-          m_io.setLeftDutyCycle(1.0);
-          m_io.setRightDutyCycle(1.0);
-        });
+    return this.runOnce(() -> m_io.enableBrakeMode(true))
+        .andThen(
+            this.run(
+                () -> {
+                  m_io.setLeftDutyCycle(1.0);
+                  m_io.setRightDutyCycle(1.0);
+                }))
+        .finallyDo(() -> m_io.enableBrakeMode(false));
   }
 
   public Command unwindWinch() {

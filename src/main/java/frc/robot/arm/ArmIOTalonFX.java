@@ -20,8 +20,8 @@ import frc.robot.Constants;
 public class ArmIOTalonFX implements ArmIO {
 
   // Offsets to the horizontal
-  private final double kElbowRelativeEncoderOffsetRad = .558;
-  private final double kWristRelativeEncoderOffsetRad = 2.5;
+  private final double kElbowRelativeEncoderOffsetRad = 0.558; // .558;
+  private final double kWristRelativeEncoderOffsetRad = 2.5; // 2.5;
   private final boolean kInvertWristAbsoluteEncoder = false;
   private final boolean kInvertElbowAbsoluteEncoder = false;
   private final TalonFX m_elbowLeftMotor,
@@ -57,6 +57,11 @@ public class ArmIOTalonFX implements ArmIO {
     m_elbowAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
     m_wristAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
 
+    m_elbowLeftMotor.setPosition(0.0);
+    m_wristLeftMotor.setPosition(0.0);
+    m_elbowRightFollowerMotor.setPosition(0.0);
+    m_wristRightFollowerMotor.setPosition(0.0);
+
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
     currentLimitsConfig.SupplyCurrentLimit = 80.0;
     currentLimitsConfig.SupplyCurrentLimitEnable = true;
@@ -64,23 +69,27 @@ public class ArmIOTalonFX implements ArmIO {
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
 
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
     wristLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     wristLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    wristLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig);
     elbowRightMotorConfig.CurrentLimits = currentLimitsConfig;
+    elbowRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig);
     m_elbowRightFollowerMotor.setControl(new Follower(m_elbowLeftMotor.getDeviceID(), true));
 
     final TalonFXConfiguration wristRightMotorConfig = new TalonFXConfiguration();
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig);
     wristRightMotorConfig.CurrentLimits = currentLimitsConfig;
+    wristRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig);
     m_wristRightFollowerMotor.setControl(new Follower(m_wristLeftMotor.getDeviceID(), true));
 
@@ -139,8 +148,10 @@ public class ArmIOTalonFX implements ArmIO {
                 - elbowAbsoluteEncoderOffset.getRadians());
     inputs.elbowAbsoluteEncoderConnected = m_elbowAbsoluteEncoder.isConnected();
     inputs.elbowRelativePositionRad =
-        Units.rotationsToRadians(m_elbowPositionSignal.getValue() / ArmModel.kElbowFinalReduction)
-            - kElbowRelativeEncoderOffsetRad;
+        MathUtil.angleModulus(
+            Units.rotationsToRadians(
+                    m_elbowPositionSignal.getValue() / ArmModel.kElbowFinalReduction)
+                - kElbowRelativeEncoderOffsetRad);
     inputs.elbowVelocityRadPerSec =
         Units.rotationsToRadians(m_elbowVelocitySignal.getValue() / ArmModel.kElbowFinalReduction);
     inputs.elbowAppliedVolts = m_elbowAppliedVoltsSignal.getValue();
@@ -155,8 +166,10 @@ public class ArmIOTalonFX implements ArmIO {
 
     inputs.wristAbsoluteEncoderConnected = m_wristAbsoluteEncoder.isConnected();
     inputs.wristRelativePositionRad =
-        Units.rotationsToRadians(m_wristPositionSignal.getValue() / ArmModel.kWristFinalReduction)
-            + kWristRelativeEncoderOffsetRad;
+        MathUtil.angleModulus(
+            Units.rotationsToRadians(
+                    m_wristPositionSignal.getValue() / ArmModel.kWristFinalReduction)
+                + kWristRelativeEncoderOffsetRad);
     inputs.wristVelocityRadPerSec =
         Units.rotationsToRadians(m_wristVelocitySignal.getValue() / ArmModel.kWristFinalReduction);
     inputs.wristAppliedVolts = m_wristAppliedVoltsSignal.getValue();

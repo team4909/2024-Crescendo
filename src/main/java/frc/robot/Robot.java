@@ -1,11 +1,13 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.ArmSetpoints;
@@ -93,11 +95,11 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     // NamedCommands.registerCommand("intake", m_intake.intake());
-    // NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
-    // NamedCommands.registerCommand("sub shot", m_arm.goToSubwoofer());
+    NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(2));
+    NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
     // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
-    // NamedCommands.registerCommand("FeederOn", m_shooter.FeederOn());
+    NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(1.0));
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     // NamedCommands.registerCommand("SensorIntake", SensorIntake());
 
@@ -122,7 +124,15 @@ public class Robot extends LoggedRobot {
             () -> m_driverController.getLeftX(),
             () -> m_driverController.getRightX()));
 
-    m_driverController.rightTrigger().onTrue(Commands.race(m_intake.intake(), m_feeder.feed()));
+    new Trigger(m_feeder.hasNote)
+        .debounce(0.2)
+        .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
+        .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()));
+
+    m_driverController
+        .rightTrigger()
+        .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.feed()))
+        .onFalse(m_shooter.idle());
 
     m_driverController
         .rightBumper()
@@ -136,7 +146,10 @@ public class Robot extends LoggedRobot {
     // First
     m_driverController.povUp().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
 
-    m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
+    m_driverController
+        .b()
+        .whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()))
+        .onFalse(m_shooter.idle());
 
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
 
@@ -144,27 +157,28 @@ public class Robot extends LoggedRobot {
     // wrist = 3.805 rad
     m_operatorController
         .leftTrigger()
-        .whileTrue(Commands.parallel(m_intake.feed(), m_arm.goToSetpoint(1.147, 3.805, 0.0, 0.0)))
-        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+        .whileTrue(
+            Commands.parallel(
+                m_intake.feed(),
+                m_shooter.runShooter(),
+                m_arm.goToSetpoint(1.266, -2.388, 0.0, 0.0)))
+        .onFalse(m_arm.goToSetpoint(-0.547, 2.577, 0.0, 0.0));
 
-    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
+    //m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
 
     m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_operatorController
         .povUp()
         .onTrue(
-            Commands.parallel(m_arm.goToSetpoint(ArmSetpoints.kSubwoofer), m_shooter.runShooter()))
+            Commands.parallel(m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0), m_shooter.runShooter()))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
-    m_operatorController.y().whileTrue(Commands.parallel(m_shooter.runShooter(), m_feeder.feed()));
+    m_operatorController.y().toggleOnTrue(m_shooter.runShooter());
     // wrist = 2.028
     m_operatorController
         .leftBumper()
-        .onTrue(
-            Commands.parallel(
-                m_arm.goToSetpoint(-0.558, 2.028, 0, 0),
-                Superstructure.sensorCatch(m_shooter, m_feeder, m_intake)))
+        .onTrue(Superstructure.sensorCatch(m_shooter, m_feeder, m_intake, m_arm))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
   }
 

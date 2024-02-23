@@ -19,8 +19,8 @@ public class ClimberIOSparkMAX implements ClimberIO {
     m_leftWinchEncoder = m_leftWinchMotor.getEncoder();
     m_rightWinchEncoder = m_rightWinchMotor.getEncoder();
 
-    m_leftWinchMotor.setIdleMode(IdleMode.kBrake);
-    m_rightWinchMotor.setIdleMode(IdleMode.kBrake);
+    m_leftWinchMotor.setIdleMode(IdleMode.kCoast);
+    m_rightWinchMotor.setIdleMode(IdleMode.kCoast);
   }
 
   @Override
@@ -50,5 +50,12 @@ public class ClimberIOSparkMAX implements ClimberIO {
   @Override
   public void setRightDutyCycle(double outputDutyCycle) {
     m_rightWinchMotor.set(outputDutyCycle);
+  }
+
+  @Override
+  public void enableBrakeMode(boolean enableBrakeMode) {
+    final IdleMode neutralModeValue = enableBrakeMode ? IdleMode.kBrake : IdleMode.kCoast;
+    m_leftWinchMotor.setIdleMode(neutralModeValue);
+    m_rightWinchMotor.setIdleMode(neutralModeValue);
   }
 }

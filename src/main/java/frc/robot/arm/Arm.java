@@ -189,7 +189,9 @@ public class Arm extends SubsystemBase {
     if (elbowProgress < wristDelay) {
       wristGoalPosition = m_wristPositionRad;
       wristGoalVelocity = 0.0;
-    } else m_deadbandkS.apply(m_wristController.calculate(m_wristPositionRad), wristkS.get());
+    } else
+      wristFeedbackVolts =
+          m_deadbandkS.apply(m_wristController.calculate(m_wristPositionRad), wristkS.get());
     Vector<N2> feedforwardVolts =
         m_armModel.feedforward(
             VecBuilder.fill(elbowGoalPosition, wristGoalPosition),

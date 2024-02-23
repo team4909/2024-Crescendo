@@ -15,6 +15,7 @@ public interface FeederIO {
 
     public boolean feederMotorConnected = false;
   }
+
   public default void updateInputs(FeederIOInputs inputs) {}
 
   public default void setFeederDutyCycle(double dutyCycle) {}

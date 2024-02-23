@@ -2,9 +2,7 @@ package frc.robot.feeder;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import java.util.function.BooleanSupplier;
-
 import org.littletonrobotics.junction.Logger;
 
 public class Feeder extends SubsystemBase {
@@ -26,7 +24,7 @@ public class Feeder extends SubsystemBase {
     Logger.processInputs("FeederInputs", m_inputs);
   }
 
-  private Command idle() {
+  public Command idle() {
     return this.run(() -> m_io.setFeederDutyCycle(0.0));
   }
 
@@ -40,5 +38,9 @@ public class Feeder extends SubsystemBase {
 
   public Command holdCatch() {
     return this.run(() -> m_io.setFeederDutyCycle(-0.25));
+  }
+
+  public Command pullBack() {
+    return this.run(() -> m_io.setFeederDutyCycle(0.1));
   }
 }

@@ -10,7 +10,7 @@ public class Shooter extends SubsystemBase {
 
   private final double kFarShotVelocityRpm = 5000.0;
   private final double kSpitVelocityRpm = -500.0;
-  private final double kIdleVelocityRpm = 60.0;
+  private final double kIdleVelocityRpm = 0.0;
 
   private final ShooterIO m_io;
   private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
@@ -24,15 +24,19 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("ShooterInputs", m_inputs);
+
+    Logger.recordOutput(
+        "Shooter/Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
   }
 
   private void setRollersSetpointRpm(double velocityRpm) {
-    m_io.setRollersRPS(velocityRpm * 60.0);
+    Logger.recordOutput("Shooter/Goal Roller RPM", velocityRpm);
+    m_io.setRollersRPS(velocityRpm / 60.0);
   }
 
   private boolean getShooterRollersAtSetpoint() {
-    return MathUtil.isNear(kFarShotVelocityRpm, m_inputs.topRollerVelocityRps / 60.0, 5.0)
-        && MathUtil.isNear(kFarShotVelocityRpm, m_inputs.bottomRollerVelocityRps / 60.0, 5.0);
+    return MathUtil.isNear(kFarShotVelocityRpm, m_inputs.topRollerVelocityRpm, 5.0)
+        && MathUtil.isNear(kFarShotVelocityRpm, m_inputs.bottomRollerVelocityRpm, 5.0);
   }
 
   public Trigger readyToShoot() {
@@ -41,15 +45,18 @@ public class Shooter extends SubsystemBase {
 
   public Command idle() {
     return this.run(
-        () -> {
-          setRollersSetpointRpm(kIdleVelocityRpm);
-        });
+            () -> {
+              m_io.setRollerDutyCycle(0.0);
+              // setRollersSetpointRpm(kIdleVelocityRpm);
+            })
+        .withName("Idle");
   }
 
   public Command runShooter() {
     return this.run(
         () -> {
-          setRollersSetpointRpm(kFarShotVelocityRpm);
+          m_io.setRollerDutyCycle(1.0);
+          // setRollersSetpointRpm(kFarShotVelocityRpm);
         });
   }
 
@@ -69,9 +76,10 @@ public class Shooter extends SubsystemBase {
 
   public Command catchNote() {
     return this.run(
-        () -> {
-          setRollersSetpointRpm(-kFarShotVelocityRpm);
-        });
+            () -> m_io.setRollerDutyCycle(-8)
+            // setRollersSetpointRpm(-kFarShotVelocityRpm)
+            )
+        .withName("Catch Note");
   }
 
   public Command shootWithFeederDelay() {

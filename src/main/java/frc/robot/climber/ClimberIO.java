@@ -21,4 +21,6 @@ public interface ClimberIO {
   public default void setLeftDutyCycle(double outputDutyCycle) {}
 
   public default void setRightDutyCycle(double outputDutyCycle) {}
+
+  public default void enableBrakeMode(boolean enableBrakeMode) {}
 }

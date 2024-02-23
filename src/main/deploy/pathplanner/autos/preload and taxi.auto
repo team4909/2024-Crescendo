@@ -5,7 +5,7 @@
       "x": 1.11,
       "y": 5.54
     },
-    "rotation": 0
+    "rotation": 180.0
   },
   "command": {
     "type": "sequential",
@@ -14,29 +14,42 @@
         {
           "type": "named",
           "data": {
-            "name": "ShooterOn"
+            "name": "runShooter"
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "sub shot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
-          }
-        },
-        {
-          "type": "deadline",
+          "type": "race",
           "data": {
             "commands": [
               {
                 "type": "named",
                 "data": {
-                  "name": "FeederOn"
+                  "name": "subShot"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 1.0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "feederOn"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
                 }
               }
             ]
@@ -46,18 +59,6 @@
           "type": "path",
           "data": {
             "pathName": "Taxi"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Arm Go Down"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Stop Intake Shooter Feeder"
           }
         }
       ]

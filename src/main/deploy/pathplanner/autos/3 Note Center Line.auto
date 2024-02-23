@@ -14,13 +14,13 @@
         {
           "type": "named",
           "data": {
-            "name": "ShooterOn"
+            "name": "runShooter"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "sub shot"
+            "name": "subShot"
           }
         },
         {
@@ -32,7 +32,7 @@
         {
           "type": "named",
           "data": {
-            "name": "FeederOn"
+            "name": "feederOn"
           }
         },
         {
