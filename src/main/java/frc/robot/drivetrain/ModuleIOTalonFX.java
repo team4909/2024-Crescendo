@@ -104,8 +104,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveMotorConfig.Slot0.kP = kDrivekP;
     driveMotorConfig.Slot0.kS = kDrivekS;
     driveMotorConfig.Slot0.kV = kDrivekV;
-    driveMotorConfig.CurrentLimits.SupplyCurrentLimit = kSlipCurrent;
-    driveMotorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    driveMotorConfig.CurrentLimits.StatorCurrentLimit = kSlipCurrent;
+    driveMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     driveMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_driveMotor.getConfigurator().apply(driveMotorConfig);
     m_driveMotor.setPosition(0.0);
