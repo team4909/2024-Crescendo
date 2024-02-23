@@ -24,7 +24,6 @@ public class ArmIOTalonFX implements ArmIO {
   private final double kWristRelativeEncoderOffsetRad = 2.5;
   private final boolean kInvertWristAbsoluteEncoder = false;
   private final boolean kInvertElbowAbsoluteEncoder = false;
-  private final double kCurrentLimitAmps = 80.0;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,
       m_wristLeftMotor,
@@ -59,7 +58,7 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
-    currentLimitsConfig.SupplyCurrentLimit = kCurrentLimitAmps;
+    currentLimitsConfig.SupplyCurrentLimit = 80.0;
     currentLimitsConfig.SupplyCurrentLimitEnable = true;
     final TalonFXConfiguration elbowLeftMotorConfig = new TalonFXConfiguration();
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);

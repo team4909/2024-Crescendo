@@ -16,9 +16,15 @@ import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
 import frc.robot.drivetrain.ModuleIO;
 import frc.robot.drivetrain.ModuleIOTalonFX;
+import frc.robot.feeder.Feeder;
+import frc.robot.feeder.FeederIO;
+import frc.robot.feeder.FeederIOTalonFX;
 import frc.robot.intake.Intake;
 import frc.robot.intake.IntakeIO;
 import frc.robot.intake.IntakeIOSparkMAX;
+import frc.robot.shooter.Shooter;
+import frc.robot.shooter.ShooterIO;
+import frc.robot.shooter.ShooterIOTalonFX;
 import frc.robot.vision.Vision;
 import frc.robot.vision.VisionIO;
 import frc.robot.vision.VisionIOPhotonVision;
@@ -84,5 +90,21 @@ public class Subsystems {
 
   public static Climber createBlankClimber() {
     return new Climber(new ClimberIO() {});
+  }
+
+  public static Shooter createTalonFXShooter() {
+    return new Shooter(new ShooterIOTalonFX());
+  }
+
+  public static Shooter createBlankShooter() {
+    return new Shooter(new ShooterIO() {});
+  }
+
+  public static Feeder createTalonFXFeeder() {
+    return new Feeder(new FeederIOTalonFX());
+  }
+
+  public static Feeder createBlankFeeder() {
+    return new Feeder(new FeederIO() {});
   }
 }

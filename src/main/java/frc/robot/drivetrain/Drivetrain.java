@@ -253,6 +253,7 @@ public class Drivetrain extends SubsystemBase {
     return m_poseEstimator.getEstimatedPosition();
   }
 
+  @AutoLogOutput(key = "Drivetrain/Field Velocity")
   public Twist2d getFieldVelocity() {
     return m_fieldVelocity;
   }

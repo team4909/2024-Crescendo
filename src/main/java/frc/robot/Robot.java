@@ -1,20 +1,17 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.ArmSetpoints;
 import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
+import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.Vision;
@@ -32,9 +29,10 @@ public class Robot extends LoggedRobot {
   private final Drivetrain m_drivetrain;
   private final Vision m_vision;
   private final Intake m_intake;
-  private final Shooter m_shooter = new Shooter();
   private final Arm m_arm;
   private final Climber m_climber;
+  private final Shooter m_shooter;
+  private final Feeder m_feeder;
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
@@ -69,6 +67,8 @@ public class Robot extends LoggedRobot {
         m_intake = Subsystems.createSparkMAXIntake();
         m_arm = Subsystems.createTalonFXArm();
         m_climber = Subsystems.createSparkMAXClimber();
+        m_shooter = Subsystems.createTalonFXShooter();
+        m_feeder = Subsystems.createTalonFXFeeder();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
@@ -76,6 +76,8 @@ public class Robot extends LoggedRobot {
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createSimArm();
         m_climber = Subsystems.createBlankClimber();
+        m_shooter = Subsystems.createTalonFXShooter();
+        m_feeder = Subsystems.createBlankFeeder();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
@@ -83,19 +85,21 @@ public class Robot extends LoggedRobot {
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createBlankArm();
         m_climber = Subsystems.createBlankClimber();
+        m_shooter = Subsystems.createBlankShooter();
+        m_feeder = Subsystems.createBlankFeeder();
         break;
     }
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
-    NamedCommands.registerCommand("intake", m_intake.intake());
-    NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
+    // NamedCommands.registerCommand("intake", m_intake.intake());
+    // NamedCommands.registerCommand("shoot", m_shooter.Shoot().withTimeout(2));
     // NamedCommands.registerCommand("sub shot", m_arm.goToSubwoofer());
-    NamedCommands.registerCommand("feed", m_shooter.Feeder());
-    NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
-    NamedCommands.registerCommand("FeederOn", m_shooter.FeederOn());
-    NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
-    NamedCommands.registerCommand("SensorIntake", SensorIntake());
+    // NamedCommands.registerCommand("feed", m_shooter.Feeder());
+    // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
+    // NamedCommands.registerCommand("FeederOn", m_shooter.FeederOn());
+    // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
+    // NamedCommands.registerCommand("SensorIntake", SensorIntake());
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
@@ -118,14 +122,11 @@ public class Robot extends LoggedRobot {
             () -> m_driverController.getLeftX(),
             () -> m_driverController.getRightX()));
 
-    m_driverController
-        .rightTrigger()
-        .onTrue(new ParallelRaceGroup(m_intake.intake(), m_shooter.Feeder()));
+    m_driverController.rightTrigger().onTrue(Commands.race(m_intake.intake(), m_feeder.feed()));
 
     m_driverController
         .rightBumper()
-        .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.FeederOut().repeatedly()))
-        .onFalse(Commands.sequence(m_shooter.Stop(), m_intake.idle()));
+        .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.spit()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
@@ -137,15 +138,14 @@ public class Robot extends LoggedRobot {
 
     m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
 
-    m_driverController.leftBumper().whileTrue(SensorIntake());
+    m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
 
     // elbow = 1.147 rad
     // wrist = 3.805 rad
     m_operatorController
         .leftTrigger()
         .whileTrue(Commands.parallel(m_intake.feed(), m_arm.goToSetpoint(1.147, 3.805, 0.0, 0.0)))
-        .onFalse(
-            Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
 
@@ -154,29 +154,18 @@ public class Robot extends LoggedRobot {
     m_operatorController
         .povUp()
         .onTrue(
-            new ParallelCommandGroup(
-                m_arm.goToSetpoint(ArmSetpoints.kSubwoofer), m_shooter.ShooterOn()))
-        .onFalse(
-            Commands.sequence(m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.ShooterOff()));
+            Commands.parallel(m_arm.goToSetpoint(ArmSetpoints.kSubwoofer), m_shooter.runShooter()))
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
-    m_operatorController.y().onTrue(m_shooter.Shoot());
+    m_operatorController.y().whileTrue(Commands.parallel(m_shooter.runShooter(), m_feeder.feed()));
     // wrist = 2.028
     m_operatorController
         .leftBumper()
-        .onTrue(new ParallelCommandGroup(m_arm.goToSetpoint(-0.558, 2.028, 0, 0), SensorCatch()))
-        .onFalse(
-            new ParallelCommandGroup(
-                m_arm.goToSetpoint(ArmSetpoints.kStowed), m_shooter.StopRepeatedly()));
-  }
-
-  public Command SensorIntake() {
-    return new ParallelDeadlineGroup(
-        m_shooter.FeederOn().until(() -> m_shooter.hasNote()), m_intake.intake());
-  }
-
-  public Command SensorCatch() {
-    return new ParallelDeadlineGroup(
-        m_shooter.Catch().until(() -> m_shooter.hasNote()), m_intake.intake());
+        .onTrue(
+            Commands.parallel(
+                m_arm.goToSetpoint(-0.558, 2.028, 0, 0),
+                Superstructure.sensorCatch(m_shooter, m_feeder, m_intake)))
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
   }
 
   /**
