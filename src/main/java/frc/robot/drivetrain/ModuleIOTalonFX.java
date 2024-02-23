@@ -28,12 +28,12 @@ import org.littletonrobotics.junction.Logger;
 
 public class ModuleIOTalonFX implements ModuleIO {
 
-  private final double kDrivekP = 0.05;
-  private final double kDrivekS = 0.2;
-  private final double kDrivekV = 0.1;
+  private final double kDrivekP = 0.031509;
+  private final double kDrivekS = 0.1737;
+  private final double kDrivekV = 0.13279;
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
-  private final double kSlipCurrent = 80.0;
+  private final double kSlipCurrent = 40.0;
 
   private final TalonFX m_driveMotor, m_steerMotor;
   private final CANcoder m_azimuthEncoder;

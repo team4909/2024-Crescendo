@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.ArmSetpoints;
@@ -67,10 +66,10 @@ public class Robot extends LoggedRobot {
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createBlankFourCameraVision();
         m_intake = Subsystems.createSparkMAXIntake();
-        m_arm = Subsystems.createTalonFXArm();
+        m_arm = Subsystems.createBlankArm();
         m_climber = Subsystems.createSparkMAXClimber();
-        m_shooter = Subsystems.createTalonFXShooter();
-        m_feeder = Subsystems.createTalonFXFeeder();
+        m_shooter = Subsystems.createBlankShooter();
+        m_feeder = Subsystems.createBlankFeeder();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
@@ -124,8 +123,8 @@ public class Robot extends LoggedRobot {
             () -> m_driverController.getLeftX(),
             () -> m_driverController.getRightX()));
 
-    new Trigger(m_feeder.hasNote)
-        .debounce(0.2)
+    m_feeder
+        .hasNote
         .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
         .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()));
 
@@ -164,7 +163,7 @@ public class Robot extends LoggedRobot {
                 m_arm.goToSetpoint(1.266, -2.388, 0.0, 0.0)))
         .onFalse(m_arm.goToSetpoint(-0.547, 2.577, 0.0, 0.0));
 
-    //m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
+    // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
 
     m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 

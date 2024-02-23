@@ -2,19 +2,19 @@ package frc.robot.feeder;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import java.util.function.BooleanSupplier;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import org.littletonrobotics.junction.Logger;
 
 public class Feeder extends SubsystemBase {
 
-  public final BooleanSupplier hasNote;
+  public final Trigger hasNote;
 
   private final FeederIO m_io;
   private final FeederIOInputsAutoLogged m_inputs = new FeederIOInputsAutoLogged();
 
   public Feeder(FeederIO io) {
     m_io = io;
-    hasNote = () -> m_inputs.topNoteSensorTripped;
+    hasNote = new Trigger(() -> m_inputs.topNoteSensorTripped).debounce(0.2);
     setDefaultCommand(idle());
   }
 
