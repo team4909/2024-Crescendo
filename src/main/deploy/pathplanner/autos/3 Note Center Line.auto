@@ -2,39 +2,15 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.64,
-      "y": 6.45
+      "x": 0.66,
+      "y": 6.68
     },
-    "rotation": 58.884491903383555
+    "rotation": 59.98062354893165
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
-        {
-          "type": "named",
-          "data": {
-            "name": "runShooter"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "subShot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.0
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "feederOn"
-          }
-        },
         {
           "type": "path",
           "data": {

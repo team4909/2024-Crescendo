@@ -99,6 +99,7 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
     // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(.3));
+    NamedCommands.registerCommand("feederOnTest", m_feeder.feed());
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));

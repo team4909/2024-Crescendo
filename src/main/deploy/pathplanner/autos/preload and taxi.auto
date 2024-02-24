@@ -54,6 +54,12 @@
               }
             ]
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "TaxiPath"
+          }
         }
       ]
     }
