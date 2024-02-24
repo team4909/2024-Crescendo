@@ -36,10 +36,10 @@ public class Module {
     int sampleCount = m_inputs.odometryTimestamps.length;
     m_odometryPositions = new SwerveModulePosition[sampleCount];
     for (int i = 0; i < sampleCount; i++) {
-      var driveRotations = Units.radiansToRotations(m_inputs.odometryDrivePositionsRad[i]);
-      var steerAngle = m_inputs.odometryTurnPositions[i];
+      double driveRotations = Units.radiansToRotations(m_inputs.odometryDrivePositionsRad[i]);
+      Rotation2d steerAngle = m_inputs.odometryTurnPositions[i];
       driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
-      var driveRadians = Units.rotationsToRadians(driveRotations);
+      double driveRadians = Units.rotationsToRadians(driveRotations);
       double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
       m_odometryPositions[i] = new SwerveModulePosition(positionMeters, steerAngle);
     }
@@ -55,7 +55,7 @@ public class Module {
     double angleError = optimizedState.angle.getRadians() - m_inputs.steerPosition.getRadians();
     setpointVelocityRPS *= Math.cos(angleError);
 
-    var azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
+    double azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
     double driveRateBackOut = azimuthVelocityRPS *= kCouplingGearRatio;
     setpointVelocityRPS -= driveRateBackOut;
 
@@ -86,10 +86,10 @@ public class Module {
 
   // getOdometryPositions() should be used for performant odometry updates, not this.
   public SwerveModulePosition getPosition() {
-    var driveRotations = Units.radiansToRotations(m_inputs.drivePositionRad);
-    var steerAngle = m_inputs.steerPosition;
+    double driveRotations = Units.radiansToRotations(m_inputs.drivePositionRad);
+    Rotation2d steerAngle = m_inputs.steerPosition;
     driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
-    var driveRadians = Units.rotationsToRadians(driveRotations);
+    double driveRadians = Units.rotationsToRadians(driveRotations);
     double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
     return new SwerveModulePosition(positionMeters, steerAngle);
   }

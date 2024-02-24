@@ -137,8 +137,8 @@ public class Vision {
         VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     int tagCount = 0;
     double totalDistance = 0;
-    for (var target : targets) {
-      var tagPose = kTagLayout.getTagPose(target.getFiducialId());
+    for (PhotonTrackedTarget target : targets) {
+      Optional<Pose3d> tagPose = kTagLayout.getTagPose(target.getFiducialId());
       // Ignore tags whose ids are not in the field layout.
       if (tagPose.isEmpty()) continue;
       tagCount++;
