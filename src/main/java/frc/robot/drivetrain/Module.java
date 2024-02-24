@@ -55,9 +55,11 @@ public class Module {
     double angleError = optimizedState.angle.getRadians() - m_inputs.steerPosition.getRadians();
     setpointVelocityRPS *= Math.cos(angleError);
 
-    double azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
-    double driveRateBackOut = azimuthVelocityRPS *= kCouplingGearRatio;
-    setpointVelocityRPS -= driveRateBackOut;
+    if (optimizedState.speedMetersPerSecond != 0.0) {
+      double azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
+      double driveRateBackOut = azimuthVelocityRPS *= kCouplingGearRatio;
+      setpointVelocityRPS -= driveRateBackOut;
+    }
 
     Logger.recordOutput(
         "Test/Desired Speed Module " + m_index, optimizedState.speedMetersPerSecond);
