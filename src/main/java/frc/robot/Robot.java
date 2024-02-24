@@ -118,6 +118,16 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Shooter SysId (Quasistatic Forward)",
+        m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Shooter SysId (Quasistatic Reverse)",
+        m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
@@ -135,9 +145,9 @@ public class Robot extends LoggedRobot {
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.feed()))
         .onFalse(m_shooter.idle());
 
-    m_driverController
-        .rightBumper()
-        .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.spit()));
+    // m_driverController
+    //     .rightBumper()
+    //     .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.spit()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 

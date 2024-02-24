@@ -3,7 +3,7 @@ package frc.robot.feeder;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -25,10 +25,11 @@ public class FeederIOTalonFX implements FeederIO {
     m_topNoteSensor = new DigitalInput(0);
     m_bottomNoteSensor = new DigitalInput(1);
 
-    final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
-    currentLimitsConfig.SupplyCurrentLimit = 30.0;
-    currentLimitsConfig.SupplyCurrentLimitEnable = true;
-    m_feederMotor.getConfigurator().apply(currentLimitsConfig);
+    final TalonFXConfiguration feederMotorConfig = new TalonFXConfiguration();
+    m_feederMotor.getConfigurator().apply(feederMotorConfig);
+    feederMotorConfig.CurrentLimits.SupplyCurrentLimit = 30.0;
+    feederMotorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    m_feederMotor.getConfigurator().apply(feederMotorConfig);
 
     m_feederVelocitySignal = m_feederMotor.getVelocity();
     m_feederAppliedVoltageSignal = m_feederMotor.getMotorVoltage();
@@ -37,7 +38,7 @@ public class FeederIOTalonFX implements FeederIO {
         50.0, m_feederVelocitySignal, m_feederAppliedVoltageSignal, m_feederCurrentSignal);
     m_feederMotor.optimizeBusUtilization();
 
-    m_feederControl = new DutyCycleOut(0, true, false, false, false);
+    m_feederControl = new DutyCycleOut(0, false, false, false, false);
   }
 
   @Override

@@ -1,9 +1,13 @@
 package frc.robot.shooter;
 
-import edu.wpi.first.math.MathUtil;
+import static edu.wpi.first.units.Units.Volts;
+
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
@@ -12,11 +16,35 @@ public class Shooter extends SubsystemBase {
   private final double kSpitVelocityRpm = -500.0;
   private final double kIdleVelocityRpm = 0.0;
 
+  private final PIDController m_topRollerController, m_bottomRollerController;
+  private final SimpleMotorFeedforward m_topRollerFeedforward, m_bottomRollerFeedforward;
+  private final SysIdRoutine m_sysIdRoutine;
+
   private final ShooterIO m_io;
   private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
 
   public Shooter(ShooterIO io) {
     m_io = io;
+    m_topRollerController = new PIDController(0.0, 0.0, 0.0);
+    m_topRollerController.setTolerance(1.0);
+    m_bottomRollerController = new PIDController(0.0, 0.0, 0.0);
+    m_bottomRollerController.setTolerance(1.0);
+    m_topRollerFeedforward = new SimpleMotorFeedforward(0.0, 0.0);
+    m_bottomRollerFeedforward = new SimpleMotorFeedforward(0.0, 0.0);
+    m_sysIdRoutine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                null,
+                (state) -> Logger.recordOutput("Arm/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  m_io.setTopRollerVoltage(voltage.in(Volts));
+                  m_io.setBottomRollerVoltage(voltage.in(Volts));
+                },
+                null,
+                this));
     setDefaultCommand(idle());
   }
 
@@ -24,23 +52,37 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("ShooterInputs", m_inputs);
-
     Logger.recordOutput(
         "Shooter/Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
   }
 
   private void setRollersSetpointRpm(double velocityRpm) {
-    Logger.recordOutput("Shooter/Goal Roller RPM", velocityRpm);
-    m_io.setRollersRPS(velocityRpm / 60.0);
+    double goalVelocityRps = velocityRpm / 60.0;
+    Logger.recordOutput("Shooter/Goal Roller RPS", goalVelocityRps);
+    double topRollerFeedforwardOutput = m_topRollerFeedforward.calculate(goalVelocityRps);
+    double bottomRollerFeedforwardOutput = m_bottomRollerFeedforward.calculate(goalVelocityRps);
+    double topRollerFeedbackOutput =
+        m_topRollerController.calculate(m_inputs.topRollerVelocityRps, goalVelocityRps);
+    double bottomRollerFeedbackOutput =
+        m_bottomRollerController.calculate(m_inputs.bottomRollerVelocityRps, goalVelocityRps);
+    m_io.setTopRollerVoltage(topRollerFeedforwardOutput + topRollerFeedbackOutput);
+    m_io.setBottomRollerVoltage(bottomRollerFeedforwardOutput + bottomRollerFeedbackOutput);
   }
 
   private boolean getShooterRollersAtSetpoint() {
-    return MathUtil.isNear(kFarShotVelocityRpm, m_inputs.topRollerVelocityRpm, 5.0)
-        && MathUtil.isNear(kFarShotVelocityRpm, m_inputs.bottomRollerVelocityRpm, 5.0);
+    return m_bottomRollerController.atSetpoint() && m_topRollerController.atSetpoint();
   }
 
   public Trigger readyToShoot() {
-    return new Trigger(() -> getShooterRollersAtSetpoint()).debounce(0.5);
+    return new Trigger(() -> getShooterRollersAtSetpoint()).debounce(0.25);
+  }
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
   }
 
   public Command idle() {
@@ -60,19 +102,19 @@ public class Shooter extends SubsystemBase {
         });
   }
 
-  public Command spit() {
-    return this.run(
-        () -> {
-          m_io.setRollersRPS(-kSpitVelocityRpm);
-        });
-  }
+  // public Command spit() {
+  //   return this.run(
+  //       () -> {
+  //         m_io.setRollersRPS(-kSpitVelocityRpm);
+  //       });
+  // }
 
-  public Command disableShooter() {
-    return this.run(
-        () -> {
-          m_io.setRollersRPS(0.0);
-        });
-  }
+  // public Command disableShooter() {
+  //   return this.run(
+  //       () -> {
+  //         m_io.setRollersRPS(0.0);
+  //       });
+  // }
 
   public Command catchNote() {
     return this.run(

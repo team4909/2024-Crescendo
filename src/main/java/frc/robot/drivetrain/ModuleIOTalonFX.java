@@ -51,7 +51,6 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final Queue<Double> m_drivePositionQueue, m_steerPositionQueue, m_timestampQueue;
   private final MotionMagicExpoVoltage m_steerControl;
   private final VelocityVoltage m_driveControl;
-
   private final DCMotorSim m_driveSim =
       new DCMotorSim(DCMotor.getKrakenX60Foc(1), Module.kDriveRatio, 0.025);
   private final DCMotorSim m_steerSim =
@@ -158,8 +157,10 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_steerCurrentSignal);
     ParentDevice.optimizeBusUtilizationForAll(m_driveMotor, m_steerMotor, m_azimuthEncoder);
 
-    m_steerControl = new MotionMagicExpoVoltage(0.0, true, 0.0, 0, true, false, false);
-    m_driveControl = new VelocityVoltage(0.0, 0.0, true, 0.0, 0, true, false, false);
+    m_steerControl =
+        new MotionMagicExpoVoltage(0.0, true, 0.0, 0, true, false, false).withUpdateFreqHz(0.0);
+    m_driveControl =
+        new VelocityVoltage(0.0, 0.0, true, 0.0, 0, true, false, false).withUpdateFreqHz(0.0);
   }
 
   @Override
