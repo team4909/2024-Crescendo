@@ -41,8 +41,8 @@ public class Drivetrain extends SubsystemBase {
   public static final Lock odometryLock = new ReentrantLock();
   public final BooleanSupplier onRedAllianceSupplier;
 
-  public final double kTrackwidthMeters = Units.inchesToMeters(21.0);
-  public final double kWheelbaseMeters = Units.inchesToMeters(16.0);
+  public final double kTrackwidthMeters = Units.inchesToMeters(20.75);
+  public final double kWheelbaseMeters = Units.inchesToMeters(15.75);
   private final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
