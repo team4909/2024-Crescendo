@@ -1,10 +1,14 @@
 package frc.robot.LEDs;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix.led.CANdleConfiguration;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
 
-public class Led{
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+public class Led extends SubsystemBase{
     private final CANdle m_led;
 
     public Led(){
@@ -21,5 +25,11 @@ public class Led{
 
     public void setLEDWhite(){
         m_led.setLEDs(255, 255, 255);
+    }
+
+    @Override
+    public void periodic() {
+        Logger.recordOutput("CANdle/Current", m_led.getCurrent());
+        Logger.recordOutput("CANdle/Temperature", m_led.getTemperature());
     }
 }
