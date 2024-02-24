@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
 import frc.robot.vision.VisionIO.VisionIOInputs;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class Vision {
       AprilTagFields.kDefaultField.loadAprilTagLayoutField();
   private Consumer<VisionUpdate> m_visionUpdateConsumer = null;
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
+  private ArrayList<VisionUpdate> m_newVisionUpdates;
   private double xyStdDevCoefficient = 0.1;
   private double thetaStdDevCoefficient = 0.1;
 
@@ -87,6 +89,7 @@ public class Vision {
       Logger.processInputs("Vision/Cam" + Integer.toString(index), m_inputs[index]);
     }
 
+    m_newVisionUpdates = new ArrayList<>();
     final List<Pose3d> estimatedPosesToLog = new ArrayList<>();
     for (int i = 0; i < io.length; i++) {
       for (PhotonPipelineResult result : m_inputs[i].results) {
@@ -105,13 +108,18 @@ public class Vision {
                                     target.getFiducialId(), Timer.getFPGATimestamp()));
                   });
               estimatedPosesToLog.add(estimatedPose);
-              m_visionUpdateConsumer.accept(
+              m_newVisionUpdates.add(
                   new VisionUpdate(
                       estimatedPose.toPose2d(),
                       result.getTimestampSeconds(),
                       getEstimationStdDevs(estimatedPose.toPose2d(), targets)));
             });
       }
+
+      // Sort vision updates so more recent ones are given higher weight.
+      m_newVisionUpdates.stream()
+          .sorted(Comparator.comparingDouble(VisionUpdate::timestampSeconds))
+          .forEach(m_visionUpdateConsumer::accept);
     }
 
     Logger.recordOutput(
