@@ -14,7 +14,7 @@ public class Module {
   public static final double kSteerRatio = 150.0 / 7.0;
   private final double kWheelDiameterMeters = Units.inchesToMeters(4.1);
   private final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;
-  private final double kCouplingGearRatio = 50.0 / 14.0;
+  private final double kCouplingGearRatio = 50.0 / 13.0;
 
   private final ModuleIO m_io;
   private final ModuleIOInputsAutoLogged m_inputs = new ModuleIOInputsAutoLogged();
