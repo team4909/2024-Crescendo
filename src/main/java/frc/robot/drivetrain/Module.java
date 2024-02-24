@@ -86,12 +86,12 @@ public class Module {
 
   // getOdometryPositions() should be used for performant odometry updates, not this.
   public SwerveModulePosition getPosition() {
-      var driveRotations = Units.radiansToRotations(m_inputs.drivePositionRad);
-      var steerAngle = m_inputs.steerPosition;
-      driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
-      var driveRadians = Units.rotationsToRadians(driveRotations);
-      double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
-      return new SwerveModulePosition(positionMeters, steerAngle);
+    var driveRotations = Units.radiansToRotations(m_inputs.drivePositionRad);
+    var steerAngle = m_inputs.steerPosition;
+    driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
+    var driveRadians = Units.rotationsToRadians(driveRotations);
+    double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
+    return new SwerveModulePosition(positionMeters, steerAngle);
   }
 
   public SwerveModuleState getState() {

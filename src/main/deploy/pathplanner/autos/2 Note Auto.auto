@@ -51,20 +51,7 @@
         {
           "type": "parallel",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "SensorIntake"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Taxi"
-                }
-              }
-            ]
+            "commands": []
           }
         }
       ]

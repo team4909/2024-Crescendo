@@ -66,10 +66,10 @@ public class Robot extends LoggedRobot {
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createBlankFourCameraVision();
         m_intake = Subsystems.createSparkMAXIntake();
-        m_arm = Subsystems.createBlankArm();
+        m_arm = Subsystems.createTalonFXArm();
         m_climber = Subsystems.createSparkMAXClimber();
-        m_shooter = Subsystems.createBlankShooter();
-        m_feeder = Subsystems.createBlankFeeder();
+        m_shooter = Subsystems.createTalonFXShooter();
+        m_feeder = Subsystems.createTalonFXFeeder();
         break;
       case kSim:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
@@ -93,14 +93,15 @@ public class Robot extends LoggedRobot {
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
-    // NamedCommands.registerCommand("intake", m_intake.intake());
+    NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(2));
     NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
     // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(1.0));
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
-    // NamedCommands.registerCommand("SensorIntake", SensorIntake());
+    NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
+    NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
@@ -119,9 +120,9 @@ public class Robot extends LoggedRobot {
 
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
-            () -> m_driverController.getLeftY(),
-            () -> m_driverController.getLeftX(),
-            () -> m_driverController.getRightX()));
+            () -> -m_driverController.getLeftY(),
+            () -> -m_driverController.getLeftX(),
+            () -> -m_driverController.getRightX()));
 
     m_feeder
         .hasNote
