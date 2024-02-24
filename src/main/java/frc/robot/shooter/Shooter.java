@@ -25,12 +25,15 @@ public class Shooter extends SubsystemBase {
 
   public Shooter(ShooterIO io) {
     m_io = io;
-    m_topRollerController = new PIDController(0.0, 0.0, 0.0);
+
+    m_topRollerFeedforward = new SimpleMotorFeedforward(0.18039, 0.11968);
+    m_topRollerController = new PIDController(0.13085, 0.0, 0.0);
+
+    m_bottomRollerFeedforward = new SimpleMotorFeedforward(0.19936, 0.12041);
+    m_bottomRollerController = new PIDController(0.11992, 0.0, 0.0);
+
     m_topRollerController.setTolerance(1.0);
-    m_bottomRollerController = new PIDController(0.0, 0.0, 0.0);
     m_bottomRollerController.setTolerance(1.0);
-    m_topRollerFeedforward = new SimpleMotorFeedforward(0.0, 0.0);
-    m_bottomRollerFeedforward = new SimpleMotorFeedforward(0.0, 0.0);
     m_sysIdRoutine =
         new SysIdRoutine(
             new SysIdRoutine.Config(
