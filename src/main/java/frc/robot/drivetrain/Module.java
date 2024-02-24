@@ -12,7 +12,7 @@ public class Module {
   // However, our first stage is 50:13 instead fo 50:14 because we do not have the right part.
   public static final double kDriveRatio = (50.0 / 13.0) * (16.0 / 28.0) * (45.0 / 15.0);
   public static final double kSteerRatio = 150.0 / 7.0;
-  private final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
+  private final double kWheelDiameterMeters = Units.inchesToMeters(4.1);
   private final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;
   private final double kCouplingGearRatio = 50.0 / 14.0;
 
@@ -84,11 +84,14 @@ public class Module {
     return m_inputs.odometryTimestamps;
   }
 
-  // getOdometryPositions() should be used for performant odometry updates, not this. NOTE that this
-  // also does not compensate for drive-azimuth coupling.
+  // getOdometryPositions() should be used for performant odometry updates, not this.
   public SwerveModulePosition getPosition() {
-    return new SwerveModulePosition(
-        m_inputs.drivePositionRad * kWheelRadiusMeters, m_inputs.steerPosition);
+      var driveRotations = Units.radiansToRotations(m_inputs.drivePositionRad);
+      var steerAngle = m_inputs.steerPosition;
+      driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
+      var driveRadians = Units.rotationsToRadians(driveRotations);
+      double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
+      return new SwerveModulePosition(positionMeters, steerAngle);
   }
 
   public SwerveModuleState getState() {
