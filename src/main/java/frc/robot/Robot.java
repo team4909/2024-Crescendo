@@ -94,11 +94,11 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
-    NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(2));
+    NamedCommands.registerCommand("runShooter", m_shooter.runShooter());
     NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
     // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
-    NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(1.0));
+    NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(.3));
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));

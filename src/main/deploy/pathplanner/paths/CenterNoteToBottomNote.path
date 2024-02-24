@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 2.76230979812387,
-        "y": 6.864468657712245
+        "x": 2.6687565625843503,
+        "y": 6.969716047694203
       },
       "prevControl": {
-        "x": 2.528426709275071,
-        "y": 6.3616200166873265
+        "x": 2.4348734737355517,
+        "y": 6.466867406669285
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "WallSpike"
     }
   ],
   "rotationTargets": [
