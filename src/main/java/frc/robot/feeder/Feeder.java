@@ -22,6 +22,8 @@ public class Feeder extends SubsystemBase {
   public void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("FeederInputs", m_inputs);
+    Logger.recordOutput(
+        "Feeder/Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
   }
 
   public Command idle() {
