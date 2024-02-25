@@ -94,12 +94,15 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
+    NamedCommands.registerCommand("intakeOff", m_intake.idle());
     NamedCommands.registerCommand("runShooter", m_shooter.runShooter());
+    NamedCommands.registerCommand("ShooterOff", m_shooter.idle().withTimeout(1));
     NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
     // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(.3));
     NamedCommands.registerCommand("feederOnTest", m_feeder.feed());
+    NamedCommands.registerCommand("feederOff", m_feeder.idle().withTimeout(1));
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
@@ -137,8 +140,8 @@ public class Robot extends LoggedRobot {
 
     m_feeder
         .hasNote
-        .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
-        .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()));
+        .whileTrue(Commands.parallel(m_shooter.catchNote())) // m_feeder.pullBack ,()
+        .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
 
     m_driverController
         .rightTrigger()

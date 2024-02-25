@@ -38,6 +38,23 @@
   "constraintZones": [],
   "eventMarkers": [
     {
+      "name": "Wait",
+      "waypointRelativePos": 1.0,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "wait",
+              "data": {
+                "waitTime": 1.0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "intake",
       "waypointRelativePos": 0.8,
       "command": {
@@ -47,7 +64,7 @@
             {
               "type": "named",
               "data": {
-                "name": "sensorIntake"
+                "name": "intake"
               }
             }
           ]

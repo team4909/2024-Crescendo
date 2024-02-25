@@ -14,6 +14,10 @@ public class Superstructure {
         .withName("Sensor Intake");
   }
 
+  public static Command sensorIntake2(Feeder feeder) {
+    return Commands.waitUntil(feeder.topNoteSensorTripped.get());
+  }
+
   public static Command sensorCatch(Shooter shooter, Feeder feeder, Intake intake, Arm arm) {
     return Commands.parallel(
             arm.goToSetpoint(-0.558, 2.028, 0, 0),

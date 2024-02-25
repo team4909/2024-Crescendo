@@ -222,7 +222,7 @@ public class Drivetrain extends SubsystemBase {
         this::runVelocity,
         new HolonomicPathFollowerConfig(
             new PIDConstants(5.0, 0.0, 0.0),
-            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(7.0, 0.0, 0.0),
             kMaxLinearSpeedMetersPerSecond,
             kDriveBaseRadius,
             new ReplanningConfig()),

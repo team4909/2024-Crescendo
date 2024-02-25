@@ -18,6 +18,12 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 5.0
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "1st note to spike"
