@@ -52,8 +52,8 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     ParentDevice.optimizeBusUtilizationForAll(m_topRoller, m_bottomRoller);
 
-    m_topRollerControl = new VoltageOut(0, true, false, false, false);
-    m_bottomRollerControl = new VoltageOut(0, true, false, false, false);
+    m_topRollerControl = new VoltageOut(0, true, false, false, false).withUpdateFreqHz(0.0);
+    m_bottomRollerControl = new VoltageOut(0, true, false, false, false).withUpdateFreqHz(0.0);
   }
 
   @Override

@@ -12,9 +12,20 @@ import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double kFarShotVelocityRpm = 5000.0;
+  private final double kFarShotVelocityRpm = 5900.0;
   private final double kSpitVelocityRpm = -500.0;
   private final double kIdleVelocityRpm = 0.0;
+
+  // Dimensioned gains here are in rotations
+  public static final double topRollerkS = 0.18039;
+  public static final double topRollerkV = 0.11968;
+  public static final double topRollerkA = 0.0089044;
+  public static final double bottomRollerkS = 0.19936;
+  public static final double bottomRollerkV = 0.12041;
+  public static final double bottomRollerkA = 0.0071461;
+
+  private final double topRollerkP = 0.13085;
+  private final double bottomRollerkP = 0.11992;
 
   private final PIDController m_topRollerController, m_bottomRollerController;
   private final SimpleMotorFeedforward m_topRollerFeedforward, m_bottomRollerFeedforward;
@@ -26,11 +37,11 @@ public class Shooter extends SubsystemBase {
   public Shooter(ShooterIO io) {
     m_io = io;
 
-    m_topRollerFeedforward = new SimpleMotorFeedforward(0.18039, 0.11968);
-    m_topRollerController = new PIDController(0.13085, 0.0, 0.0);
-
-    m_bottomRollerFeedforward = new SimpleMotorFeedforward(0.19936, 0.12041);
-    m_bottomRollerController = new PIDController(0.11992, 0.0, 0.0);
+    m_topRollerFeedforward = new SimpleMotorFeedforward(topRollerkS, topRollerkV, topRollerkA);
+    m_topRollerController = new PIDController(topRollerkP, 0.0, 0.0);
+    m_bottomRollerFeedforward =
+        new SimpleMotorFeedforward(bottomRollerkS, bottomRollerkV, bottomRollerkA);
+    m_bottomRollerController = new PIDController(bottomRollerkP, 0.0, 0.0);
 
     m_topRollerController.setTolerance(1.0);
     m_bottomRollerController.setTolerance(1.0);
@@ -40,7 +51,7 @@ public class Shooter extends SubsystemBase {
                 null,
                 null,
                 null,
-                (state) -> Logger.recordOutput("Arm/SysIdState", state.toString())),
+                (state) -> Logger.recordOutput("Shooter/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> {
                   m_io.setTopRollerVoltage(voltage.in(Volts));
@@ -91,8 +102,8 @@ public class Shooter extends SubsystemBase {
   public Command idle() {
     return this.run(
             () -> {
-              m_io.setRollerDutyCycle(0.0);
-              // setRollersSetpointRpm(kIdleVelocityRpm);
+              m_io.setTopRollerVoltage(0.0);
+              m_io.setBottomRollerVoltage(0.0);
             })
         .withName("Idle");
   }
@@ -105,19 +116,12 @@ public class Shooter extends SubsystemBase {
         });
   }
 
-  // public Command spit() {
-  //   return this.run(
-  //       () -> {
-  //         m_io.setRollersRPS(-kSpitVelocityRpm);
-  //       });
-  // }
-
-  // public Command disableShooter() {
-  //   return this.run(
-  //       () -> {
-  //         m_io.setRollersRPS(0.0);
-  //       });
-  // }
+  public Command runShooterFast() {
+    return this.run(
+        () -> {
+          setRollersSetpointRpm(kFarShotVelocityRpm);
+        });
+  }
 
   public Command catchNote() {
     return this.run(

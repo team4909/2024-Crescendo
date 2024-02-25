@@ -77,7 +77,7 @@ public class Robot extends LoggedRobot {
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createSimArm();
         m_climber = Subsystems.createBlankClimber();
-        m_shooter = Subsystems.createTalonFXShooter();
+        m_shooter = Subsystems.createSimShooter();
         m_feeder = Subsystems.createBlankFeeder();
         break;
       default:
@@ -140,7 +140,8 @@ public class Robot extends LoggedRobot {
 
     m_feeder
         .hasNote
-        .whileTrue(Commands.parallel(m_shooter.catchNote())) // m_feeder.pullBack ,()
+        .and(() -> DriverStation.isTeleopEnabled())
+        .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
         .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
 
     m_driverController
