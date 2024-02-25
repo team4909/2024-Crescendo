@@ -120,8 +120,8 @@ public class ArmIOTalonFX implements ArmIO {
     ParentDevice.optimizeBusUtilizationForAll(
         m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
 
-    m_elbowControl = new VoltageOut(0.0, true, false, false, false);
-    m_wristControl = new VoltageOut(0.0, true, false, false, false);
+    m_elbowControl = new VoltageOut(0.0, true, false, false, false).withUpdateFreqHz(0.0);
+    m_wristControl = new VoltageOut(0.0, true, false, false, false).withUpdateFreqHz(0.0);
   }
 
   public void updateInputs(ArmIOInputs inputs) {

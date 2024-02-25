@@ -176,7 +176,7 @@ public class Robot extends LoggedRobot {
             Commands.parallel(
                 m_intake.feed(),
                 m_shooter.runShooter(),
-                m_arm.goToSetpoint(1.266, -2.388, 0.0, 0.0)))
+                m_arm.goToSetpoint(ArmSetpoints.kAmp)))
         .onFalse(m_arm.goToSetpoint(-0.547, 2.577, 0.0, 0.0));
 
     // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
