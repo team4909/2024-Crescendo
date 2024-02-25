@@ -28,7 +28,8 @@ public class ClimberIOSparkMAX implements ClimberIO {
     inputs.leftWinchPositionRad =
         Units.rotationsToRadians(m_leftWinchEncoder.getPosition() / kWinchReduction);
     inputs.leftWinchVelocityRadPerSec =
-        Units.rotationsToRadians(m_leftWinchEncoder.getVelocity() / kWinchReduction);
+        Units.rotationsPerMinuteToRadiansPerSecond(
+            m_leftWinchEncoder.getVelocity() / kWinchReduction);
     inputs.leftWinchAppliedVolts =
         m_leftWinchMotor.getAppliedOutput() * m_leftWinchMotor.getBusVoltage();
     inputs.leftWinchCurrentAmps = m_leftWinchMotor.getOutputCurrent();
@@ -36,7 +37,8 @@ public class ClimberIOSparkMAX implements ClimberIO {
     inputs.rightWinchPositionRad =
         Units.rotationsToRadians(m_rightWinchEncoder.getPosition() / kWinchReduction);
     inputs.rightWinchVelocityRadPerSec =
-        Units.rotationsToRadians(m_rightWinchEncoder.getVelocity() / kWinchReduction);
+        Units.rotationsPerMinuteToRadiansPerSecond(
+            m_rightWinchEncoder.getVelocity() / kWinchReduction);
     inputs.rightWinchAppliedVolts =
         m_rightWinchMotor.getAppliedOutput() * m_rightWinchMotor.getBusVoltage();
     inputs.rightWinchCurrentAmps = m_rightWinchMotor.getOutputCurrent();
