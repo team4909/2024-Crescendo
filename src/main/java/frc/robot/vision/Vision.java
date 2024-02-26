@@ -13,6 +13,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
+import frc.robot.PoseEstimation;
 import frc.robot.vision.VisionIO.VisionIOInputs;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -42,11 +42,10 @@ public class Vision {
   private VisionSystemSim m_visionSimSystem = null;
   private final AprilTagFieldLayout kTagLayout =
       AprilTagFields.kDefaultField.loadAprilTagLayoutField();
-  private Consumer<VisionUpdate> m_visionUpdateConsumer = null;
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
   private ArrayList<VisionUpdate> m_newVisionUpdates;
-  private double xyStdDevCoefficient = 0.1;
-  private double thetaStdDevCoefficient = 0.1;
+  private double xyStdDevCoefficient = 0.005;
+  private double thetaStdDevCoefficient = 0.01;
 
   public Vision(VisionIO... io) {
     this.io = io;
@@ -119,7 +118,7 @@ public class Vision {
       // Sort vision updates so more recent ones are given higher weight.
       m_newVisionUpdates.stream()
           .sorted(Comparator.comparingDouble(VisionUpdate::timestampSeconds))
-          .forEach(m_visionUpdateConsumer::accept);
+          .forEach(PoseEstimation.getInstance()::addVisionMeasurement);
     }
 
     Logger.recordOutput(
@@ -180,10 +179,6 @@ public class Vision {
 
   public void updateSim(Pose2d currentPose) {
     m_visionSimSystem.update(currentPose);
-  }
-
-  public void setVisionPoseConsumer(Consumer<VisionUpdate> consumer) {
-    m_visionUpdateConsumer = consumer;
   }
 
   public static record VisionUpdate(

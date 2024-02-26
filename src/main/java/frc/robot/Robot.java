@@ -90,7 +90,6 @@ public class Robot extends LoggedRobot {
         m_feeder = Subsystems.createBlankFeeder();
         break;
     }
-    m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
@@ -108,7 +107,6 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
-    m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     m_autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
         m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));

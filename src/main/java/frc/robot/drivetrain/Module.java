@@ -20,6 +20,7 @@ public class Module {
   private final ModuleIOInputsAutoLogged m_inputs = new ModuleIOInputsAutoLogged();
   private final int m_index;
   private SwerveModulePosition[] m_odometryPositions = new SwerveModulePosition[] {};
+  private SwerveModulePosition m_lastPosition = new SwerveModulePosition();
 
   public Module(ModuleIO io, int index) {
     m_io = io;
@@ -42,6 +43,7 @@ public class Module {
       double driveRadians = Units.rotationsToRadians(driveRotations);
       double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
       m_odometryPositions[i] = new SwerveModulePosition(positionMeters, steerAngle);
+      m_lastPosition = m_odometryPositions[i];
     }
   }
 
@@ -88,12 +90,7 @@ public class Module {
 
   // getOdometryPositions() should be used for performant odometry updates, not this.
   public SwerveModulePosition getPosition() {
-    double driveRotations = Units.radiansToRotations(m_inputs.drivePositionRad);
-    Rotation2d steerAngle = m_inputs.steerPosition;
-    driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
-    double driveRadians = Units.rotationsToRadians(driveRotations);
-    double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
-    return new SwerveModulePosition(positionMeters, steerAngle);
+    return m_lastPosition;
   }
 
   public SwerveModuleState getState() {

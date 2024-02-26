@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.PoseEstimation;
 import org.littletonrobotics.junction.Logger;
 
 public class DriveToPose extends Command {
@@ -39,30 +40,30 @@ public class DriveToPose extends Command {
         m_drivetrain.onRedAllianceSupplier.getAsBoolean()
             ? GeometryUtil.flipFieldPose(m_pose)
             : m_pose;
+    Pose2d initialPose = PoseEstimation.getInstance().getPose();
     m_translationController.setTolerance(0.01);
     m_thetaController.setTolerance(Units.degreesToRadians(1.0));
     m_thetaController.enableContinuousInput(-Math.PI, Math.PI);
     Twist2d fieldVelocity = m_drivetrain.getFieldVelocity();
     m_translationController.reset(
-        m_drivetrain.getPose().getTranslation().getDistance(m_goalPose.getTranslation()),
+        initialPose.getTranslation().getDistance(m_goalPose.getTranslation()),
         Math.min(
             0.0,
             -new Translation2d(fieldVelocity.dx, fieldVelocity.dy)
                 .rotateBy(
                     m_goalPose
                         .getTranslation()
-                        .minus(m_drivetrain.getPose().getTranslation())
+                        .minus(initialPose.getTranslation())
                         .getAngle()
                         .unaryMinus())
                 .getX()));
-    m_thetaController.reset(
-        m_drivetrain.getPose().getRotation().getRadians(), m_drivetrain.getYawVelocity());
-    m_lastSetpointTranslation = m_drivetrain.getPose().getTranslation();
+    m_thetaController.reset(initialPose.getRotation().getRadians(), m_drivetrain.getYawVelocity());
+    m_lastSetpointTranslation = initialPose.getTranslation();
   }
 
   @Override
   public void execute() {
-    Pose2d currentPose = m_drivetrain.getPose();
+    Pose2d currentPose = PoseEstimation.getInstance().getPose();
     double currentDistance = currentPose.getTranslation().getDistance(m_goalPose.getTranslation());
     double ffScaler = MathUtil.clamp((currentDistance - 0.2) / (0.8 - 0.2), 0.0, 1.0);
     m_translationController.reset(
