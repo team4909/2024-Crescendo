@@ -61,8 +61,6 @@ public class Drivetrain extends SubsystemBase {
   public final Pose2d m_sourcePoseBlueOrigin =
       new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
 
-  private Twist2d m_fieldVelocity = new Twist2d();
-
   public Drivetrain(
       ImuIO imuIO,
       ModuleIO frontLeftModuleIO,
@@ -121,17 +119,7 @@ public class Drivetrain extends SubsystemBase {
       }
     }
 
-    ChassisSpeeds chassisSpeeds = swerveKinematics.toChassisSpeeds(getModuleStates());
-    Translation2d linearFieldVelocity =
-        new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond)
-            .rotateBy(PoseEstimation.getInstance().getPose().getRotation());
-    m_fieldVelocity =
-        new Twist2d(
-            linearFieldVelocity.getX(),
-            linearFieldVelocity.getY(),
-            m_imuInputs.yawVelocityRadPerSec);
-
-    double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
+    final double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
     for (int updateIndex = 0; updateIndex < sampleTimestamps.length; updateIndex++) {
       SwerveModulePosition[] newModulePositions = new SwerveModulePosition[m_modules.length];
       for (int moduleIndex = 0; moduleIndex < m_modules.length; moduleIndex++) {
@@ -145,6 +133,13 @@ public class Drivetrain extends SubsystemBase {
               m_imuInputs.odometryYawPositions[updateIndex],
               newModulePositions);
     }
+
+    final ChassisSpeeds robotRelativeVelocity = swerveKinematics.toChassisSpeeds(getModuleStates());
+    PoseEstimation.getInstance().setVelocity(new Twist2d(
+        robotRelativeVelocity.vxMetersPerSecond,
+        robotRelativeVelocity.vyMetersPerSecond,
+        m_imuInputs.yawVelocityRadPerSec)
+    );
   }
 
   public void runVelocity(ChassisSpeeds speeds) {
@@ -231,11 +226,6 @@ public class Drivetrain extends SubsystemBase {
 
   private SwerveModulePosition[] getModulePositions() {
     return Arrays.stream(m_modules).map(Module::getPosition).toArray(SwerveModulePosition[]::new);
-  }
-
-  @AutoLogOutput(key = "Drivetrain/Field Velocity")
-  public Twist2d getFieldVelocity() {
-    return m_fieldVelocity;
   }
 
   public double getYawVelocity() {

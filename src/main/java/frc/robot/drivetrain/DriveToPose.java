@@ -44,7 +44,7 @@ public class DriveToPose extends Command {
     m_translationController.setTolerance(0.01);
     m_thetaController.setTolerance(Units.degreesToRadians(1.0));
     m_thetaController.enableContinuousInput(-Math.PI, Math.PI);
-    Twist2d fieldVelocity = m_drivetrain.getFieldVelocity();
+    Twist2d fieldVelocity = PoseEstimation.getInstance().getFieldVelocity();
     m_translationController.reset(
         initialPose.getTranslation().getDistance(m_goalPose.getTranslation()),
         Math.min(

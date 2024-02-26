@@ -172,9 +172,7 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_intake.feed(),
-                m_shooter.runShooter(),
-                m_arm.goToSetpoint(ArmSetpoints.kAmp)))
+                m_intake.feed(), m_shooter.runShooter(), m_arm.goToSetpoint(ArmSetpoints.kAmp)))
         .onFalse(m_arm.goToSetpoint(-0.547, 2.577, 0.0, 0.0));
 
     // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
@@ -242,7 +240,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void simulationPeriodic() {
-    m_vision.updateSim(m_drivetrain.getPose());
+    m_vision.updateSim(PoseEstimation.getInstance().getPose());
   }
 
   private void recordMetadeta() {
