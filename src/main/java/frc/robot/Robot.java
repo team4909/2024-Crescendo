@@ -108,7 +108,7 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
     NamedCommands.registerCommand(
-        "aimFromWingline", m_arm.goToSetpoint(ArmSetpoints.kWinglineShot));
+        "aimFromWingline", m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_autoChooser.addOption(
