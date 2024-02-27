@@ -14,7 +14,7 @@ public class Feeder extends SubsystemBase {
 
   public Feeder(FeederIO io) {
     m_io = io;
-    hasNote = new Trigger(() -> m_inputs.topNoteSensorTripped).debounce(0.2);
+    hasNote = new Trigger(() -> m_inputs.topNoteSensorTripped);
     setDefaultCommand(idle());
   }
 
@@ -31,7 +31,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command feed() {
-    return this.run(() -> m_io.setFeederDutyCycle(-1.0));
+    return this.run(() -> m_io.setFeederDutyCycle(-0.5));
   }
 
   public Command spit() {

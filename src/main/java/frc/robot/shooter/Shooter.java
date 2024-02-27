@@ -12,7 +12,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double kFarShotVelocityRpm = 5900.0;
+  private final double kFarShotVelocityRpm = 5950.0;
   private final double kSpitVelocityRpm = -500.0;
   private final double kIdleVelocityRpm = 0.0;
 
@@ -110,24 +110,27 @@ public class Shooter extends SubsystemBase {
 
   public Command runShooter() {
     return this.run(
-        () -> {
-          m_io.setRollerDutyCycle(1.0);
-          // setRollersSetpointRpm(kFarShotVelocityRpm);
-        });
-  }
-
-  public Command runShooterFast() {
-    return this.run(
-        () -> {
-          setRollersSetpointRpm(kFarShotVelocityRpm);
-        });
+            () -> {
+              setRollersSetpointRpm(kFarShotVelocityRpm);
+            })
+        .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0));
   }
 
   public Command catchNote() {
     return this.run(
-            () -> m_io.setRollerDutyCycle(-8)
-            // setRollersSetpointRpm(-kFarShotVelocityRpm)
-            )
+            () -> {
+              m_io.setTopRollerVoltage(-12.0);
+              m_io.setBottomRollerVoltage(-12.0);
+            })
+        .withName("Catch Note");
+  }
+
+  public Command spit() {
+    return this.run(
+            () -> {
+              m_io.setTopRollerVoltage(-6.0);
+              m_io.setBottomRollerVoltage(-6.0);
+            })
         .withName("Catch Note");
   }
 

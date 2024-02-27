@@ -98,6 +98,8 @@ public class Drivetrain extends SubsystemBase {
 
   public void periodic() {
 
+    Logger.recordOutput("Drivetrain/Pose", PoseEstimation.getInstance().getPose());
+
     // Make the thread stop polling signals while updating odometry readings.
     odometryLock.lock();
     m_imuIO.updateInputs(m_imuInputs);
@@ -135,11 +137,12 @@ public class Drivetrain extends SubsystemBase {
     }
 
     final ChassisSpeeds robotRelativeVelocity = swerveKinematics.toChassisSpeeds(getModuleStates());
-    PoseEstimation.getInstance().setVelocity(new Twist2d(
-        robotRelativeVelocity.vxMetersPerSecond,
-        robotRelativeVelocity.vyMetersPerSecond,
-        m_imuInputs.yawVelocityRadPerSec)
-    );
+    PoseEstimation.getInstance()
+        .setVelocity(
+            new Twist2d(
+                robotRelativeVelocity.vxMetersPerSecond,
+                robotRelativeVelocity.vyMetersPerSecond,
+                m_imuInputs.yawVelocityRadPerSec));
   }
 
   public void runVelocity(ChassisSpeeds speeds) {
@@ -202,7 +205,7 @@ public class Drivetrain extends SubsystemBase {
         this::runVelocity,
         new HolonomicPathFollowerConfig(
             new PIDConstants(5.0, 0.0, 0.0),
-            new PIDConstants(7.0, 0.0, 0.0),
+            new PIDConstants(5.0, 0.0, 0.0),
             kMaxLinearSpeedMetersPerSecond,
             kDriveBaseRadius,
             new ReplanningConfig()),

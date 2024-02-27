@@ -6,7 +6,7 @@ import edu.wpi.first.math.util.Units;
 
 public enum ArmSetpoints {
   kStowed(new Translation2d(-0.102, 0.515), 0.0, 0.0),
-  kAmp(new Translation2d(-0.367, 0.708), 0.0, 0.0),
+  kAmp(new Translation2d(-0.412, 0.785), 0.0, 0.0),
   kSubwoofer(new Translation2d(0.0, 0.0), 0.0, 0.0),
   kSourceCatch(new Translation2d(0.0, 0.0), 0.0, 0.0),
   kClimbPreparation(new Translation2d(0.0, 0.0), 0.0, 0.0);

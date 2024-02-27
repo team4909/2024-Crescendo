@@ -45,7 +45,7 @@ public class PoseEstimation {
         visionUpdate.pose(), visionUpdate.timestampSeconds(), visionUpdate.standardDeviations());
   }
 
-  @AutoLogOutput(key = "PoseEstimation/Estimated Pose")
+  @AutoLogOutput(key = "PoseEstimation/EstimatedPose")
   public Pose2d getPose() {
     return m_poseEstimator.getEstimatedPosition();
   }

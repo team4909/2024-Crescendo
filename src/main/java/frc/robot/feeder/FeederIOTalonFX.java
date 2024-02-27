@@ -6,6 +6,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
 
@@ -29,6 +30,7 @@ public class FeederIOTalonFX implements FeederIO {
     m_feederMotor.getConfigurator().apply(feederMotorConfig);
     feederMotorConfig.CurrentLimits.SupplyCurrentLimit = 30.0;
     feederMotorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    feederMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_feederMotor.getConfigurator().apply(feederMotorConfig);
 
     m_feederVelocitySignal = m_feederMotor.getVelocity();

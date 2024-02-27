@@ -12,33 +12,143 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "to center line"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "sensorIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "TopSubwooferToTopCenterline"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 5.0
+            "name": "enableShooter"
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "1st note to spike"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "TopCenterlineToWingline"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "spike to 2nd note"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "aimFromWingline"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.8
+                }
+              }
+            ]
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "2nd note to spike"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "feederOn"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "sensorIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "WinglineToCenterline2"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "armDown"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Centerline2ToWingline"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "aimFromWingline"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.8
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "feederOn"
+                }
+              }
+            ]
           }
         }
       ]

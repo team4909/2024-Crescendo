@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
@@ -94,7 +95,8 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("intakeOff", m_intake.idle());
-    NamedCommands.registerCommand("runShooter", m_shooter.runShooter());
+    NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
+    NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(0.1));
     NamedCommands.registerCommand("ShooterOff", m_shooter.idle().withTimeout(1));
     NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
@@ -105,6 +107,8 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
+    NamedCommands.registerCommand(
+        "aimFromWingline", m_arm.goToSetpoint(ArmSetpoints.kWinglineShot));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_autoChooser.addOption(
@@ -129,18 +133,21 @@ public class Robot extends LoggedRobot {
         "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
+    m_autoChooser.addOption("sensor intake", Superstructure.sensorIntake(m_feeder, m_intake));
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             () -> -m_driverController.getRightX()));
 
-    m_feeder
-        .hasNote
-        .and(() -> DriverStation.isTeleopEnabled())
-        .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
-        .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
+    // m_feeder
+    //     .hasNote
+    //     .and(() -> DriverStation.isTeleopEnabled())
+    //     .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
+    //     .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
+
+    m_driverController.a().toggleOnTrue(m_arm.idleCoast());
+    m_driverController.y().toggleOnTrue(m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_driverController
         .rightTrigger()
@@ -153,11 +160,11 @@ public class Robot extends LoggedRobot {
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    m_driverController.a().whileTrue(m_climber.unwindWinch());
-    m_driverController.y().whileTrue(m_climber.windWinch());
-
+    // m_driverController.a().whileTrue(m_climber.unwindWinch());
+    // m_driverController.y().whileTrue(m_climber.windWinch());
+    m_driverController.rightStick().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     // First
-    m_driverController.povUp().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
+    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
 
     m_driverController
         .b()
