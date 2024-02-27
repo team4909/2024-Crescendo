@@ -2,34 +2,15 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.66,
-      "y": 6.68
+      "x": 1.3239288017037572,
+      "y": 5.55
     },
-    "rotation": 59.98062354893165
+    "rotation": 0
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
-        {
-          "type": "deadline",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "sensorIntake"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "TopSubwooferToTopCenterline"
-                }
-              }
-            ]
-          }
-        },
         {
           "type": "named",
           "data": {
@@ -37,32 +18,19 @@
           }
         },
         {
-          "type": "deadline",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "TopCenterlineToWingline"
-                }
-              }
-            ]
-          }
-        },
-        {
           "type": "race",
           "data": {
             "commands": [
               {
                 "type": "named",
                 "data": {
-                  "name": "aimFromWingline"
+                  "name": "subShot"
                 }
               },
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 0.8
+                  "waitTime": 0.6
                 }
               }
             ]
@@ -77,6 +45,12 @@
                 "data": {
                   "name": "feederOn"
                 }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.3
+                }
               }
             ]
           }
@@ -86,15 +60,9 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "sensorIntake"
-                }
-              },
-              {
                 "type": "path",
                 "data": {
-                  "pathName": "WinglineToCenterline2"
+                  "pathName": "SpeakerToTopNote"
                 }
               },
               {
@@ -102,18 +70,11 @@
                 "data": {
                   "name": "armDown"
                 }
-              }
-            ]
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
+              },
               {
-                "type": "path",
+                "type": "named",
                 "data": {
-                  "pathName": "Centerline2ToWingline"
+                  "name": "intake"
                 }
               }
             ]
@@ -124,15 +85,15 @@
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "wait",
                 "data": {
-                  "name": "aimFromWingline"
+                  "waitTime": 0.3
                 }
               },
               {
-                "type": "wait",
+                "type": "named",
                 "data": {
-                  "waitTime": 0.8
+                  "name": "intake"
                 }
               }
             ]
@@ -146,6 +107,113 @@
                 "type": "named",
                 "data": {
                   "name": "feederOn"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.3
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "TopNoteToCenterNote"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.3
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "feederOn"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.3
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "CenterNoteToBottomNote"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "sensorIntake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "feederOn"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.3
                 }
               }
             ]

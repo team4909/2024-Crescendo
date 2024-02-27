@@ -10,15 +10,18 @@ import frc.robot.shooter.Shooter;
 /** Class of factories for commands that combine multiple subsystems. */
 public class Superstructure {
   public static Command sensorIntake(Feeder feeder, Intake intake) {
-    return Commands.deadline(feeder.feed().until(feeder.hasNote), intake.intake());
+    return Commands.deadline(feeder.feed().until(feeder.hasNote), intake.intake())
+        .andThen(feeder.idle().withTimeout(0.01))
+        .withName("Sensor Intake");
   }
 
   public static Command sensorCatch(Shooter shooter, Feeder feeder, Intake intake, Arm arm) {
     return Commands.parallel(
-            arm.goToSetpoint(-0.558, 2.028, 0, 0),
-            intake.intake(),
-            feeder.pullBack(),
-            shooter.catchNote())
+            arm.goToSetpoint(-0.558, 2.028, 0, 0), intake.intake(), shooter.catchNote())
         .withName("Sensor Catch");
+  }
+
+  public static Command spit(Shooter shooter, Feeder feeder, Intake intake) {
+    return Commands.parallel(shooter.spit(), feeder.spit(), intake.spit()).withName("Spit");
   }
 }

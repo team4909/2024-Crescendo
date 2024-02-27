@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.28,
-        "y": 5.78
+        "x": 5.77516251328799,
+        "y": 6.1935530908098855
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.03828806020585,
-        "y": 6.2180825160836095
+        "x": 6.693244997601107,
+        "y": 5.832436688021524
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "WinglineShootPosition"
     },
     {
       "anchor": {
-        "x": 2.9,
-        "y": 6.27
+        "x": 8.566050127470625,
+        "y": 5.851083382722322
       },
       "prevControl": {
-        "x": 5.223472681603052,
-        "y": 6.348786118014516
+        "x": 7.345641774616882,
+        "y": 5.740806592724296
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "CenterlineNote2"
     }
   ],
   "rotationTargets": [],
@@ -39,11 +39,11 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0,
+    "rotation": 16.655496380443765,
     "rotateFast": false
   },
   "reversed": false,
-  "folder": null,
+  "folder": "CenterLine",
   "previewStartingState": null,
   "useDefaultConstraints": false
 }

@@ -13,13 +13,14 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
+import frc.robot.PoseEstimation;
 import frc.robot.vision.VisionIO.VisionIOInputs;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -41,10 +42,10 @@ public class Vision {
   private VisionSystemSim m_visionSimSystem = null;
   private final AprilTagFieldLayout kTagLayout =
       AprilTagFields.kDefaultField.loadAprilTagLayoutField();
-  private Consumer<VisionUpdate> m_visionUpdateConsumer = null;
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
-  private double xyStdDevCoefficient = 0.1;
-  private double thetaStdDevCoefficient = 0.1;
+  private ArrayList<VisionUpdate> m_newVisionUpdates;
+  private double xyStdDevCoefficient = 0.005;
+  private double thetaStdDevCoefficient = 0.01;
 
   public Vision(VisionIO... io) {
     this.io = io;
@@ -87,6 +88,7 @@ public class Vision {
       Logger.processInputs("Vision/Cam" + Integer.toString(index), m_inputs[index]);
     }
 
+    m_newVisionUpdates = new ArrayList<>();
     final List<Pose3d> estimatedPosesToLog = new ArrayList<>();
     for (int i = 0; i < io.length; i++) {
       for (PhotonPipelineResult result : m_inputs[i].results) {
@@ -105,13 +107,18 @@ public class Vision {
                                     target.getFiducialId(), Timer.getFPGATimestamp()));
                   });
               estimatedPosesToLog.add(estimatedPose);
-              m_visionUpdateConsumer.accept(
+              m_newVisionUpdates.add(
                   new VisionUpdate(
                       estimatedPose.toPose2d(),
                       result.getTimestampSeconds(),
                       getEstimationStdDevs(estimatedPose.toPose2d(), targets)));
             });
       }
+
+      // Sort vision updates so more recent ones are given higher weight.
+      m_newVisionUpdates.stream()
+          .sorted(Comparator.comparingDouble(VisionUpdate::timestampSeconds))
+          .forEach(PoseEstimation.getInstance()::addVisionMeasurement);
     }
 
     Logger.recordOutput(
@@ -137,8 +144,8 @@ public class Vision {
         VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     int tagCount = 0;
     double totalDistance = 0;
-    for (var target : targets) {
-      var tagPose = kTagLayout.getTagPose(target.getFiducialId());
+    for (PhotonTrackedTarget target : targets) {
+      Optional<Pose3d> tagPose = kTagLayout.getTagPose(target.getFiducialId());
       // Ignore tags whose ids are not in the field layout.
       if (tagPose.isEmpty()) continue;
       tagCount++;
@@ -172,10 +179,6 @@ public class Vision {
 
   public void updateSim(Pose2d currentPose) {
     m_visionSimSystem.update(currentPose);
-  }
-
-  public void setVisionPoseConsumer(Consumer<VisionUpdate> consumer) {
-    m_visionUpdateConsumer = consumer;
   }
 
   public static record VisionUpdate(

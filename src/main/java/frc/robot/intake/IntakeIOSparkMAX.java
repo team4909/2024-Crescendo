@@ -29,13 +29,15 @@ public class IntakeIOSparkMAX implements IntakeIO {
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
     inputs.topRollerVelocityRadPerSec =
-        Units.rotationsToRadians(m_topRollerEncoder.getVelocity() / kRollerReduction);
+        Units.rotationsPerMinuteToRadiansPerSecond(
+            m_topRollerEncoder.getVelocity() / kRollerReduction);
     inputs.topRollerAppliedVolts =
         topRollerMotor.getAppliedOutput() * topRollerMotor.getBusVoltage();
     inputs.topRollerCurrentAmps = topRollerMotor.getOutputCurrent();
 
     inputs.bottomRollerVelocityRadPerSec =
-        Units.rotationsToRadians(m_bottomRollerEncoder.getVelocity() / kRollerReduction);
+        Units.rotationsPerMinuteToRadiansPerSecond(
+            m_bottomRollerEncoder.getVelocity() / kRollerReduction);
     inputs.bottomRollerAppliedVolts =
         bottomRollerMotor.getAppliedOutput() * bottomRollerMotor.getBusVoltage();
     inputs.bottomRollerCurrentAmps = bottomRollerMotor.getOutputCurrent();

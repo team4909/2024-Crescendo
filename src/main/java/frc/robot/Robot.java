@@ -6,8 +6,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.ArmSetpoints;
@@ -78,7 +78,7 @@ public class Robot extends LoggedRobot {
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createSimArm();
         m_climber = Subsystems.createBlankClimber();
-        m_shooter = Subsystems.createTalonFXShooter();
+        m_shooter = Subsystems.createSimShooter();
         m_feeder = Subsystems.createBlankFeeder();
         break;
       default:
@@ -91,20 +91,26 @@ public class Robot extends LoggedRobot {
         m_feeder = Subsystems.createBlankFeeder();
         break;
     }
-    m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
-    // NamedCommands.registerCommand("intake", m_intake.intake());
-    NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(2));
+    NamedCommands.registerCommand("intake", m_intake.intake());
+    NamedCommands.registerCommand("intakeOff", m_intake.idle());
+    NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
+    NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(0.1));
+    NamedCommands.registerCommand("ShooterOff", m_shooter.idle().withTimeout(1));
     NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
     // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
-    NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(1.0));
+    NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(.3));
+    NamedCommands.registerCommand("feederOnTest", m_feeder.feed());
+    NamedCommands.registerCommand("feederOff", m_feeder.idle().withTimeout(1));
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
-    // NamedCommands.registerCommand("SensorIntake", SensorIntake());
+    NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
+    NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
+    NamedCommands.registerCommand(
+        "aimFromWingline", m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
-    m_vision.setVisionPoseConsumer(m_drivetrain.getVisionPoseConsumer());
     m_autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
         m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
@@ -117,34 +123,48 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
         m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
+    m_autoChooser.addOption(
+        "Shooter SysId (Quasistatic Forward)",
+        m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Shooter SysId (Quasistatic Reverse)",
+        m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption("sensor intake", Superstructure.sensorIntake(m_feeder, m_intake));
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
-            () -> m_driverController.getLeftY(),
-            () -> m_driverController.getLeftX(),
-            () -> m_driverController.getRightX()));
+            () -> -m_driverController.getLeftY(),
+            () -> -m_driverController.getLeftX(),
+            () -> -m_driverController.getRightX()));
 
-    new Trigger(m_feeder.hasNote)
-        .debounce(0.2)
-        .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
-        .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()));
+    // m_feeder
+    //     .hasNote
+    //     .and(() -> DriverStation.isTeleopEnabled())
+    //     .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
+    //     .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
+
+    m_driverController.a().toggleOnTrue(m_arm.idleCoast());
+    m_driverController.y().toggleOnTrue(m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_driverController
         .rightTrigger()
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.feed()))
         .onFalse(m_shooter.idle());
 
-    m_driverController
-        .rightBumper()
-        .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.spit()));
+    // m_driverController
+    //     .rightBumper()
+    //     .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.spit()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
 
-    m_driverController.a().whileTrue(m_climber.unwindWinch());
-    m_driverController.y().whileTrue(m_climber.windWinch());
-
+    // m_driverController.a().whileTrue(m_climber.unwindWinch());
+    // m_driverController.y().whileTrue(m_climber.windWinch());
+    m_driverController.rightStick().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     // First
-    m_driverController.povUp().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
+    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
 
     m_driverController
         .b()
@@ -159,12 +179,10 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_intake.feed(),
-                m_shooter.runShooter(),
-                m_arm.goToSetpoint(1.266, -2.388, 0.0, 0.0)))
+                m_intake.feed(), m_shooter.runShooter(), m_arm.goToSetpoint(ArmSetpoints.kAmp)))
         .onFalse(m_arm.goToSetpoint(-0.547, 2.577, 0.0, 0.0));
 
-    //m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
+    // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
 
     m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
@@ -229,7 +247,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void simulationPeriodic() {
-    m_vision.updateSim(m_drivetrain.getPose());
+    m_vision.updateSim(PoseEstimation.getInstance().getPose());
   }
 
   private void recordMetadeta() {

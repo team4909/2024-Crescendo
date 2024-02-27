@@ -12,14 +12,15 @@ public class Module {
   // However, our first stage is 50:13 instead fo 50:14 because we do not have the right part.
   public static final double kDriveRatio = (50.0 / 13.0) * (16.0 / 28.0) * (45.0 / 15.0);
   public static final double kSteerRatio = 150.0 / 7.0;
-  private final double kWheelDiameterMeters = Units.inchesToMeters(4.0);
+  private final double kWheelDiameterMeters = Units.inchesToMeters(3.95);
   private final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;
-  private final double kCouplingGearRatio = 50.0 / 14.0;
+  private final double kCouplingGearRatio = 50.0 / 13.0;
 
   private final ModuleIO m_io;
   private final ModuleIOInputsAutoLogged m_inputs = new ModuleIOInputsAutoLogged();
   private final int m_index;
   private SwerveModulePosition[] m_odometryPositions = new SwerveModulePosition[] {};
+  private SwerveModulePosition m_lastPosition = new SwerveModulePosition();
 
   public Module(ModuleIO io, int index) {
     m_io = io;
@@ -36,12 +37,13 @@ public class Module {
     int sampleCount = m_inputs.odometryTimestamps.length;
     m_odometryPositions = new SwerveModulePosition[sampleCount];
     for (int i = 0; i < sampleCount; i++) {
-      var driveRotations = Units.radiansToRotations(m_inputs.odometryDrivePositionsRad[i]);
-      var steerAngle = m_inputs.odometryTurnPositions[i];
+      double driveRotations = Units.radiansToRotations(m_inputs.odometryDrivePositionsRad[i]);
+      Rotation2d steerAngle = m_inputs.odometryTurnPositions[i];
       driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
-      var driveRadians = Units.rotationsToRadians(driveRotations);
+      double driveRadians = Units.rotationsToRadians(driveRotations);
       double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
       m_odometryPositions[i] = new SwerveModulePosition(positionMeters, steerAngle);
+      m_lastPosition = m_odometryPositions[i];
     }
   }
 
@@ -53,11 +55,13 @@ public class Module {
             * kDriveRatio;
 
     double angleError = optimizedState.angle.getRadians() - m_inputs.steerPosition.getRadians();
-    setpointVelocityRPS *= Math.cos(angleError);
+    setpointVelocityRPS *= Math.max(0.0, Math.cos(angleError));
 
-    var azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
-    double driveRateBackOut = azimuthVelocityRPS *= kCouplingGearRatio;
-    setpointVelocityRPS -= driveRateBackOut;
+    if (optimizedState.speedMetersPerSecond != 0.0) {
+      double azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
+      double driveRateBackOut = azimuthVelocityRPS *= kCouplingGearRatio;
+      setpointVelocityRPS += driveRateBackOut;
+    }
 
     Logger.recordOutput(
         "Test/Desired Speed Module " + m_index, optimizedState.speedMetersPerSecond);
@@ -84,11 +88,9 @@ public class Module {
     return m_inputs.odometryTimestamps;
   }
 
-  // getOdometryPositions() should be used for performant odometry updates, not this. NOTE that this
-  // also does not compensate for drive-azimuth coupling.
+  // getOdometryPositions() should be used for performant odometry updates, not this.
   public SwerveModulePosition getPosition() {
-    return new SwerveModulePosition(
-        m_inputs.drivePositionRad * kWheelRadiusMeters, m_inputs.steerPosition);
+    return m_lastPosition;
   }
 
   public SwerveModuleState getState() {

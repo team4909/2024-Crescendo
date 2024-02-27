@@ -8,7 +8,6 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -25,12 +24,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
-import frc.robot.vision.Vision.VisionUpdate;
+import frc.robot.PoseEstimation;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -41,30 +39,27 @@ public class Drivetrain extends SubsystemBase {
   public static final Lock odometryLock = new ReentrantLock();
   public final BooleanSupplier onRedAllianceSupplier;
 
-  public final double kTrackwidthMeters = Units.inchesToMeters(21.0);
-  public final double kWheelbaseMeters = Units.inchesToMeters(16.0);
-  private final double kDriveBaseRadius =
-      Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
-  private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
-  private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
-  private final double kDeadband = 0.1;
-  private final boolean kUseVisionCorrection = true;
-  private final ImuIO m_imuIO;
-  private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
-  private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
-  private final SwerveDrivePoseEstimator m_poseEstimator;
-  private final Consumer<VisionUpdate> m_visionUpdateConsumer;
-  private final SysIdRoutine m_sysIdRoutine;
-  private final SwerveDriveKinematics m_kinematics =
+  private static final double kTrackwidthMeters = Units.inchesToMeters(20.75);
+  private static double kWheelbaseMeters = Units.inchesToMeters(15.75);
+  public static final SwerveDriveKinematics swerveKinematics =
       new SwerveDriveKinematics(
           new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
           new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
           new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0));
+
+  private final double kDriveBaseRadius =
+      Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
+  private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
+  private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
+  private final double kDeadband = 0.1;
+  private final ImuIO m_imuIO;
+  private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
+  private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
+  private final SysIdRoutine m_sysIdRoutine;
+
   public final Pose2d m_sourcePoseBlueOrigin =
       new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
-
-  private Twist2d m_fieldVelocity = new Twist2d();
 
   public Drivetrain(
       ImuIO imuIO,
@@ -78,20 +73,7 @@ public class Drivetrain extends SubsystemBase {
     m_modules[2] = new Module(backLeftModuleIO, 2);
     m_modules[3] = new Module(backRightModuleIO, 3);
     PhoenixOdometryThread.getInstance().start();
-    m_poseEstimator =
-        new SwerveDrivePoseEstimator(
-            m_kinematics, new Rotation2d(), getModulePositions(), new Pose2d());
 
-    m_visionUpdateConsumer =
-        (VisionUpdate visionUpdate) -> {
-          if (!kUseVisionCorrection) {
-            return;
-          }
-          m_poseEstimator.addVisionMeasurement(
-              visionUpdate.pose(),
-              visionUpdate.timestampSeconds(),
-              visionUpdate.standardDeviations());
-        };
     onRedAllianceSupplier =
         () ->
             DriverStation.getAlliance().isPresent()
@@ -116,6 +98,8 @@ public class Drivetrain extends SubsystemBase {
 
   public void periodic() {
 
+    Logger.recordOutput("Drivetrain/Pose", PoseEstimation.getInstance().getPose());
+
     // Make the thread stop polling signals while updating odometry readings.
     odometryLock.lock();
     m_imuIO.updateInputs(m_imuInputs);
@@ -137,17 +121,7 @@ public class Drivetrain extends SubsystemBase {
       }
     }
 
-    ChassisSpeeds chassisSpeeds = m_kinematics.toChassisSpeeds(getModuleStates());
-    Translation2d linearFieldVelocity =
-        new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond)
-            .rotateBy(getPose().getRotation());
-    m_fieldVelocity =
-        new Twist2d(
-            linearFieldVelocity.getX(),
-            linearFieldVelocity.getY(),
-            m_imuInputs.yawVelocityRadPerSec);
-
-    double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
+    final double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
     for (int updateIndex = 0; updateIndex < sampleTimestamps.length; updateIndex++) {
       SwerveModulePosition[] newModulePositions = new SwerveModulePosition[m_modules.length];
       for (int moduleIndex = 0; moduleIndex < m_modules.length; moduleIndex++) {
@@ -155,13 +129,20 @@ public class Drivetrain extends SubsystemBase {
             m_modules[moduleIndex].getOdometryPositions()[updateIndex];
       }
 
-      // The reason we are bothering with timestamps here is so vision updates can be properly
-      // chronologized with odometry updates.
-      m_poseEstimator.updateWithTime(
-          sampleTimestamps[updateIndex],
-          m_imuInputs.odometryYawPositions[updateIndex],
-          newModulePositions);
+      PoseEstimation.getInstance()
+          .addOdometryMeasurement(
+              sampleTimestamps[updateIndex],
+              m_imuInputs.odometryYawPositions[updateIndex],
+              newModulePositions);
     }
+
+    final ChassisSpeeds robotRelativeVelocity = swerveKinematics.toChassisSpeeds(getModuleStates());
+    PoseEstimation.getInstance()
+        .setVelocity(
+            new Twist2d(
+                robotRelativeVelocity.vxMetersPerSecond,
+                robotRelativeVelocity.vyMetersPerSecond,
+                m_imuInputs.yawVelocityRadPerSec));
   }
 
   public void runVelocity(ChassisSpeeds speeds) {
@@ -169,7 +150,7 @@ public class Drivetrain extends SubsystemBase {
       m_imuIO.updateSim(speeds.omegaRadiansPerSecond * 0.02);
     }
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
-    SwerveModuleState[] setpointStates = m_kinematics.toSwerveModuleStates(discreteSpeeds);
+    SwerveModuleState[] setpointStates = swerveKinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, kMaxLinearSpeedMetersPerSecond);
 
     SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
@@ -216,9 +197,11 @@ public class Drivetrain extends SubsystemBase {
 
   private void configurePathing() {
     AutoBuilder.configureHolonomic(
-        this::getPose,
-        this::setPose,
-        () -> m_kinematics.toChassisSpeeds(getModuleStates()),
+        PoseEstimation.getInstance()::getPose,
+        (newPose) ->
+            PoseEstimation.getInstance()
+                .resetPose(m_imuInputs.yawPosition, getModulePositions(), newPose),
+        () -> swerveKinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
         new HolonomicPathFollowerConfig(
             new PIDConstants(5.0, 0.0, 0.0),
@@ -248,25 +231,7 @@ public class Drivetrain extends SubsystemBase {
     return Arrays.stream(m_modules).map(Module::getPosition).toArray(SwerveModulePosition[]::new);
   }
 
-  @AutoLogOutput(key = "Drivetrain/Estimated Pose")
-  public Pose2d getPose() {
-    return m_poseEstimator.getEstimatedPosition();
-  }
-
-  @AutoLogOutput(key = "Drivetrain/Field Velocity")
-  public Twist2d getFieldVelocity() {
-    return m_fieldVelocity;
-  }
-
   public double getYawVelocity() {
     return m_imuInputs.yawVelocityRadPerSec;
-  }
-
-  private void setPose(Pose2d pose) {
-    m_poseEstimator.resetPosition(m_imuInputs.yawPosition, getModulePositions(), pose);
-  }
-
-  public Consumer<VisionUpdate> getVisionPoseConsumer() {
-    return m_visionUpdateConsumer;
   }
 }

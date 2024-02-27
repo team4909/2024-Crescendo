@@ -28,12 +28,12 @@ import org.littletonrobotics.junction.Logger;
 
 public class ModuleIOTalonFX implements ModuleIO {
 
-  private final double kDrivekP = 0.05;
-  private final double kDrivekS = 0.2;
-  private final double kDrivekV = 0.1;
+  private final double kDrivekP = 0.031509;
+  private final double kDrivekS = 0.1737;
+  private final double kDrivekV = 0.13279;
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
-  private final double kSlipCurrent = 80.0;
+  private final double kSlipCurrent = Constants.kIsSim ? 400.0 : 40.0;
 
   private final TalonFX m_driveMotor, m_steerMotor;
   private final CANcoder m_azimuthEncoder;
@@ -51,7 +51,6 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final Queue<Double> m_drivePositionQueue, m_steerPositionQueue, m_timestampQueue;
   private final MotionMagicExpoVoltage m_steerControl;
   private final VelocityVoltage m_driveControl;
-
   private final DCMotorSim m_driveSim =
       new DCMotorSim(DCMotor.getKrakenX60Foc(1), Module.kDriveRatio, 0.025);
   private final DCMotorSim m_steerSim =
@@ -65,25 +64,25 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(4, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(3, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(12, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = -0.129150390625;
+        m_absoluteEncoderMagnetOffset = 0.37353515625;
         break;
       case 1: // FR
         m_driveMotor = new TalonFX(6, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(5, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(13, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = 0.408203125;
+        m_absoluteEncoderMagnetOffset = -0.090576171875;
         break;
       case 2: // BL
         m_driveMotor = new TalonFX(2, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(1, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(11, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = -0.224365234375;
+        m_absoluteEncoderMagnetOffset = 0.275634765625;
         break;
       case 3: // BR
         m_driveMotor = new TalonFX(7, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(8, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(14, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = -0.187255859375;
+        m_absoluteEncoderMagnetOffset = 0.314208984375;
         break;
       default:
         throw new RuntimeException("Invalid module index");
@@ -104,8 +103,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveMotorConfig.Slot0.kP = kDrivekP;
     driveMotorConfig.Slot0.kS = kDrivekS;
     driveMotorConfig.Slot0.kV = kDrivekV;
-    driveMotorConfig.CurrentLimits.SupplyCurrentLimit = kSlipCurrent;
-    driveMotorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+    driveMotorConfig.CurrentLimits.StatorCurrentLimit = kSlipCurrent;
+    driveMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     driveMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_driveMotor.getConfigurator().apply(driveMotorConfig);
     m_driveMotor.setPosition(0.0);
@@ -158,8 +157,10 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_steerCurrentSignal);
     ParentDevice.optimizeBusUtilizationForAll(m_driveMotor, m_steerMotor, m_azimuthEncoder);
 
-    m_steerControl = new MotionMagicExpoVoltage(0.0, true, 0.0, 0, true, false, false);
-    m_driveControl = new VelocityVoltage(0.0, 0.0, true, 0.0, 0, true, false, false);
+    m_steerControl =
+        new MotionMagicExpoVoltage(0.0, true, 0.0, 0, true, false, false).withUpdateFreqHz(0.0);
+    m_driveControl =
+        new VelocityVoltage(0.0, 0.0, true, 0.0, 0, true, false, false).withUpdateFreqHz(0.0);
   }
 
   @Override

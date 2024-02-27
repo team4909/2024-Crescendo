@@ -240,6 +240,7 @@ public class Arm extends SubsystemBase {
                   m_io.setWristVoltage(0.0);
                 }))
         .finallyDo(() -> m_io.setBrakeMode(true))
+        .ignoringDisable(true)
         .withName("Idle Coast");
   }
 
