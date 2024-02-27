@@ -1,8 +1,29 @@
 {
+  "NetworkTables Settings": {
+    "mode": "Client (NT4)",
+    "serverTeam": "4909"
+  },
   "Persistent Values": {
     "open": false
   },
   "Retained Values": {
     "open": false
+  },
+  "transitory": {
+    "SmartDashboard": {
+      "TunableNumbers": {
+        "Arm": {
+          "Elbow": {
+            "open": true
+          },
+          "Wrist": {
+            "open": true
+          },
+          "open": true
+        },
+        "open": true
+      },
+      "open": true
+    }
   }
 }
