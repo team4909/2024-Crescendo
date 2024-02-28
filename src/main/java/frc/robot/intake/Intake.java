@@ -42,7 +42,7 @@ public class Intake extends SubsystemBase {
         () -> {
           m_io.setTopRollerDutyCycle(0.8);
           m_io.setBottomRollerDutyCycle(0.8);
-          m_io.setCenteringMotorsDutyCycle(1.0);
+          m_io.setCenteringMotorsDutyCycle(0.5);
         });
   }
 

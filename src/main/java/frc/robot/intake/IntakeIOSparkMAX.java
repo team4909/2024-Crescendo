@@ -23,7 +23,7 @@ public class IntakeIOSparkMAX implements IntakeIO {
 
     topRollerMotor.setSmartCurrentLimit(40);
     bottomRollerMotor.setSmartCurrentLimit(40);
-    centeringMotors.setSmartCurrentLimit(15);
+    centeringMotors.setSmartCurrentLimit(35);
   }
 
   @Override

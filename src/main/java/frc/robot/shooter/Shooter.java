@@ -119,8 +119,8 @@ public class Shooter extends SubsystemBase {
   public Command catchNote() {
     return this.run(
             () -> {
-              m_io.setTopRollerVoltage(-12.0);
-              m_io.setBottomRollerVoltage(-12.0);
+              m_io.setTopRollerVoltage(-9.0);
+              m_io.setBottomRollerVoltage(-9.0);
             })
         .withName("Catch Note");
   }

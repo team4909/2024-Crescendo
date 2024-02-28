@@ -31,18 +31,18 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command feed() {
-    return this.run(() -> m_io.setFeederDutyCycle(-0.5));
+    return this.run(() -> m_io.setFeederDutyCycle(-0.45));
   }
 
   public Command spit() {
     return this.run(() -> m_io.setFeederDutyCycle(1.0));
   }
 
-  public Command holdCatch() {
-    return this.run(() -> m_io.setFeederDutyCycle(-0.25));
+  public Command enterCoast() {
+    return this.startEnd(() -> m_io.setBrakeMode(false), () -> m_io.setBrakeMode(true));
   }
 
   public Command pullBack() {
-    return this.run(() -> m_io.setFeederDutyCycle(0.1));
+    return this.run(() -> m_io.setFeederDutyCycle(0.25));
   }
 }

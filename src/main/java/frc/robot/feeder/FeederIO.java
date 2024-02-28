@@ -19,4 +19,6 @@ public interface FeederIO {
   public default void updateInputs(FeederIOInputs inputs) {}
 
   public default void setFeederDutyCycle(double dutyCycle) {}
+
+  public default void setBrakeMode(boolean enableBrakeMode) {}
 }

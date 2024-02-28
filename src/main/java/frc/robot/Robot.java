@@ -107,8 +107,7 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
-    NamedCommands.registerCommand(
-        "aimFromWingline", m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
+    NamedCommands.registerCommand("aimFromWingline", m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_autoChooser.addOption(
@@ -146,7 +145,7 @@ public class Robot extends LoggedRobot {
     //     .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
     //     .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
 
-    m_driverController.a().toggleOnTrue(m_arm.idleCoast());
+    // m_driverController.a().toggleOnTrue(m_arm.idleCoast());
     m_driverController.y().toggleOnTrue(m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_driverController
@@ -162,7 +161,7 @@ public class Robot extends LoggedRobot {
 
     // m_driverController.a().whileTrue(m_climber.unwindWinch());
     // m_driverController.y().whileTrue(m_climber.windWinch());
-    m_driverController.rightStick().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
+    m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     // First
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
 
@@ -192,7 +191,7 @@ public class Robot extends LoggedRobot {
             Commands.parallel(m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0), m_shooter.runShooter()))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
-    m_operatorController.y().toggleOnTrue(m_shooter.runShooter());
+    m_operatorController.y().whileTrue(m_shooter.runShooter());
     // wrist = 2.028
     m_operatorController
         .leftBumper()

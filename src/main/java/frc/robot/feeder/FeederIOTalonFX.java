@@ -61,4 +61,10 @@ public class FeederIOTalonFX implements FeederIO {
   public void setFeederDutyCycle(double volts) {
     m_feederMotor.setControl(m_feederControl.withOutput(volts));
   }
+
+  public void setBrakeMode(boolean enableBrakeMode) {
+    final NeutralModeValue neutralModeValue =
+        enableBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+    m_feederMotor.setNeutralMode(neutralModeValue);
+  }
 }
