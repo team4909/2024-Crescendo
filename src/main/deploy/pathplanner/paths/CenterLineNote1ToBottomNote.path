@@ -61,7 +61,7 @@
     "rotateFast": false
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Amp Side",
   "previewStartingState": null,
   "useDefaultConstraints": false
 }

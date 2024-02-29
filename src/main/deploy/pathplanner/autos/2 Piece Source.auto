@@ -1,0 +1,31 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.6706475505032715,
+      "y": 4.417916777185551
+    },
+    "rotation": 120.90306080687992
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Sub to Centerline 5"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Centerline 5 to Sub"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
