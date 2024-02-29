@@ -168,7 +168,7 @@ public class Robot extends LoggedRobot {
     m_driverController
         .b()
         .whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()))
-        .onFalse(m_shooter.idle());
+        .onFalse(Commands.parallel(m_shooter.idle(), m_arm.setBrake()));
 
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
 

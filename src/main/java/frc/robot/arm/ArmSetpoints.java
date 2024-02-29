@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
 public enum ArmSetpoints {
-  kStowed(new Translation2d(-0.102, 0.515), 0.95, 0.0),
+  kStowed(new Translation2d(-0.127, 0.484), 0.95, 0.0),
   kAmp(new Translation2d(-0.412, 0.785), 0.0, 0.2),
   kSubwoofer(new Translation2d(0.0, 0.0), 0.0, 0.0),
   kSourceCatch(new Translation2d(0.0, 0.0), 0.0, 0.0),

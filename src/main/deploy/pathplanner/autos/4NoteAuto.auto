@@ -68,13 +68,13 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "armDown"
+                  "name": "intake"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "intake"
+                  "name": "armDown"
                 }
               }
             ]
@@ -87,32 +87,13 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 0.3
+                  "waitTime": 0.6
                 }
               },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
               {
                 "type": "named",
                 "data": {
                   "name": "feederOn"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 0.3
                 }
               }
             ]
@@ -127,12 +108,6 @@
                 "data": {
                   "pathName": "TopNoteToCenterNote"
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
               }
             ]
           }
@@ -144,32 +119,13 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 0.3
+                  "waitTime": 0.6
                 }
               },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
               {
                 "type": "named",
                 "data": {
                   "name": "feederOn"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 0.3
                 }
               }
             ]
@@ -188,7 +144,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "sensorIntake"
+                  "name": "intake"
                 }
               }
             ]
@@ -208,6 +164,12 @@
                 "type": "wait",
                 "data": {
                   "waitTime": 0.3
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "armDown"
                 }
               }
             ]

@@ -244,6 +244,10 @@ public class Arm extends SubsystemBase {
         .withName("Idle Coast");
   }
 
+  public Command setBrake() {
+    return this.runOnce(() -> m_io.setBrakeMode(true));
+  }
+
   class ArmKinematics {
 
     public Translation2d forward(Vector<N2> angles) {
