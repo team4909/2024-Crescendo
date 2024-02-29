@@ -126,7 +126,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "Top Spike to Center Line"
+                              "pathName": "Top Spike to Centerline 2"
                             }
                           }
                         ]
@@ -135,7 +135,7 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "Centerline to Center Spike"
+                        "pathName": "Centerline 2 to Shot"
                       }
                     },
                     {

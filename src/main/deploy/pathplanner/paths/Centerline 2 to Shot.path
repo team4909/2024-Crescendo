@@ -3,43 +3,49 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.77516251328799,
-        "y": 6.1935530908098855
+        "x": 8.29,
+        "y": 5.78
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.693244997601107,
-        "y": 5.832436688021524
+        "x": 7.15294089683173,
+        "y": 6.727362969458998
       },
       "isLocked": false,
-      "linkedName": "WinglineShootPosition"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 8.566050127470625,
-        "y": 5.851083382722322
+        "x": 2.71,
+        "y": 5.55
       },
       "prevControl": {
-        "x": 7.345641774616882,
-        "y": 5.740806592724296
+        "x": 4.907787339039305,
+        "y": 7.071877489430977
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "CenterlineNote2"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.25,
+      "rotationDegrees": 0,
+      "rotateFast": false
+    }
+  ],
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 6.0,
+    "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 16.655496380443765,
+    "rotation": 0,
     "rotateFast": false
   },
   "reversed": false,

@@ -3,47 +3,56 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.566050127470625,
-        "y": 5.851083382722322
+        "x": 2.82,
+        "y": 6.83
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.536525461199071,
-        "y": 6.069812157216908
+        "x": 3.478494160289644,
+        "y": 7.1328920181305
       },
       "isLocked": false,
-      "linkedName": "CenterlineNote2"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.77516251328799,
-        "y": 6.1935530908098855
+        "x": 8.287089431302343,
+        "y": 5.776567709683814
       },
       "prevControl": {
-        "x": 6.491575649817966,
-        "y": 6.287736714362318
+        "x": 5.602825564103819,
+        "y": 7.3345503493375155
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "WinglineShootPosition"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.15,
+      "rotationDegrees": -19.197529689544183,
+      "rotateFast": false
+    }
+  ],
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 6.0,
+    "maxAcceleration": 6.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 4.925515519389755,
+    "rotation": -32.7577307040435,
     "rotateFast": false
   },
   "reversed": false,
   "folder": "CenterLine",
-  "previewStartingState": null,
+  "previewStartingState": {
+    "rotation": 26.97,
+    "velocity": 0
+  },
   "useDefaultConstraints": false
 }
