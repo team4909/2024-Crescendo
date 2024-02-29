@@ -11,7 +11,6 @@ import frc.robot.shooter.Shooter;
 public class Superstructure {
   public static Command sensorIntake(Feeder feeder, Intake intake) {
     return Commands.deadline(feeder.feed().until(feeder.hasNote), intake.intake())
-        .andThen(feeder.pullBack().until(feeder.hasNote))
         .andThen(feeder.idle().withTimeout(0.01))
         .withName("Sensor Intake");
   }
