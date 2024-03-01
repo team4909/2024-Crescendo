@@ -180,7 +180,7 @@ public class Robot extends LoggedRobot {
                 PoseEstimation.getInstance().getPose().getTranslation(),
                 Rotation2d.fromDegrees(-32.98)),
             m_drivetrain);
-    m_driverController.a().whileTrue(snapToAngle);
+    m_driverController.leftTrigger().whileTrue(snapToAngle);
 
     // elbow = 1.147 rad
     // wrist = 3.805 rad

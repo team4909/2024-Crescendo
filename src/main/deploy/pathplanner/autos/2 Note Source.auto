@@ -47,6 +47,12 @@
                 }
               },
               {
+                "type": "named",
+                "data": {
+                  "name": "intake"
+                }
+              },
+              {
                 "type": "wait",
                 "data": {
                   "waitTime": 0.3
@@ -56,25 +62,38 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "race",
           "data": {
             "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Sub to Centerline 5"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              },
               {
                 "type": "named",
                 "data": {
                   "name": "armDown"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "sensorIntake"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Sub to Centerline 5"
                 }
               }
             ]
@@ -103,6 +122,12 @@
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
           }
         },
         {
