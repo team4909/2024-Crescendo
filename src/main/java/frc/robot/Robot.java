@@ -2,6 +2,8 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -12,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.ArmSetpoints;
 import frc.robot.climber.Climber;
+import frc.robot.drivetrain.DriveToPose;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
@@ -171,6 +174,13 @@ public class Robot extends LoggedRobot {
         .onFalse(Commands.parallel(m_shooter.idle(), m_arm.setBrake()));
 
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
+    Command snapToAngle =
+        new DriveToPose(
+            new Pose2d(
+                PoseEstimation.getInstance().getPose().getTranslation(),
+                Rotation2d.fromDegrees(-32.98)),
+            m_drivetrain);
+    m_driverController.a().whileTrue(snapToAngle);
 
     // elbow = 1.147 rad
     // wrist = 3.805 rad
