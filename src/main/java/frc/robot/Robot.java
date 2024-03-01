@@ -146,7 +146,7 @@ public class Robot extends LoggedRobot {
     //     .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
 
     // m_driverController.a().toggleOnTrue(m_arm.idleCoast());
-    m_driverController.y().toggleOnTrue(m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
+    // m_driverController.y().toggleOnTrue(m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_driverController
         .rightTrigger()
@@ -192,6 +192,7 @@ public class Robot extends LoggedRobot {
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_operatorController.y().whileTrue(m_shooter.runShooter());
+    m_operatorController.a().whileTrue(m_shooter.ampShot());
     // wrist = 2.028
     m_operatorController
         .leftBumper()

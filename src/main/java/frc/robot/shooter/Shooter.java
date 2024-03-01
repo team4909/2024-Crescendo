@@ -13,7 +13,7 @@ import org.littletonrobotics.junction.Logger;
 public class Shooter extends SubsystemBase {
 
   private final double kFarShotVelocityRpm = 5950.0;
-  private final double kSpitVelocityRpm = -500.0;
+  private final double kAmpshot = 2500.0;
   private final double kIdleVelocityRpm = 0.0;
 
   // Dimensioned gains here are in rotations
@@ -114,6 +114,10 @@ public class Shooter extends SubsystemBase {
               setRollersSetpointRpm(kFarShotVelocityRpm);
             })
         .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0));
+  }
+
+  public Command ampShot() {
+    return this.run(() -> setRollersSetpointRpm(kAmpshot));
   }
 
   public Command catchNote() {
