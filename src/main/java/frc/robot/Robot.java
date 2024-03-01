@@ -182,14 +182,12 @@ public class Robot extends LoggedRobot {
             m_drivetrain);
     m_driverController.leftTrigger().whileTrue(snapToAngle);
 
-    // elbow = 1.147 rad
-    // wrist = 3.805 rad
     m_operatorController
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(ArmSetpoints.kAmp)))
-        .onFalse(m_arm.goToSetpoint(-0.547, 2.577, 0.0, 0.0));
+                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(1.388, -2.382, 0.0, 0.0)))
+        .onFalse(m_arm.goToSetpoint(-0.571, 2.46, 0.15, 0.0));
 
     // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
 
