@@ -163,7 +163,7 @@ public class Robot extends LoggedRobot {
     // m_driverController.y().whileTrue(m_climber.windWinch());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     // First
-    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(1.207, 3.274, 0, 0));
+    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(1.633, -2.371, 0, 0));
 
     m_driverController
         .b()
@@ -178,7 +178,7 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_intake.feed(), m_shooter.runShooter(), m_arm.goToSetpoint(ArmSetpoints.kAmp)))
+                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(ArmSetpoints.kAmp)))
         .onFalse(m_arm.goToSetpoint(-0.547, 2.577, 0.0, 0.0));
 
     // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
