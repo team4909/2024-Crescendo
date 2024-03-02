@@ -186,7 +186,7 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(1.388, -2.382, 0.0, 0.0)))
+                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(1.49, -2.307, 0.0, 0.0)))
         .onFalse(m_arm.goToSetpoint(-0.571, 2.46, 0.15, 0.0));
 
     // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));

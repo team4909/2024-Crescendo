@@ -6,7 +6,7 @@ public final class Constants {
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
   public static final String kOtherCanBus = "CANivore2";
-  public static final boolean kInTuningMode = true;
+  public static final boolean kInTuningMode = false;
 
   public static enum Mode {
     kReal,
