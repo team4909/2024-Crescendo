@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -41,12 +42,15 @@ public class Drivetrain extends SubsystemBase {
 
   private static final double kTrackwidthMeters = Units.inchesToMeters(20.75);
   private static double kWheelbaseMeters = Units.inchesToMeters(15.75);
-  public static final SwerveDriveKinematics swerveKinematics =
-      new SwerveDriveKinematics(
-          new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
-          new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
-          new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
-          new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0));
+  private static final Translation2d[] m_modulePositions =
+      new Translation2d[] {
+        new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
+        new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
+        new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
+        new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0)
+      };
+  public static final SwerveDriveKinematics kSwerveKinematics =
+      new SwerveDriveKinematics(m_modulePositions);
 
   private final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
@@ -56,7 +60,7 @@ public class Drivetrain extends SubsystemBase {
   private final ImuIO m_imuIO;
   private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
   private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
-  private final SysIdRoutine m_sysIdRoutine;
+  private final SysIdRoutine m_sysIdRoutineDrive, m_sysIdRoutineRotation;
 
   public final Pose2d m_sourcePoseBlueOrigin =
       new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
@@ -78,7 +82,7 @@ public class Drivetrain extends SubsystemBase {
         () ->
             DriverStation.getAlliance().isPresent()
                 && DriverStation.getAlliance().get() == Alliance.Red;
-    m_sysIdRoutine =
+    m_sysIdRoutineDrive =
         new SysIdRoutine(
             new SysIdRoutine.Config(
                 null,
@@ -93,12 +97,27 @@ public class Drivetrain extends SubsystemBase {
                 },
                 null,
                 this));
+    m_sysIdRoutineRotation =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                Volts.of(4.0),
+                null,
+                (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  for (int i = 0; i < m_modules.length; ++i) {
+                    m_modules[i].runCharacterization(
+                        m_modulePositions[i].getAngle().plus(Rotation2d.fromDegrees(90)),
+                        voltage.in(Volts));
+                  }
+                },
+                null,
+                this));
     configurePathing();
   }
 
   public void periodic() {
-
-    Logger.recordOutput("Drivetrain/Pose", PoseEstimation.getInstance().getPose());
 
     // Make the thread stop polling signals while updating odometry readings.
     odometryLock.lock();
@@ -136,7 +155,8 @@ public class Drivetrain extends SubsystemBase {
               newModulePositions);
     }
 
-    final ChassisSpeeds robotRelativeVelocity = swerveKinematics.toChassisSpeeds(getModuleStates());
+    final ChassisSpeeds robotRelativeVelocity =
+        kSwerveKinematics.toChassisSpeeds(getModuleStates());
     PoseEstimation.getInstance()
         .setVelocity(
             new Twist2d(
@@ -150,7 +170,7 @@ public class Drivetrain extends SubsystemBase {
       m_imuIO.updateSim(speeds.omegaRadiansPerSecond * 0.02);
     }
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
-    SwerveModuleState[] setpointStates = swerveKinematics.toSwerveModuleStates(discreteSpeeds);
+    SwerveModuleState[] setpointStates = kSwerveKinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, kMaxLinearSpeedMetersPerSecond);
 
     SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
@@ -187,21 +207,27 @@ public class Drivetrain extends SubsystemBase {
     return Commands.runOnce(() -> m_imuIO.setGyroAngle(0.0)).ignoringDisable(true);
   }
 
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
+  public Command sysIdDriveQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineDrive.quasistatic(direction);
   }
 
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
+  public Command sysIdDriveDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineDrive.dynamic(direction);
+  }
+
+  public Command sysIdRotationQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineRotation.quasistatic(direction);
+  }
+
+  public Command sysIdRotationDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineRotation.dynamic(direction);
   }
 
   private void configurePathing() {
     AutoBuilder.configureHolonomic(
         PoseEstimation.getInstance()::getPose,
-        (newPose) ->
-            PoseEstimation.getInstance()
-                .resetPose(m_imuInputs.yawPosition, getModulePositions(), newPose),
-        () -> swerveKinematics.toChassisSpeeds(getModuleStates()),
+        resetPose,
+        () -> kSwerveKinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
         new HolonomicPathFollowerConfig(
             new PIDConstants(5.0, 0.0, 0.0),
@@ -222,14 +248,20 @@ public class Drivetrain extends SubsystemBase {
         });
   }
 
-  @AutoLogOutput(key = "SwerveStates/Measured")
+  @AutoLogOutput(key = "SwerveStates/StatesMeasured")
   private SwerveModuleState[] getModuleStates() {
     return Arrays.stream(m_modules).map(Module::getState).toArray(SwerveModuleState[]::new);
   }
 
+  @AutoLogOutput(key = "SwerveStates/PositionsMeasured")
   private SwerveModulePosition[] getModulePositions() {
     return Arrays.stream(m_modules).map(Module::getPosition).toArray(SwerveModulePosition[]::new);
   }
+
+  public Consumer<Pose2d> resetPose =
+      (newPose) ->
+          PoseEstimation.getInstance()
+              .resetPose(m_imuInputs.yawPosition, getModulePositions(), newPose);
 
   public double getYawVelocity() {
     return m_imuInputs.yawVelocityRadPerSec;

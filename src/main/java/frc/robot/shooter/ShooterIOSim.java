@@ -30,6 +30,7 @@ public class ShooterIOSim implements ShooterIO {
     m_topRollerSim.update(0.02);
     m_bottomRollerSim.update(0.02);
 
+    inputs.rollerMotorsConnected = true;
     /**
      * The units here are weird. The plant was made with gains that were in volts/rotations. This
      * means what the sim thinks is radians is actually rotations. However, for simulating current
@@ -61,5 +62,11 @@ public class ShooterIOSim implements ShooterIO {
   @Override
   public void setBottomRollerVoltage(double volts) {
     m_bottomRollerAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
+  }
+
+  @Override
+  public void stopRollers() {
+    m_topRollerAppliedVolts = 0.0;
+    m_bottomRollerAppliedVolts = 0.0;
   }
 }

@@ -36,6 +36,8 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class Vision {
 
   private static final double kTargetLogTimeSecs = 0.1;
+  private final boolean kTrustVisionXY = true;
+  private final boolean kTrustVisionTheta = false;
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
   private final PhotonPoseEstimator[] m_poseEstimators;
@@ -44,8 +46,8 @@ public class Vision {
       AprilTagFields.kDefaultField.loadAprilTagLayoutField();
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
   private ArrayList<VisionUpdate> m_newVisionUpdates;
-  private double xyStdDevCoefficient = 0.005;
-  private double thetaStdDevCoefficient = 0.01;
+  private final double kXYStdDevCoefficient = 0.005;
+  private final double kThetaStdDevCoefficient = 0.1;
 
   public Vision(VisionIO... io) {
     this.io = io;
@@ -159,11 +161,17 @@ public class Vision {
      * ambiguity OR there is only one tag and the tag is too far.
      */
     if ((tagCount == 0)
-        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.3)
+        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.25)
         || (tagCount == 1 && averageDistance > 4)) return rejectTagStdDev;
 
-    double xyStdDev = xyStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount;
-    double thetaStdDev = thetaStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount;
+    double xyStdDev =
+        kTrustVisionXY
+            ? kXYStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount
+            : Double.MAX_VALUE;
+    double thetaStdDev =
+        kTrustVisionTheta
+            ? kThetaStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount
+            : Double.MAX_VALUE;
     return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
   }
 

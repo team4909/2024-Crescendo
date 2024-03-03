@@ -24,4 +24,6 @@ public interface IntakeIO {
   public default void setBottomRollerDutyCycle(double outputDutyCycle) {}
 
   public default void setCenteringMotorsDutyCycle(double outputDutyCycle) {}
+
+  public default void stopRollers() {}
 }

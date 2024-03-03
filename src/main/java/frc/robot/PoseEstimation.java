@@ -20,7 +20,7 @@ public class PoseEstimation {
   public PoseEstimation() {
     m_poseEstimator =
         new SwerveDrivePoseEstimator(
-            Drivetrain.swerveKinematics,
+            Drivetrain.kSwerveKinematics,
             new Rotation2d(),
             new SwerveModulePosition[] {
               new SwerveModulePosition(),

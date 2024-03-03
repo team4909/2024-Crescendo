@@ -23,7 +23,7 @@ public class ArmVisualizer {
   private final MechanismLigament2d m_elbowLigament;
   private final MechanismLigament2d m_wristLigament;
 
-  public ArmVisualizer(String logKey) {
+  public ArmVisualizer(String logKey, double ligamentWidth, Color color) {
     m_logKey = logKey;
     m_mechanism = new Mechanism2d(4, 3, new Color8Bit(Color.kGray));
     m_mechanismRoot = m_mechanism.getRoot("Arm", 2 + ArmModel.origin.getX(), 0);
@@ -38,11 +38,11 @@ public class ArmVisualizer {
     m_elbowLigament =
         m_fixedShoulderLigament.append(
             new MechanismLigament2d(
-                "Elbow", ArmModel.kElbowLengthMeters, 0, 4, new Color8Bit(Color.kGreen)));
+                "Elbow", ArmModel.kElbowLengthMeters, 0, ligamentWidth, new Color8Bit(color)));
     m_wristLigament =
         m_elbowLigament.append(
             new MechanismLigament2d(
-                "Wrist", ArmModel.kWristLengthMeters, 0, 4, new Color8Bit(Color.kDarkGreen)));
+                "Wrist", ArmModel.kWristLengthMeters, 0, ligamentWidth, new Color8Bit(color)));
   }
 
   public void update(double elbowAngle, double wristAngle) {

@@ -12,23 +12,18 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.Constants;
 
 public class ArmIOTalonFX implements ArmIO {
 
   // Offsets to the horizontal
-  private final double kElbowRelativeEncoderOffsetRad = 0.558; // .558;
-  private final double kWristRelativeEncoderOffsetRad = 2.5; // 2.5;
-  private final boolean kInvertWristAbsoluteEncoder = false;
-  private final boolean kInvertElbowAbsoluteEncoder = false;
+  private final double kElbowRelativeEncoderOffsetRad = 0.558;
+  private final double kWristRelativeEncoderOffsetRad = 2.5;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,
       m_wristLeftMotor,
       m_wristRightFollowerMotor;
-  private final DutyCycleEncoder m_elbowAbsoluteEncoder, m_wristAbsoluteEncoder;
   private final VoltageOut m_elbowControl, m_wristControl;
   private final StatusSignal<Double> m_elbowPositionSignal,
       m_elbowVelocitySignal,
@@ -41,21 +36,11 @@ public class ArmIOTalonFX implements ArmIO {
       m_wristCurrentSignal,
       m_wristFollowerCurrentSignal;
 
-  private final Rotation2d elbowAbsoluteEncoderOffset = new Rotation2d(2.471);
-  private final Rotation2d wristAbsoluteEncoderOffset = new Rotation2d(0.646);
-  //   private final Rotation2d elbowAbsoluteEncoderOffset;
-  //   private final Rotation2d wristAbsoluteEncoderOffset;
-
   public ArmIOTalonFX() {
     m_elbowLeftMotor = new TalonFX(15, Constants.kOtherCanBus);
     m_elbowRightFollowerMotor = new TalonFX(17, Constants.kOtherCanBus);
     m_wristLeftMotor = new TalonFX(16, Constants.kOtherCanBus);
     m_wristRightFollowerMotor = new TalonFX(18, Constants.kOtherCanBus);
-
-    m_elbowAbsoluteEncoder = new DutyCycleEncoder(8);
-    m_wristAbsoluteEncoder = new DutyCycleEncoder(9);
-    m_elbowAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
-    m_wristAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
 
     m_elbowLeftMotor.setPosition(0.0);
     m_wristLeftMotor.setPosition(0.0);
@@ -139,15 +124,7 @@ public class ArmIOTalonFX implements ArmIO {
                 m_wristFollowerCurrentSignal)
             .equals(StatusCode.OK);
 
-    inputs.elbowEncoderRaw = m_elbowPositionSignal.getValue();
-    inputs.wristEncoderRaw = m_wristPositionSignal.getValue();
-    inputs.elbowAbsolutePositionRad =
-        MathUtil.angleModulus(
-            Units.rotationsToRadians(m_elbowAbsoluteEncoder.get() / ArmModel.kElbowChainReduction)
-                    * (kInvertElbowAbsoluteEncoder ? -1 : 1)
-                - elbowAbsoluteEncoderOffset.getRadians());
-    inputs.elbowAbsoluteEncoderConnected = m_elbowAbsoluteEncoder.isConnected();
-    inputs.elbowRelativePositionRad =
+    inputs.elbowPositionRad =
         MathUtil.angleModulus(
             Units.rotationsToRadians(
                     m_elbowPositionSignal.getValue() / ArmModel.kElbowFinalReduction)
@@ -158,14 +135,7 @@ public class ArmIOTalonFX implements ArmIO {
     inputs.elbowCurrentAmps =
         new double[] {m_elbowCurrentSignal.getValue(), m_elbowFollowerCurrentSignal.getValue()};
 
-    inputs.wristAbsolutePositionRad =
-        MathUtil.angleModulus(
-            Units.rotationsToRadians(m_wristAbsoluteEncoder.get() / ArmModel.kWristChainReduction)
-                    * (kInvertWristAbsoluteEncoder ? -1 : 1)
-                - wristAbsoluteEncoderOffset.getRadians());
-
-    inputs.wristAbsoluteEncoderConnected = m_wristAbsoluteEncoder.isConnected();
-    inputs.wristRelativePositionRad =
+    inputs.wristPositionRad =
         MathUtil.angleModulus(
             Units.rotationsToRadians(
                     m_wristPositionSignal.getValue() / ArmModel.kWristFinalReduction)

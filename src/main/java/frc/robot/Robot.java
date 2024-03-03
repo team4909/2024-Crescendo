@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
-import frc.robot.arm.ArmSetpoints;
+import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.climber.Climber;
 import frc.robot.drivetrain.DriveToPose;
 import frc.robot.drivetrain.Drivetrain;
@@ -38,6 +38,9 @@ public class Robot extends LoggedRobot {
   private final Climber m_climber;
   private final Shooter m_shooter;
   private final Feeder m_feeder;
+
+  @SuppressWarnings("unused")
+  private final PoseEstimation m_poseEstimation = PoseEstimation.getInstance();
 
   private final CommandXboxController m_driverController = new CommandXboxController(0);
   private final CommandXboxController m_operatorController = new CommandXboxController(1);
@@ -94,14 +97,14 @@ public class Robot extends LoggedRobot {
         m_feeder = Subsystems.createBlankFeeder();
         break;
     }
+    Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake);
     // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
     // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("intakeOff", m_intake.idle());
     NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
     NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(0.1));
-    NamedCommands.registerCommand("ShooterOff", m_shooter.idle().withTimeout(1));
-    NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
+    NamedCommands.registerCommand("subShot", m_arm.aimWrist(Arm.kSubwooferWristAngleRad));
     // NamedCommands.registerCommand("feed", m_shooter.Feeder());
     // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(.3));
@@ -110,21 +113,32 @@ public class Robot extends LoggedRobot {
     // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
-    NamedCommands.registerCommand("aimFromWingline", m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
-        m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        m_drivetrain.sysIdDriveQuasistatic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Drive SysId (Quasistatic Reverse)",
-        m_drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        m_drivetrain.sysIdDriveQuasistatic(SysIdRoutine.Direction.kReverse));
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Forward)",
-        m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        m_drivetrain.sysIdDriveDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)",
-        m_drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+        m_drivetrain.sysIdDriveDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Rotation SysId (Quasistatic Forward)",
+        m_drivetrain.sysIdRotationQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Rotation SysId (Quasistatic Reverse)",
+        m_drivetrain.sysIdRotationQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Rotation SysId (Dynamic Forward)",
+        m_drivetrain.sysIdRotationDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Rotation SysId (Dynamic Reverse)",
+        m_drivetrain.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
     m_autoChooser.addOption(
         "Shooter SysId (Quasistatic Forward)",
         m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
@@ -135,43 +149,30 @@ public class Robot extends LoggedRobot {
         "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    m_autoChooser.addOption("sensor intake", Superstructure.sensorIntake(m_feeder, m_intake));
+    m_autoChooser.addOption("3 Piece Centerline", autos.centerlineTwoPiece());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             () -> -m_driverController.getRightX()));
-
-    // m_feeder
-    //     .hasNote
-    //     .and(() -> DriverStation.isTeleopEnabled())
-    //     .whileTrue(Commands.parallel(m_feeder.pullBack(), m_shooter.catchNote()))
-    //     .onFalse(Commands.parallel(m_feeder.idle(), m_shooter.idle()).withTimeout(.3));
-
     // m_driverController.a().toggleOnTrue(m_arm.idleCoast());
     // m_driverController.y().toggleOnTrue(m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
 
     m_driverController
         .rightTrigger()
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.feed()))
-        .onFalse(m_shooter.idle());
-
-    // m_driverController
-    //     .rightBumper()
-    //     .whileTrue(Commands.sequence(m_intake.spit(), m_shooter.spit()));
+        .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
-
+    m_driverController.leftStick().toggleOnTrue(m_arm.aimElbowForTuning());
+    m_driverController.rightStick().toggleOnTrue(m_arm.aimWristForTuning());
     // m_driverController.a().whileTrue(m_climber.unwindWinch());
     // m_driverController.y().whileTrue(m_climber.windWinch());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     // First
-    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(1.633, -2.371, 0, 0));
+    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
 
-    m_driverController
-        .b()
-        .whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()))
-        .onFalse(Commands.parallel(m_shooter.idle(), m_arm.setBrake()));
+    m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
 
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
     Command snapToAngle =
@@ -186,17 +187,13 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(1.388, -2.382, 0.0, 0.0)))
-        .onFalse(m_arm.goToSetpoint(-0.571, 2.46, 0.15, 0.0));
-
-    // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimbPreparation));
-
+                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(ArmSetpoints.kAmp)))
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
     m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
-
     m_operatorController
         .povUp()
         .onTrue(
-            Commands.parallel(m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0), m_shooter.runShooter()))
+            Commands.parallel(m_arm.aimWrist(Arm.kSubwooferWristAngleRad), m_shooter.runShooter()))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_operatorController.y().whileTrue(m_shooter.runShooter());
@@ -255,7 +252,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void simulationPeriodic() {
-    m_vision.updateSim(PoseEstimation.getInstance().getPose());
+    if (Constants.kIsSim) m_vision.updateSim(PoseEstimation.getInstance().getPose());
   }
 
   private void recordMetadeta() {

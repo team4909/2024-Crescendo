@@ -28,6 +28,10 @@ public class Intake extends SubsystemBase {
         });
   }
 
+  public Command stop() {
+    return this.runOnce(m_io::stopRollers);
+  }
+
   public Command spit() {
     return this.run(
         () -> {

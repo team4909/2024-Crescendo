@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class Feeder extends SubsystemBase {
 
+  public static final double kFeederReduction = 12.0;
   public final Trigger hasNote;
 
   private final FeederIO m_io;
@@ -27,15 +28,19 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command idle() {
-    return this.run(() -> m_io.setFeederDutyCycle(0.0));
+    return this.run(() -> m_io.setRollerSpeedDutyCycle(0.0));
+  }
+
+  public Command stop() {
+    return this.runOnce(m_io::stopRoller);
   }
 
   public Command feed() {
-    return this.run(() -> m_io.setFeederDutyCycle(-0.45));
+    return this.run(() -> m_io.setRollerSpeedDutyCycle(-0.45));
   }
 
   public Command spit() {
-    return this.run(() -> m_io.setFeederDutyCycle(1.0));
+    return this.run(() -> m_io.setRollerSpeedDutyCycle(1.0));
   }
 
   public Command enterCoast() {
@@ -43,6 +48,6 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command pullBack() {
-    return this.run(() -> m_io.setFeederDutyCycle(0.25));
+    return this.run(() -> m_io.setRollerSpeedDutyCycle(0.25));
   }
 }

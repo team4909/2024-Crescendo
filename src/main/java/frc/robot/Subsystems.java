@@ -18,6 +18,7 @@ import frc.robot.drivetrain.ModuleIO;
 import frc.robot.drivetrain.ModuleIOTalonFX;
 import frc.robot.feeder.Feeder;
 import frc.robot.feeder.FeederIO;
+import frc.robot.feeder.FeederIOSim;
 import frc.robot.feeder.FeederIOTalonFX;
 import frc.robot.intake.Intake;
 import frc.robot.intake.IntakeIO;
@@ -107,6 +108,10 @@ public class Subsystems {
 
   public static Feeder createTalonFXFeeder() {
     return new Feeder(new FeederIOTalonFX());
+  }
+
+  public static Feeder createSimFeeder() {
+    return new Feeder(new FeederIOSim());
   }
 
   public static Feeder createBlankFeeder() {

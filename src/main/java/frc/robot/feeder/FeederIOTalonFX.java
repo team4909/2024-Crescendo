@@ -11,20 +11,19 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
 
 public class FeederIOTalonFX implements FeederIO {
-  private final double kFeederReduction = 1.0;
   private final TalonFX m_feederMotor;
-  private final DigitalInput m_topNoteSensor, m_bottomNoteSensor;
+  private final DigitalInput m_topNoteSensor;
 
   private final DutyCycleOut m_feederControl;
 
-  private final StatusSignal<Double> m_feederVelocitySignal,
-      m_feederAppliedVoltageSignal,
-      m_feederCurrentSignal;
+  private final StatusSignal<Double> m_rollerPositionSignal,
+      m_rollerVelocitySignal,
+      m_rollerAppliedVoltageSignal,
+      m_rollerCurrentSignal;
 
   public FeederIOTalonFX() {
     m_feederMotor = new TalonFX(19, Constants.kOtherCanBus);
     m_topNoteSensor = new DigitalInput(0);
-    m_bottomNoteSensor = new DigitalInput(1);
 
     final TalonFXConfiguration feederMotorConfig = new TalonFXConfiguration();
     m_feederMotor.getConfigurator().apply(feederMotorConfig);
@@ -33,32 +32,36 @@ public class FeederIOTalonFX implements FeederIO {
     feederMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_feederMotor.getConfigurator().apply(feederMotorConfig);
 
-    m_feederVelocitySignal = m_feederMotor.getVelocity();
-    m_feederAppliedVoltageSignal = m_feederMotor.getMotorVoltage();
-    m_feederCurrentSignal = m_feederMotor.getStatorCurrent();
+    m_rollerPositionSignal = m_feederMotor.getPosition();
+    m_rollerVelocitySignal = m_feederMotor.getVelocity();
+    m_rollerAppliedVoltageSignal = m_feederMotor.getMotorVoltage();
+    m_rollerCurrentSignal = m_feederMotor.getStatorCurrent();
     BaseStatusSignal.setUpdateFrequencyForAll(
-        50.0, m_feederVelocitySignal, m_feederAppliedVoltageSignal, m_feederCurrentSignal);
+        50.0, m_rollerVelocitySignal, m_rollerAppliedVoltageSignal, m_rollerCurrentSignal);
     m_feederMotor.optimizeBusUtilization();
 
-    m_feederControl = new DutyCycleOut(0, false, false, false, false);
+    m_feederControl = new DutyCycleOut(0, false, false, false, false).withUpdateFreqHz(0.0);
   }
 
   @Override
   public void updateInputs(FeederIOInputs inputs) {
     inputs.feederMotorConnected =
         BaseStatusSignal.refreshAll(
-                m_feederVelocitySignal, m_feederAppliedVoltageSignal, m_feederCurrentSignal)
+                m_rollerPositionSignal,
+                m_rollerVelocitySignal,
+                m_rollerAppliedVoltageSignal,
+                m_rollerCurrentSignal)
             .equals(StatusCode.OK);
 
-    inputs.feederVelocityRps = m_feederVelocitySignal.getValue() / kFeederReduction;
-    inputs.feederAppliedVolts = m_feederAppliedVoltageSignal.getValue();
-    inputs.feederCurrentAmps = m_feederCurrentSignal.getValue();
+    inputs.rollerPositionRot = m_rollerPositionSignal.getValue() / Feeder.kFeederReduction;
+    inputs.rollerVelocityRps = m_rollerVelocitySignal.getValue() / Feeder.kFeederReduction;
+    inputs.rollerAppliedVolts = m_rollerAppliedVoltageSignal.getValue();
+    inputs.rollerCurrentAmps = m_rollerCurrentSignal.getValue();
     inputs.topNoteSensorTripped = m_topNoteSensor.get();
-    inputs.bottomNoteSensorTripped = m_bottomNoteSensor.get();
   }
 
   @Override
-  public void setFeederDutyCycle(double volts) {
+  public void setRollerSpeedDutyCycle(double volts) {
     m_feederMotor.setControl(m_feederControl.withOutput(volts));
   }
 
@@ -66,5 +69,10 @@ public class FeederIOTalonFX implements FeederIO {
     final NeutralModeValue neutralModeValue =
         enableBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast;
     m_feederMotor.setNeutralMode(neutralModeValue);
+  }
+
+  @Override
+  public void stopRoller() {
+    m_feederMotor.setControl(m_feederControl.withOutput(0.0));
   }
 }

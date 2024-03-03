@@ -90,6 +90,11 @@ public class ShooterIOTalonFX implements ShooterIO {
     m_bottomRoller.setControl(m_bottomRollerControl.withOutput(volts));
   }
 
+  public void stopRollers() {
+    m_topRoller.setVoltage(0.0);
+    m_bottomRoller.setVoltage(0.0);
+  }
+
   public void setRollerDutyCycle(double volts) {
     m_topRoller.setControl(new DutyCycleOut(volts));
     m_bottomRoller.setControl(new DutyCycleOut(volts));

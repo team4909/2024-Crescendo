@@ -61,4 +61,11 @@ public class IntakeIOSparkMAX implements IntakeIO {
   public void setCenteringMotorsDutyCycle(double outputDutyCycle) {
     centeringMotors.set(outputDutyCycle);
   }
+
+  @Override
+  public void stopRollers() {
+    topRollerMotor.stopMotor();
+    bottomRollerMotor.stopMotor();
+    centeringMotors.stopMotor();
+  }
 }
