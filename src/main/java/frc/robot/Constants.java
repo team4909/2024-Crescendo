@@ -1,7 +1,7 @@
 package frc.robot;
 
 public final class Constants {
-  public static final Mode kCurrentMode = Mode.kReal;
+  public static final Mode kCurrentMode = Mode.kSim;
   public static final RobotName kRobot = RobotName.kViper;
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
