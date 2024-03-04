@@ -2,8 +2,6 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -14,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.climber.Climber;
-import frc.robot.drivetrain.DriveToPose;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
@@ -97,20 +94,18 @@ public class Robot extends LoggedRobot {
         m_feeder = Subsystems.createBlankFeeder();
         break;
     }
+    NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
+    NoteVisualizer.resetNotes();
+    NoteVisualizer.showStagedNotes();
     Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake);
-    // NamedCommands.registerCommand("stop", m_shooter.Stop().withTimeout(0.5));
-    // NamedCommands.registerCommand("sensorIntake", SensorIntake());
     NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("intakeOff", m_intake.idle());
     NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
     NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(0.1));
     NamedCommands.registerCommand("subShot", m_arm.aimWrist(Arm.kSubwooferWristAngleRad));
-    // NamedCommands.registerCommand("feed", m_shooter.Feeder());
-    // NamedCommands.registerCommand("ShooterDelay", m_shooter.ShooterDelay());
     NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(.3));
     NamedCommands.registerCommand("feederOnTest", m_feeder.feed());
     NamedCommands.registerCommand("feederOff", m_feeder.idle().withTimeout(1));
-    // NamedCommands.registerCommand("ShooterOn", m_shooter.ShooterOn());
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
     NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
@@ -155,12 +150,13 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             () -> -m_driverController.getRightX()));
-    // m_driverController.a().toggleOnTrue(m_arm.idleCoast());
-    // m_driverController.y().toggleOnTrue(m_arm.goToSetpoint(-0.145, 2.784, 0.0, 0.0));
+
+    m_intake.hasIntookPieceSim.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
+    m_feeder.hasNote.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
 
     m_driverController
         .rightTrigger()
-        .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.feed()))
+        .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.shoot()))
         .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
 
     m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
@@ -169,19 +165,9 @@ public class Robot extends LoggedRobot {
     // m_driverController.a().whileTrue(m_climber.unwindWinch());
     // m_driverController.y().whileTrue(m_climber.windWinch());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
-    // First
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
-
     m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
-
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
-    Command snapToAngle =
-        new DriveToPose(
-            new Pose2d(
-                PoseEstimation.getInstance().getPose().getTranslation(),
-                Rotation2d.fromDegrees(-32.98)),
-            m_drivetrain);
-    m_driverController.leftTrigger().whileTrue(snapToAngle);
 
     m_operatorController
         .leftTrigger()
@@ -198,7 +184,6 @@ public class Robot extends LoggedRobot {
 
     m_operatorController.y().whileTrue(m_shooter.runShooter());
     m_operatorController.a().whileTrue(m_shooter.ampShot());
-    // wrist = 2.028
     m_operatorController
         .leftBumper()
         .onTrue(Superstructure.sensorCatch(m_shooter, m_feeder, m_intake, m_arm))
@@ -216,6 +201,7 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_vision.periodic();
+    NoteVisualizer.showHeldNotes();
   }
 
   @Override
@@ -253,6 +239,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void simulationPeriodic() {
     if (Constants.kIsSim) m_vision.updateSim(PoseEstimation.getInstance().getPose());
+    NoteVisualizer.showStagedNotes();
   }
 
   private void recordMetadeta() {

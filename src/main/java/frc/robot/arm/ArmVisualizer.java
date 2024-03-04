@@ -19,9 +19,8 @@ public class ArmVisualizer {
   private final String m_logKey;
   private final Mechanism2d m_mechanism;
   private final MechanismRoot2d m_mechanismRoot;
-  private final MechanismLigament2d m_fixedShoulderLigament;
-  private final MechanismLigament2d m_elbowLigament;
-  private final MechanismLigament2d m_wristLigament;
+  private final MechanismLigament2d m_fixedShoulderLigament, m_elbowLigament, m_wristLigament;
+  private Pose3d m_elbowPose, m_wristPose;
 
   public ArmVisualizer(String logKey, double ligamentWidth, Color color) {
     m_logKey = logKey;
@@ -50,17 +49,21 @@ public class ArmVisualizer {
     m_wristLigament.setAngle(Units.radiansToDegrees(wristAngle - elbowAngle));
     Logger.recordOutput("Mechanism2d/" + m_logKey, m_mechanism);
 
-    Pose3d elbowPose =
+    m_elbowPose =
         new Pose3d(
             ArmModel.origin.getX(),
             0.0,
             ArmModel.origin.getY(),
             new Rotation3d(0.0, -elbowAngle, 0.0));
-    Pose3d wristPose =
-        elbowPose.transformBy(
+    m_wristPose =
+        m_elbowPose.transformBy(
             new Transform3d(
                 new Translation3d(ArmModel.kElbowLengthMeters, 0.0, 0.0),
                 new Rotation3d(0.0, -(wristAngle - elbowAngle), 0.0)));
-    Logger.recordOutput("Mechanism3d/" + m_logKey, elbowPose, wristPose);
+    Logger.recordOutput("Mechanism3d/" + m_logKey, m_elbowPose, m_wristPose);
+  }
+
+  public Pose3d getWristPose() {
+    return m_wristPose;
   }
 }

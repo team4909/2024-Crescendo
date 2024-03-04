@@ -4,6 +4,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -17,11 +18,12 @@ import frc.lib.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Arm extends SubsystemBase {
 
-  public static final double kCatchWristAngleRad = 2.264;
+  public static final double kCatchWristAngleRad = 2.264 - Units.degreesToRadians(5.0);
   public static final double kSubwooferWristAngleRad = 2.083;
   private final double kSDeadband = 0.05;
   private final ArmIO m_io;
@@ -57,6 +59,7 @@ public class Arm extends SubsystemBase {
       (volts, kS) -> Math.abs(volts) < kSDeadband ? volts : volts + Math.copySign(kS, volts);
 
   private Vector<N2> m_profileInitialAngles;
+  public Supplier<Pose3d> wristPoseSupplier;
 
   static {
     switch (Constants.kCurrentMode) {
@@ -98,6 +101,7 @@ public class Arm extends SubsystemBase {
     m_wristController.enableContinuousInput(-Math.PI, Math.PI);
     m_elbowController.setTolerance(Units.degreesToRadians(0.5));
     m_wristController.setTolerance(Units.degreesToRadians(0.5));
+    wristPoseSupplier = () -> m_measuredVisualizer.getWristPose();
     setDefaultCommand(idle());
   }
 

@@ -37,10 +37,10 @@ public class ArmIOTalonFX implements ArmIO {
       m_wristFollowerCurrentSignal;
 
   public ArmIOTalonFX() {
-    m_elbowLeftMotor = new TalonFX(15, Constants.kOtherCanBus);
-    m_elbowRightFollowerMotor = new TalonFX(17, Constants.kOtherCanBus);
-    m_wristLeftMotor = new TalonFX(16, Constants.kOtherCanBus);
-    m_wristRightFollowerMotor = new TalonFX(18, Constants.kOtherCanBus);
+    m_elbowLeftMotor = new TalonFX(15, Constants.kSuperstructureCanBus);
+    m_elbowRightFollowerMotor = new TalonFX(17, Constants.kSuperstructureCanBus);
+    m_wristLeftMotor = new TalonFX(16, Constants.kSuperstructureCanBus);
+    m_wristRightFollowerMotor = new TalonFX(18, Constants.kSuperstructureCanBus);
 
     m_elbowLeftMotor.setPosition(0.0);
     m_wristLeftMotor.setPosition(0.0);

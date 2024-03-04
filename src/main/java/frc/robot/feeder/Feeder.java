@@ -1,8 +1,10 @@
 package frc.robot.feeder;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.NoteVisualizer;
 import org.littletonrobotics.junction.Logger;
 
 public class Feeder extends SubsystemBase {
@@ -33,6 +35,12 @@ public class Feeder extends SubsystemBase {
 
   public Command stop() {
     return this.runOnce(m_io::stopRoller);
+  }
+
+  public Command shoot() {
+    return Commands.parallel(
+        this.run(() -> m_io.setRollerSpeedDutyCycle(-0.5)),
+        Commands.waitUntil(hasNote.negate()).andThen(NoteVisualizer.shoot()));
   }
 
   public Command feed() {

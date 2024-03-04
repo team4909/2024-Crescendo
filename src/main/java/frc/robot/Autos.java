@@ -61,7 +61,7 @@ public class Autos {
   private Command shoot() {
     return Commands.race(
             m_shooter.runShooter(),
-            Commands.waitUntil(m_shooter.readyToShoot()).andThen(m_feeder.feed().withTimeout(0.5)))
+            Commands.waitUntil(m_shooter.readyToShoot()).andThen(m_feeder.shoot().withTimeout(0.5)))
         .andThen(m_shooter.stop(), m_feeder.stop())
         .finallyDo(() -> System.out.println("Shooting complete!"));
   }

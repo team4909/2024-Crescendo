@@ -22,7 +22,7 @@ public class FeederIOTalonFX implements FeederIO {
       m_rollerCurrentSignal;
 
   public FeederIOTalonFX() {
-    m_feederMotor = new TalonFX(19, Constants.kOtherCanBus);
+    m_feederMotor = new TalonFX(19, Constants.kSuperstructureCanBus);
     m_topNoteSensor = new DigitalInput(0);
 
     final TalonFXConfiguration feederMotorConfig = new TalonFXConfiguration();

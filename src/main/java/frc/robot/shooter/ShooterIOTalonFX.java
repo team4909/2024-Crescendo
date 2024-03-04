@@ -24,8 +24,8 @@ public class ShooterIOTalonFX implements ShooterIO {
       m_bottomRollerCurrentSignal;
 
   public ShooterIOTalonFX() {
-    m_topRoller = new TalonFX(20, Constants.kOtherCanBus);
-    m_bottomRoller = new TalonFX(21, Constants.kOtherCanBus);
+    m_topRoller = new TalonFX(20, Constants.kSuperstructureCanBus);
+    m_bottomRoller = new TalonFX(21, Constants.kSuperstructureCanBus);
 
     final TalonFXConfiguration topRollerMotorConfig = new TalonFXConfiguration();
     m_topRoller.getConfigurator().apply(topRollerMotorConfig);

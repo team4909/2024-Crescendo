@@ -15,11 +15,11 @@ import org.littletonrobotics.junction.Logger;
 public class Shooter extends SubsystemBase {
 
   private final double kFarShotVelocityRpm = 5950.0;
-  private final double kAmpshot = 2000.0;
+  private final double kAmpshot = 5000.0;
   private final double kIdleVelocityRpm = 0.0;
   private final double kReadyToShootToleranceRps = 1.0;
 
-  // Dimensioned gains here are in rotations
+  // Denominator for gains here are in rotations
   public static final double topRollerkS = 0.18039;
   public static final double topRollerkV = 0.11968;
   public static final double topRollerkA = 0.0089044;
@@ -92,7 +92,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public Trigger readyToShoot() {
-    return new Trigger(() -> getRollersAtSetpoint()).debounce(0.2, DebounceType.kBoth);
+    return new Trigger(() -> getRollersAtSetpoint()).debounce(0.5, DebounceType.kBoth);
   }
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
