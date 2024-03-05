@@ -2,7 +2,6 @@ package frc.robot.arm;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -10,9 +9,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class ArmModel {
-
-  public static final Translation2d origin =
-      new Translation2d(Units.inchesToMeters(-9.2), Units.inchesToMeters(20));
 
   public static final double kElbowGearboxReduction = 3.0 * 5.0 * 5.0;
   public static final double kElbowChainReduction = 36.0 / 22.0;

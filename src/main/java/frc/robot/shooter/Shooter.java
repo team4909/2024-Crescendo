@@ -53,9 +53,9 @@ public class Shooter extends SubsystemBase {
                 null,
                 null,
                 null,
-                (state) -> Logger.recordOutput("Shooter/SysIdState", state.toString())),
+                state -> Logger.recordOutput("Shooter/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
-                (voltage) -> {
+                voltage -> {
                   m_io.setTopRollerVoltage(voltage.in(Volts));
                   m_io.setBottomRollerVoltage(voltage.in(Volts));
                 },

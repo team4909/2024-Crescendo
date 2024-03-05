@@ -1,5 +1,8 @@
 package frc.robot.arm;
 
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.ArmFeedforward;
@@ -15,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.Set;
@@ -62,6 +66,7 @@ public class Arm extends SubsystemBase {
 
   private Vector<N2> m_profileInitialAngles;
   public Supplier<Pose3d> wristPoseSupplier;
+  private final SysIdRoutine m_sysIdRoutineElbow, m_sysIdRoutineWrist;
 
   static {
     switch (Constants.kCurrentMode) {
@@ -104,6 +109,24 @@ public class Arm extends SubsystemBase {
     m_elbowController.setTolerance(Units.degreesToRadians(0.5));
     m_wristController.setTolerance(Units.degreesToRadians(0.5));
     wristPoseSupplier = () -> m_measuredVisualizer.getWristPose();
+    m_sysIdRoutineElbow =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                Volts.of(0.25).per(Seconds.of(1.0)),
+                Volts.of(2.0),
+                null,
+                state -> Logger.recordOutput("Arm/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                voltage -> m_io.setElbowVoltage(voltage.in(Volts)), null, this));
+    m_sysIdRoutineWrist =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                Volts.of(0.25).per(Seconds.of(1.0)),
+                Volts.of(2.0),
+                null,
+                state -> Logger.recordOutput("Arm/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                voltage -> m_io.setWristVoltage(voltage.in(Volts)), null, this));
     setDefaultCommand(idle());
   }
 
@@ -252,6 +275,42 @@ public class Arm extends SubsystemBase {
         .finallyDo(() -> m_io.setBrakeMode(true))
         .ignoringDisable(true)
         .withName("Idle Coast");
+  }
+
+  public Command sysIdElbowQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineElbow
+        .quasistatic(direction)
+        .until(
+            () ->
+                m_inputs.elbowPositionRad > (Math.PI / 2)
+                    || m_inputs.elbowPositionRad < ArmSetpoints.kStowed.elbowAngle);
+  }
+
+  public Command sysIdElbowDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineElbow
+        .dynamic(direction)
+        .until(
+            () ->
+                m_inputs.elbowPositionRad > (Math.PI / 2)
+                    || m_inputs.elbowPositionRad < ArmSetpoints.kStowed.elbowAngle);
+  }
+
+  public Command sysIdWristQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineWrist
+        .quasistatic(direction)
+        .until(
+            () ->
+                m_inputs.elbowPositionRad < 0.0
+                    || m_inputs.wristPositionRad > ArmSetpoints.kStowed.wristAngle);
+  }
+
+  public Command sysIdWristDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineWrist
+        .dynamic(direction)
+        .until(
+            () ->
+                m_inputs.elbowPositionRad < 0.0
+                    || m_inputs.wristPositionRad > ArmSetpoints.kStowed.wristAngle);
   }
 
   private boolean getJointsAtGoal() {
