@@ -85,15 +85,15 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "sensorIntake"
-                }
-              },
-              {
                 "type": "path",
                 "data": {
                   "pathName": "Sub to Centerline 5"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "sensorIntake"
                 }
               }
             ]
@@ -102,26 +102,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Centerline 5 to Sub"
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "subShot"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 0.6
-                }
-              }
-            ]
+            "pathName": "centerline 5 to shot point"
           }
         },
         {
@@ -150,25 +131,50 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "SubToCenterline4"
+                  "pathName": "shot point to centerline 4"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "intake"
+                  "name": "sensorIntake"
                 }
-              },
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Centerline 4 to shot point"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
               {
                 "type": "named",
                 "data": {
-                  "name": "armDown"
+                  "name": "feederOn"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.3
                 }
               }
             ]
