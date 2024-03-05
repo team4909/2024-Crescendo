@@ -77,7 +77,7 @@ public class NoteVisualizer {
                       FieldPositions.Speaker.centerSpeakerOpening;
                   final Pose3d endPose;
                   if (Constants.onRedAllianceSupplier.getAsBoolean()) {
-                    var flippedX =
+                    double flippedX =
                         GeometryUtil.flipFieldPosition(speakerTranslation.toTranslation2d()).getX();
                     endPose =
                         new Pose3d(
@@ -111,7 +111,7 @@ public class NoteVisualizer {
   }
 
   private static Pose3d getNotePose() {
-    var wristPose = m_wristPoseSupplier.get();
+    Pose3d wristPose = m_wristPoseSupplier.get();
     Transform3d noteTransform =
         new Transform3d(
                 wristPose.getX(), wristPose.getY(), wristPose.getZ(), wristPose.getRotation())

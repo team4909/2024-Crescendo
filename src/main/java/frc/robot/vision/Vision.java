@@ -5,7 +5,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -36,7 +35,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class Vision {
 
   private static final double kTargetLogTimeSecs = 0.1;
-  private final boolean kTrustVisionXY = true;
+  private final boolean kTrustVisionXY = false;
   private final boolean kTrustVisionTheta = false;
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
@@ -46,7 +45,7 @@ public class Vision {
       AprilTagFields.kDefaultField.loadAprilTagLayoutField();
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
   private ArrayList<VisionUpdate> m_newVisionUpdates;
-  private final double kXYStdDevCoefficient = 0.005;
+  private final double kXYStdDevCoefficient = 0.05;
   private final double kThetaStdDevCoefficient = 0.1;
 
   public Vision(VisionIO... io) {
@@ -87,7 +86,7 @@ public class Vision {
   public void periodic() {
     for (int index = 0; index < io.length; index++) {
       io[index].updateInputs(m_inputs[index]);
-      Logger.processInputs("Vision/Cam" + Integer.toString(index), m_inputs[index]);
+      Logger.processInputs("VisionInputs/Cam" + Integer.toString(index), m_inputs[index]);
     }
 
     m_newVisionUpdates = new ArrayList<>();
@@ -142,8 +141,6 @@ public class Vision {
 
   public Matrix<N3, N1> getEstimationStdDevs(
       Pose2d estimatedPose, List<PhotonTrackedTarget> targets) {
-    Vector<N3> rejectTagStdDev =
-        VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     int tagCount = 0;
     double totalDistance = 0;
     for (PhotonTrackedTarget target : targets) {
@@ -162,7 +159,8 @@ public class Vision {
      */
     if ((tagCount == 0)
         || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.25)
-        || (tagCount == 1 && averageDistance > 4)) return rejectTagStdDev;
+        || (tagCount == 1 && averageDistance > 4))
+      return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 
     double xyStdDev =
         kTrustVisionXY

@@ -14,7 +14,7 @@ public class Superstructure {
     // In sim just wait 5 seconds since we don't have a sensor
     final Command feedUntilHasNote =
         Commands.either(
-            feeder.feed().withTimeout(5.0),
+            feeder.feed().until(intake.hasIntookPieceSim),
             feeder.feed().until(feeder.hasNote),
             () -> Constants.kIsSim);
     return Commands.deadline(feedUntilHasNote, intake.intake())

@@ -15,6 +15,7 @@ import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
+import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -35,6 +36,7 @@ public class Robot extends LoggedRobot {
   private final Climber m_climber;
   private final Shooter m_shooter;
   private final Feeder m_feeder;
+  private final Lights m_lights;
 
   @SuppressWarnings("unused")
   private final PoseEstimation m_poseEstimation = PoseEstimation.getInstance();
@@ -68,7 +70,7 @@ public class Robot extends LoggedRobot {
     switch (Constants.kCurrentMode) {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
-        m_vision = Subsystems.createBlankFourCameraVision();
+        m_vision = Subsystems.createFourCameraVision();
         m_intake = Subsystems.createSparkMAXIntake();
         m_arm = Subsystems.createTalonFXArm();
         m_climber = Subsystems.createSparkMAXClimber();
@@ -94,6 +96,7 @@ public class Robot extends LoggedRobot {
         m_feeder = Subsystems.createBlankFeeder();
         break;
     }
+    m_lights = new Lights();
     NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
     NoteVisualizer.resetNotes();
     NoteVisualizer.showStagedNotes();
@@ -134,6 +137,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Rotation SysId (Dynamic Reverse)",
         m_drivetrain.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption("Slip Current SysId", m_drivetrain.sysIdSlipCurrent());
     m_autoChooser.addOption(
         "Shooter SysId (Quasistatic Forward)",
         m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
@@ -153,6 +157,7 @@ public class Robot extends LoggedRobot {
 
     m_intake.hasIntookPieceSim.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
     m_feeder.hasNote.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
+    m_feeder.hasNote.onTrue(m_lights.setBlink());
 
     m_driverController
         .rightTrigger()
@@ -206,6 +211,8 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void autonomousInit() {
+    NoteVisualizer.resetNotes();
+    NoteVisualizer.setHasNote(true);
     Command autonomousCommand = m_autoChooser.get();
     if (autonomousCommand != null) {
       autonomousCommand.schedule();

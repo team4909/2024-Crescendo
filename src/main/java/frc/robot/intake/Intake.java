@@ -68,26 +68,32 @@ public class Intake extends SubsystemBase {
             })
         .alongWith(
             Commands.run(() -> m_isIntakingPieceSim = simulateIsIntakingPiece())
+                .until(() -> m_isIntakingPieceSim)
+                .andThen(Commands.run(() -> m_isIntakingPieceSim = true))
                 .finallyDo(() -> m_isIntakingPieceSim = false)
                 .unless(() -> !Constants.kIsSim));
   }
 
-  // TODO make it so the same piece cant be intaked twice
   private boolean simulateIsIntakingPiece() {
-    final Translation2d intakeOffsetFromRobotCenter = new Translation2d(0.0, 0.0);
+    final Translation2d intakeOffsetFromRobotCenter =
+        new Translation2d(Units.inchesToMeters(10.0), 0.0);
     final Translation2d intakePosition =
         PoseEstimation.getInstance().getPose().getTranslation().plus(intakeOffsetFromRobotCenter);
-    final double kIntakeToleranceInches = 10.0;
-    for (int noteIndex = 0; noteIndex < NotePositions.noteTranslations.length; noteIndex++)
-      // if (m_intookPieces.contains(noteIndex)) continue;
-       if (MathUtil.isNear(
-          0,
-          intakePosition.getDistance(NotePositions.noteTranslations[noteIndex]),
-          Units.inchesToMeters(kIntakeToleranceInches))) {
+    final double kIntakeXRangeInches = 9.0;
+    final double kIntakeYRangeInches = 27.0 / 2.0;
+    for (int noteIndex = 0; noteIndex < NotePositions.noteTranslations.length; noteIndex++) {
+      if (m_intookPieces.contains(noteIndex)) continue;
+      final Translation2d intakeToNote =
+          NotePositions.noteTranslations[noteIndex].minus(intakePosition);
+      if (MathUtil.isNear(
+              0, Math.abs(intakeToNote.getX()), Units.inchesToMeters(kIntakeXRangeInches))
+          && MathUtil.isNear(
+              0, Math.abs(intakeToNote.getY()), Units.inchesToMeters(kIntakeYRangeInches))) {
         m_intookPieces.add(noteIndex);
         NoteVisualizer.removeNote(noteIndex);
         return true;
       }
+    }
     return false;
   }
 

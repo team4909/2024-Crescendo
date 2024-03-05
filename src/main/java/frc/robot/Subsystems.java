@@ -50,7 +50,7 @@ public class Subsystems {
   public static Vision createFourCameraVision() {
     return new Vision(
         new VisionIOPhotonVision(
-            "front-cam",
+            "back-left-cam",
             new Transform3d(
                 new Translation3d(
                     Units.inchesToMeters(-10.330118),
@@ -59,7 +59,18 @@ public class Subsystems {
                 new Rotation3d(
                     Units.degreesToRadians(0.0),
                     Units.degreesToRadians(-42.237756),
-                    Units.degreesToRadians(150.0)))));
+                    Units.degreesToRadians(150.0)))),
+        new VisionIOPhotonVision(
+            "back-right-cam",
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(-10.330118),
+                    Units.inchesToMeters(-10.317953),
+                    Units.inchesToMeters(9.041033)),
+                new Rotation3d(
+                    Units.degreesToRadians(0.0),
+                    Units.degreesToRadians(-42.237756),
+                    Units.degreesToRadians(-150.0)))));
   }
 
   public static Vision createBlankFourCameraVision() {

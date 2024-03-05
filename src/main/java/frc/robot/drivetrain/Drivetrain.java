@@ -1,5 +1,6 @@
 package frc.robot.drivetrain;
 
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants;
 import frc.robot.PoseEstimation;
 import java.util.Arrays;
@@ -193,12 +195,18 @@ public class Drivetrain extends SubsystemBase {
               var y = cubeAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
               double omega =
                   cubeAxis.apply(MathUtil.applyDeadband(omegaSupplier.getAsDouble(), kDeadband));
+              boolean isFlipped = Constants.onRedAllianceSupplier.getAsBoolean();
               runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       x * kMaxLinearSpeedMetersPerSecond,
                       y * kMaxLinearSpeedMetersPerSecond,
                       omega * kMaxAngularSpeedRadPerSec,
-                      m_imuInputs.yawPosition));
+                      isFlipped
+                          ? PoseEstimation.getInstance()
+                              .getPose()
+                              .getRotation()
+                              .plus(new Rotation2d(Math.PI))
+                          : PoseEstimation.getInstance().getPose().getRotation()));
             })
         .withName("Joystick Drive");
   }
@@ -221,6 +229,24 @@ public class Drivetrain extends SubsystemBase {
 
   public Command sysIdRotationDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutineRotation.dynamic(direction);
+  }
+
+  public Command sysIdSlipCurrent() {
+    return new SysIdRoutine(
+            new SysIdRoutine.Config(
+                Volts.of(0.1).per(Seconds.of(1.0)),
+                Volts.of(0.0),
+                Seconds.of(30.0),
+                (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  for (Module module : m_modules) {
+                    module.runCharacterization(voltage.in(Volts));
+                  }
+                },
+                null,
+                this))
+        .quasistatic(Direction.kForward);
   }
 
   private void configurePathing() {
