@@ -212,7 +212,13 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public Command zeroGyro() {
-    return Commands.runOnce(() -> m_imuIO.setGyroAngle(0.0)).ignoringDisable(true);
+    return Commands.runOnce(
+            () ->
+                resetPose.accept(
+                    PoseEstimation.getInstance()
+                        .getPose()
+                        .rotateBy(m_imuInputs.yawPosition.unaryMinus())))
+        .ignoringDisable(true);
   }
 
   public Command sysIdDriveQuasistatic(SysIdRoutine.Direction direction) {

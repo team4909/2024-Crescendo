@@ -148,6 +148,26 @@ public class Robot extends LoggedRobot {
         "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Elbow SysId (Quasistatic Forward)",
+        m_arm.sysIdElbowQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Elbow SysId (Quasistatic Reverse)",
+        m_arm.sysIdElbowQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Elbow SysId (Dynamic Forward)", m_arm.sysIdElbowDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Elbow SysId (Dynamic Reverse)", m_arm.sysIdElbowDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Wrist SysId (Quasistatic Forward)",
+        m_arm.sysIdWristQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Wrist SysId (Quasistatic Reverse)",
+        m_arm.sysIdWristQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Wrist SysId (Dynamic Forward)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Wrist SysId (Dynamic Reverse)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kReverse));
     m_autoChooser.addOption("3 Piece Centerline", autos.centerlineTwoPiece());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
