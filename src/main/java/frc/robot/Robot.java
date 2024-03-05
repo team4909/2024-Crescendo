@@ -164,7 +164,7 @@ public class Robot extends LoggedRobot {
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.shoot()))
         .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
 
-    m_driverController.button(7).onTrue(m_drivetrain.zeroGyro());
+    m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_driverController.leftStick().toggleOnTrue(m_arm.aimElbowForTuning());
     m_driverController.rightStick().toggleOnTrue(m_arm.aimWristForTuning());
     // m_driverController.a().whileTrue(m_climber.unwindWinch());

@@ -8,57 +8,41 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.6472211773226715,
-        "y": 3.902820011287809
+        "x": 3.461390197096674,
+        "y": 1.1646163146235593
       },
       "isLocked": false,
       "linkedName": "SubwooferBottom"
     },
     {
       "anchor": {
-        "x": 5.410104260045159,
-        "y": 1.9090690903057688
+        "x": 8.563175552421708,
+        "y": 2.5861525478838003
       },
       "prevControl": {
-        "x": 3.2429956531513695,
-        "y": 2.061963460134118
-      },
-      "nextControl": {
-        "x": 7.318080019470342,
-        "y": 1.7744571237171578
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 8.267479558264546,
-        "y": 2.437077536297466
-      },
-      "prevControl": {
-        "x": 6.3284507258729255,
-        "y": 2.3316734024763566
+        "x": 5.987310625418366,
+        "y": 1.2205725045183329
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Centerline4"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 1,
-      "rotationDegrees": 0,
+      "waypointRelativePos": 0.15,
+      "rotationDegrees": 22.0,
       "rotateFast": false
     }
   ],
   "constraintZones": [
     {
       "name": "New Constraints Zone",
-      "minWaypointRelativePos": 1.55,
-      "maxWaypointRelativePos": 2.0,
+      "minWaypointRelativePos": 0.9,
+      "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 3.0,
-        "maxAcceleration": 3.0,
+        "maxVelocity": 2.0,
+        "maxAcceleration": 2.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0
       }
@@ -66,18 +50,21 @@
   ],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0,
+    "rotation": 22.0,
     "rotateFast": false
   },
   "reversed": false,
   "folder": "Source Side",
-  "previewStartingState": null,
+  "previewStartingState": {
+    "rotation": -59.338469266805795,
+    "velocity": 0
+  },
   "useDefaultConstraints": false
 }

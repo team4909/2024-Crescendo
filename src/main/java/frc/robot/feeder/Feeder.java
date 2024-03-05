@@ -44,7 +44,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command feed() {
-    return this.run(() -> m_io.setRollerSpeedDutyCycle(-0.45));
+    return this.run(() -> m_io.setRollerSpeedDutyCycle(-0.35));
   }
 
   public Command spit() {
