@@ -36,7 +36,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double kDrivekA = 0.0057523;
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
-  private final double kSlipCurrent = Constants.kIsSim ? 400.0 : 40.0;
+  private final double kSlipCurrent = Constants.kIsSim ? 400.0 : 60.0;
 
   private final TalonFX m_driveMotor, m_steerMotor;
   private final CANcoder m_azimuthEncoder;

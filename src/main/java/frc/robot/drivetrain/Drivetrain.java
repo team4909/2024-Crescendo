@@ -234,7 +234,7 @@ public class Drivetrain extends SubsystemBase {
   public Command sysIdSlipCurrent() {
     return new SysIdRoutine(
             new SysIdRoutine.Config(
-                Volts.of(0.1).per(Seconds.of(1.0)),
+                Volts.of(0.2).per(Seconds.of(1.0)),
                 Volts.of(0.0),
                 Seconds.of(30.0),
                 (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
