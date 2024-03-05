@@ -2,7 +2,6 @@ package frc.robot.arm;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N4;
@@ -25,8 +24,6 @@ public class ArmModel {
   private final double kElbowMassKg = Units.lbsToKilograms(7.0);
   private final double kElbowMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kElbowLengthMeters, kElbowMassKg);
-  private final double elbowkG = 0.15;
-  private final double elbowkV = 2.31;
 
   public static final double kWristGearboxReduction = 3.0 * 5.0;
   public static final double kWristChainReduction = 36.0 / 22.0;
@@ -38,15 +35,9 @@ public class ArmModel {
   private final double kWristMassKg = Units.lbsToKilograms(11.5);
   private final double kWristMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kWristLengthMeters, kWristMassKg);
-  private final double wristkG = 0.51;
-  private final double wristkV = 0.8;
-
-  private final ArmFeedforward m_elbowFeedForward, m_wristFeedForward;
   private final SingleJointedArmSim m_elbowSim, m_wristSim;
 
   public ArmModel() {
-    m_elbowFeedForward = new ArmFeedforward(0.0, elbowkG, elbowkV, 0.0);
-    m_wristFeedForward = new ArmFeedforward(0.0, wristkG, wristkV, 0.0);
     m_elbowSim =
         new SingleJointedArmSim(
             kElbowGearbox,
@@ -67,16 +58,6 @@ public class ArmModel {
             kWristMaxAngleRad,
             true,
             0.0);
-  }
-
-  public Vector<N2> feedforward(Vector<N2> position) {
-    return feedforward(position, VecBuilder.fill(0.0, 0.0));
-  }
-
-  public Vector<N2> feedforward(Vector<N2> position, Vector<N2> velocity) {
-    return VecBuilder.fill(
-        m_elbowFeedForward.calculate(position.get(0, 0), velocity.get(0, 0)),
-        m_wristFeedForward.calculate(position.get(0, 0), velocity.get(1, 0)));
   }
 
   /**

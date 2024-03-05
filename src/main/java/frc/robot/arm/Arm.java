@@ -2,6 +2,7 @@ package frc.robot.arm;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -28,12 +29,13 @@ public class Arm extends SubsystemBase {
   private final double kSDeadband = 0.05;
   private final ArmIO m_io;
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
-  private final ArmModel m_armModel = new ArmModel();
   private final ArmVisualizer m_goalVisualizer, m_setpointVisualizer, m_measuredVisualizer;
   private ProfiledPIDController m_elbowController =
       new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0));
   private ProfiledPIDController m_wristController =
       new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0));
+  private final ArmFeedforward m_elbowFeedForward = new ArmFeedforward(0.0, 0.15, 2.31);
+  private final ArmFeedforward m_wristFeedForward = new ArmFeedforward(0.0, 0.51, 0.8);
 
   private static final LoggedTunableNumber elbowkP = new LoggedTunableNumber("Arm/Elbow/kP");
   private static final LoggedTunableNumber elbowkD = new LoggedTunableNumber("Arm/Elbow/kD");
@@ -190,12 +192,10 @@ public class Arm extends SubsystemBase {
     } else
       wristFeedbackVolts =
           m_deadbandkS.apply(m_wristController.calculate(m_inputs.wristPositionRad), wristkS.get());
-    final Vector<N2> feedforwardVolts =
-        m_armModel.feedforward(
-            VecBuilder.fill(elbowNextPosition, wristNextPosition),
-            VecBuilder.fill(elbowNextVelocity, wristNextVelocity));
-    double elbowFeedForwardVolts = feedforwardVolts.get(0, 0);
-    double wristFeedForwardVolts = feedforwardVolts.get(1, 0);
+    double elbowFeedForwardVolts =
+        m_elbowFeedForward.calculate(elbowNextPosition, elbowNextVelocity);
+    double wristFeedForwardVolts =
+        m_wristFeedForward.calculate(wristNextPosition, wristNextVelocity);
     Logger.recordOutput("Arm/Elbow Feed Forward", elbowFeedForwardVolts);
     Logger.recordOutput("Arm/Wrist Feed Forward", wristFeedForwardVolts);
     m_io.setElbowVoltage(elbowFeedbackVolts + elbowFeedForwardVolts);
