@@ -53,23 +53,23 @@ public class Subsystems {
             "back-left-cam",
             new Transform3d(
                 new Translation3d(
-                    Units.inchesToMeters(-10.330118),
-                    Units.inchesToMeters(10.317953),
-                    Units.inchesToMeters(9.041033)),
+                    Units.inchesToMeters(-9.124 + 2.5),
+                    Units.inchesToMeters(10.646),
+                    Units.inchesToMeters(8.25)),
                 new Rotation3d(
                     Units.degreesToRadians(0.0),
-                    Units.degreesToRadians(-42.237756),
+                    Units.degreesToRadians(-28.125),
                     Units.degreesToRadians(150.0)))),
         new VisionIOPhotonVision(
             "back-right-cam",
             new Transform3d(
                 new Translation3d(
-                    Units.inchesToMeters(-10.330118),
-                    Units.inchesToMeters(-10.317953),
-                    Units.inchesToMeters(9.041033)),
+                    Units.inchesToMeters(-9.124 + 2.5),
+                    Units.inchesToMeters(-10.646),
+                    Units.inchesToMeters(8.25)),
                 new Rotation3d(
                     Units.degreesToRadians(0.0),
-                    Units.degreesToRadians(-42.237756),
+                    Units.degreesToRadians(-28.125),
                     Units.degreesToRadians(-150.0)))));
   }
 
