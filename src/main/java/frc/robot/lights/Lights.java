@@ -52,6 +52,13 @@ public class Lights extends SubsystemBase {
         .ignoringDisable(true);
   }
 
+  public void setBlinkMethod(Color color) {
+    final int[] blinkColor = colorToRGB(color);
+
+    m_ledController.animate(
+        new StrobeAnimation(blinkColor[0], blinkColor[1], blinkColor[2], 0, 0.4, kLedCount));
+  }
+
   /**
    * @param color
    * @return an array of integers representing the RGB values of the given color: [0] is red, [1] is
