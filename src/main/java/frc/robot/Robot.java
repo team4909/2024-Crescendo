@@ -178,16 +178,17 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftX(),
             () -> -m_driverController.getRightX()));
 
-    m_intake.hasIntookPieceSim.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
-    m_feeder.hasNote.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
+    m_intake.hasIntookPieceSim.or(m_feeder.hasNote).onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
     m_feeder.hasNote.onTrue(m_lights.setBlink(Color.kOrangeRed));
-    m_drivetrain.atHeadingGoal.and(m_shooter.readyToShoot).whileTrue(m_lights.setBlink(Color.kGreen));
+    m_drivetrain.inRangeOfGoal.whileTrue(m_lights.setBlink(Color.kBlue));
 
     m_driverController
         .rightTrigger()
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.shoot()))
         .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
-    m_driverController.leftTrigger().whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_lights));
+    m_driverController
+        .leftTrigger()
+        .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_lights));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_driverController.leftStick().toggleOnTrue(m_arm.aimElbowForTuning());
@@ -212,7 +213,7 @@ public class Robot extends LoggedRobot {
             Commands.parallel(m_arm.aimWrist(Arm.kSubwooferWristAngleRad), m_shooter.runShooter()))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
-    m_operatorController.y().whileTrue(m_shooter.runShooter());
+    m_driverController.y().whileTrue(m_shooter.runShooter());
     m_operatorController.a().whileTrue(m_shooter.ampShot());
     m_operatorController
         .leftBumper()

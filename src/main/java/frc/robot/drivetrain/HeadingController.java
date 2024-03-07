@@ -61,7 +61,9 @@ public class HeadingController {
         "HeadingController/Setpoint",
         new Pose2d(
             PoseEstimation.getInstance().getPose().getTranslation(), m_goalHeadingSupplier.get()));
-    Logger.recordOutput("HeadingController/HeadingErrorDegrees", Units.radiansToDegrees(m_controller.getPositionError()));
+    Logger.recordOutput(
+        "HeadingController/HeadingErrorDegrees",
+        Units.radiansToDegrees(m_controller.getPositionError()));
     return output;
   }
 

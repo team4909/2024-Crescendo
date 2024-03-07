@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
@@ -48,7 +49,16 @@ public class Superstructure {
                     drivetrain.setHeadingGoal(
                         () -> PoseEstimation.getInstance().getAimingParameters().driveHeading()),
                 drivetrain::clearHeadingGoal),
-            shooter.runShooter())
-        .beforeStarting(lights.setBlink(Color.kRed));
+            shooter.runShooter(),
+            lights
+                .setBlink(Color.kRed)
+                .until(
+                    drivetrain
+                        .atHeadingGoal
+                        .and(shooter.readyToShoot)
+                        .and(drivetrain.inRangeOfGoal))
+                .andThen(lights.setBlink(Color.kGreen)))
+        .finallyDo(() -> lights.getCurrentCommand().cancel())
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }
 }

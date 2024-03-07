@@ -35,9 +35,11 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class Vision {
 
   private static final double kTargetLogTimeSecs = 0.1;
+  // #region Set these to false to disable vision measurements;
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
   private final boolean kIgnoreVisionInSim = true;
+  // #endregion
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
   private final PhotonPoseEstimator[] m_poseEstimators;

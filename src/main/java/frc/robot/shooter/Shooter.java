@@ -14,9 +14,9 @@ import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double kFarShotVelocityRpm = 5950.0;
+  private final double kFarShotVelocityRpm = 5700.0;
   private final double kAmpshot = 5000.0;
-  private final double kReadyToShootToleranceRps = 1.0;
+  private final double kReadyToShootToleranceRps = 2.5;
 
   // Denominator for gains here are in rotations
   public static final double topRollerkS = 0.18039;
@@ -36,7 +36,8 @@ public class Shooter extends SubsystemBase {
   private final ShooterIO m_io;
   private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
 
-  public final Trigger readyToShoot = new Trigger(() -> getRollersAtSetpoint()).debounce(0.5, DebounceType.kBoth);
+  public final Trigger readyToShoot =
+      new Trigger(() -> getRollersAtSetpoint()).debounce(0.1, DebounceType.kBoth);
 
   public Shooter(ShooterIO io) {
     m_io = io;
@@ -91,7 +92,6 @@ public class Shooter extends SubsystemBase {
   private boolean getRollersAtSetpoint() {
     return m_bottomRollerController.atSetpoint() && m_topRollerController.atSetpoint();
   }
-
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.quasistatic(direction);

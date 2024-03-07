@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.lib.LoggedTunableNumber;
 import frc.robot.Constants;
 import frc.robot.PoseEstimation;
 import java.util.Arrays;
@@ -58,6 +59,10 @@ public class Drivetrain extends SubsystemBase {
       new SwerveDriveKinematics(m_modulePositions);
   public static final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
+  private static final LoggedTunableNumber inRangeRadius =
+      new LoggedTunableNumber("HeadingController/InRangeRadius", 2.9);
+  private static final LoggedTunableNumber inRangeTolerance =
+      new LoggedTunableNumber("HeadingController/InRangeTolerance", 0.25);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.1;
@@ -76,6 +81,7 @@ public class Drivetrain extends SubsystemBase {
   };
 
   public final Trigger atHeadingGoal = new Trigger(this::atHeadingGoal);
+  public final Trigger inRangeOfGoal = new Trigger(this::inRange);
   public final Pose2d m_sourcePoseBlueOrigin =
       new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
 
@@ -331,5 +337,13 @@ public class Drivetrain extends SubsystemBase {
   @AutoLogOutput(key = "Drivetrain/AtHeadingGoal")
   public boolean atHeadingGoal() {
     return m_headingController != null && m_headingController.atGoal();
+  }
+
+  @AutoLogOutput(key = "Drivetrain/InRangeOfGoal")
+  public boolean inRange() {
+    return MathUtil.isNear(
+        inRangeRadius.get(),
+        PoseEstimation.getInstance().getAimingParameters().effectiveDistance(),
+        inRangeTolerance.get());
   }
 }
