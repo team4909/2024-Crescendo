@@ -1,7 +1,12 @@
 package frc.robot;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Filesystem;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.function.BooleanSupplier;
 
 public final class Constants {
@@ -15,6 +20,25 @@ public final class Constants {
       () ->
           DriverStation.getAlliance().isPresent()
               && DriverStation.getAlliance().get() == Alliance.Red;
+  public static final boolean useWpiFieldLayout = true;
+  public static final AprilTagFieldLayout fieldLayout;
+
+  static {
+    if (useWpiFieldLayout) {
+      try {
+        fieldLayout =
+            new AprilTagFieldLayout(
+                Path.of(
+                    Filesystem.getDeployDirectory().getPath(),
+                    "apriltags",
+                    "2024-wpi-custom.json"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } else
+      fieldLayout =
+          useWpiFieldLayout ? null : AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);
+  }
 
   public static enum Mode {
     kReal,
