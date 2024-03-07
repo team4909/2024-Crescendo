@@ -178,8 +178,11 @@ public class Robot extends LoggedRobot {
             () -> -m_driverController.getLeftX(),
             () -> -m_driverController.getRightX()));
 
-    m_intake.hasIntookPieceSim.or(m_feeder.hasNote).onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
-    m_feeder.hasNote.onTrue(m_lights.setBlink(Color.kOrangeRed));
+    m_intake
+        .hasIntookPieceSim
+        .or(m_feeder.hasNote)
+        .onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
+    m_feeder.hasNote.whileTrue(m_lights.setBlink(Color.kOrangeRed));
     m_drivetrain.inRangeOfGoal.whileTrue(m_lights.setBlink(Color.kBlue));
 
     m_driverController
@@ -213,7 +216,7 @@ public class Robot extends LoggedRobot {
             Commands.parallel(m_arm.aimWrist(Arm.kSubwooferWristAngleRad), m_shooter.runShooter()))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
-    m_driverController.y().whileTrue(m_shooter.runShooter());
+    m_operatorController.y().whileTrue(m_shooter.runShooter());
     m_operatorController.a().whileTrue(m_shooter.ampShot());
     m_operatorController
         .leftBumper()
