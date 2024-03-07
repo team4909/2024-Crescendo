@@ -42,6 +42,15 @@ public class Subsystems {
         new ModuleIOTalonFX(3));
   }
 
+  public static Drivetrain createSimDrivetrain() {
+    return new Drivetrain(
+        new ImuIO() {},
+        new ModuleIOTalonFX(0),
+        new ModuleIOTalonFX(1),
+        new ModuleIOTalonFX(2),
+        new ModuleIOTalonFX(3));
+  }
+
   public static Drivetrain createBlankDrivetrain() {
     return new Drivetrain(
         new ImuIO() {}, new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {}, new ModuleIO() {});

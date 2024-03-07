@@ -57,7 +57,9 @@ public class DriveToPose extends Command {
                         .getAngle()
                         .unaryMinus())
                 .getX()));
-    m_thetaController.reset(initialPose.getRotation().getRadians(), m_drivetrain.getYawVelocity());
+    m_thetaController.reset(
+        initialPose.getRotation().getRadians(),
+        PoseEstimation.getInstance().getFieldVelocity().dtheta);
     m_lastSetpointTranslation = initialPose.getTranslation();
   }
 

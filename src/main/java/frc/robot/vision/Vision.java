@@ -35,8 +35,9 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class Vision {
 
   private static final double kTargetLogTimeSecs = 0.1;
-  private final boolean kTrustVisionXY = false;
-  private final boolean kTrustVisionTheta = false;
+  private final boolean kTrustVisionXY = true;
+  private final boolean kTrustVisionTheta = true;
+  private final boolean kIgnoreVisionInSim = true;
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
   private final PhotonPoseEstimator[] m_poseEstimators;
@@ -141,6 +142,8 @@ public class Vision {
 
   public Matrix<N3, N1> getEstimationStdDevs(
       Pose2d estimatedPose, List<PhotonTrackedTarget> targets) {
+    if (Constants.kIsSim && kIgnoreVisionInSim)
+      return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     int tagCount = 0;
     double totalDistance = 0;
     for (PhotonTrackedTarget target : targets) {
@@ -175,7 +178,7 @@ public class Vision {
 
   private SimCameraProperties getSimCameraProperties() {
     final SimCameraProperties cameraProperties = new SimCameraProperties();
-    cameraProperties.setCalibration(1600, 1200, Rotation2d.fromDegrees(75));
+    cameraProperties.setCalibration(1280, 720, Rotation2d.fromDegrees(75));
     cameraProperties.setCalibError(0.35, 0.10);
     cameraProperties.setFPS(20);
     cameraProperties.setAvgLatencyMs(50);

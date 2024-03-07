@@ -14,8 +14,4 @@ public interface ImuIO {
   }
 
   public default void updateInputs(ImuIOInputs inputs) {}
-
-  public default void setGyroAngle(double angleRad) {}
-
-  public default void updateSim(double dThetaRad) {}
 }

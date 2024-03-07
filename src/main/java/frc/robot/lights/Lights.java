@@ -40,21 +40,14 @@ public class Lights extends SubsystemBase {
         .ignoringDisable(true);
   }
 
-  public Command setBlink() {
-    final int[] blinkColor = colorToRGB(Color.kOrangeRed);
-    final double kBlinkTimeSeconds = 1.0;
+  public Command setBlink(Color color) {
+    final int[] blinkColor = colorToRGB(color);
     return Commands.sequence(
             this.runOnce(
                 () ->
                     m_ledController.animate(
                         new StrobeAnimation(
                             blinkColor[0], blinkColor[1], blinkColor[2], 0, 0.4, kLedCount))),
-            Commands.waitSeconds(kBlinkTimeSeconds),
-            this.runOnce(
-                () ->
-                    m_ledController.animate(
-                        new StrobeAnimation(
-                            blinkColor[0], blinkColor[1], blinkColor[2], 0, 0, kLedCount))),
             this.run(() -> {}))
         .ignoringDisable(true);
   }

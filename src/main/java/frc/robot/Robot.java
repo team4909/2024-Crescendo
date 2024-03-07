@@ -3,6 +3,7 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -19,6 +20,7 @@ import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -66,6 +68,7 @@ public class Robot extends LoggedRobot {
     }
 
     Logger.start();
+    LogTable.disableProtobufWarning();
 
     switch (Constants.kCurrentMode) {
       case kReal:
@@ -78,7 +81,7 @@ public class Robot extends LoggedRobot {
         m_feeder = Subsystems.createTalonFXFeeder();
         break;
       case kSim:
-        m_drivetrain = Subsystems.createTalonFXDrivetrain();
+        m_drivetrain = Subsystems.createSimDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createSimArm();
@@ -177,12 +180,14 @@ public class Robot extends LoggedRobot {
 
     m_intake.hasIntookPieceSim.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
     m_feeder.hasNote.onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
-    m_feeder.hasNote.onTrue(m_lights.setBlink());
+    m_feeder.hasNote.onTrue(m_lights.setBlink(Color.kOrangeRed));
+    m_drivetrain.atHeadingGoal.and(m_shooter.readyToShoot).whileTrue(m_lights.setBlink(Color.kGreen));
 
     m_driverController
         .rightTrigger()
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.shoot()))
         .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
+    m_driverController.leftTrigger().whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_lights));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_driverController.leftStick().toggleOnTrue(m_arm.aimElbowForTuning());

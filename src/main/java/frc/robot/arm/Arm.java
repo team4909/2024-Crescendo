@@ -71,8 +71,8 @@ public class Arm extends SubsystemBase {
   static {
     switch (Constants.kCurrentMode) {
       case kReal:
-        elbowkP.initDefault(3.8);
-        elbowkD.initDefault(0);
+        elbowkP.initDefault(2.1);
+        elbowkD.initDefault(0.8);
         elbowkS.initDefault(0.55);
         elbowCruiseVelocityRadPerSec.initDefault(5.0);
         elbowMaxAccelerationRadPerSecSq.initDefault(8.0);
@@ -278,39 +278,19 @@ public class Arm extends SubsystemBase {
   }
 
   public Command sysIdElbowQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutineElbow
-        .quasistatic(direction)
-        .until(
-            () ->
-                m_inputs.elbowPositionRad > (Math.PI / 2)
-                    || m_inputs.elbowPositionRad < ArmSetpoints.kStowed.elbowAngle);
+    return m_sysIdRoutineElbow.quasistatic(direction);
   }
 
   public Command sysIdElbowDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutineElbow
-        .dynamic(direction)
-        .until(
-            () ->
-                m_inputs.elbowPositionRad > (Math.PI / 2)
-                    || m_inputs.elbowPositionRad < ArmSetpoints.kStowed.elbowAngle);
+    return m_sysIdRoutineElbow.dynamic(direction);
   }
 
   public Command sysIdWristQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutineWrist
-        .quasistatic(direction)
-        .until(
-            () ->
-                m_inputs.elbowPositionRad < 0.0
-                    || m_inputs.wristPositionRad > ArmSetpoints.kStowed.wristAngle);
+    return m_sysIdRoutineWrist.quasistatic(direction);
   }
 
   public Command sysIdWristDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutineWrist
-        .dynamic(direction)
-        .until(
-            () ->
-                m_inputs.elbowPositionRad < 0.0
-                    || m_inputs.wristPositionRad > ArmSetpoints.kStowed.wristAngle);
+    return m_sysIdRoutineWrist.dynamic(direction);
   }
 
   private boolean getJointsAtGoal() {

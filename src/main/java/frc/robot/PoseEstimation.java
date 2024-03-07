@@ -1,10 +1,13 @@
 package frc.robot;
 
+import com.pathplanner.lib.util.GeometryUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision.VisionUpdate;
@@ -14,13 +17,33 @@ public class PoseEstimation {
 
   private static PoseEstimation m_instance;
   private final SwerveDrivePoseEstimator m_poseEstimator;
+  private final boolean kLookaheadDisable = true;
+  private final double kLookaheadSeconds = 0.0;
   private Twist2d m_robotVelocity = new Twist2d();
-  private Twist2d m_fieldVelocity = new Twist2d();
+  private AimingParameters m_lastAimingParameters = null;
+
+  private static final InterpolatingDoubleTreeMap wristAngleMap = new InterpolatingDoubleTreeMap();
+  private static final InterpolatingDoubleTreeMap elbowAngleMap = new InterpolatingDoubleTreeMap();
+
+  static {
+    wristAngleMap.put(1.0, 0.0);
+    wristAngleMap.put(1.0, 0.0);
+  }
+
+  static {
+    elbowAngleMap.put(1.0, 0.0);
+  }
+
+  public record AimingParameters(
+      Rotation2d driveHeading,
+      Rotation2d armAngle,
+      double effectiveDistance,
+      double driveFeedVelocity) {}
 
   public PoseEstimation() {
     m_poseEstimator =
         new SwerveDrivePoseEstimator(
-            Drivetrain.kSwerveKinematics,
+            Drivetrain.swerveKinematics,
             new Rotation2d(),
             new SwerveModulePosition[] {
               new SwerveModulePosition(),
@@ -33,14 +56,17 @@ public class PoseEstimation {
 
   public void addOdometryMeasurement(
       double timestamp, Rotation2d yawPosition, SwerveModulePosition[] modulePositions) {
+    m_lastAimingParameters = null;
     m_poseEstimator.updateWithTime(timestamp, yawPosition, modulePositions);
   }
 
   public void setVelocity(Twist2d robotVelocity) {
+    m_lastAimingParameters = null;
     m_robotVelocity = robotVelocity;
   }
 
   public void addVisionMeasurement(VisionUpdate visionUpdate) {
+    m_lastAimingParameters = null;
     m_poseEstimator.addVisionMeasurement(
         visionUpdate.pose(), visionUpdate.timestampSeconds(), visionUpdate.standardDeviations());
   }
@@ -65,6 +91,55 @@ public class PoseEstimation {
                 m_robotVelocity.dx * translationLookaheadS,
                 m_robotVelocity.dy * translationLookaheadS,
                 m_robotVelocity.dtheta * rotationLookaheadS));
+  }
+
+  public AimingParameters getAimingParameters() {
+    if (m_lastAimingParameters != null) return m_lastAimingParameters;
+
+    Translation2d speakerPosition = FieldPositions.Speaker.centerSpeakerOpening.toTranslation2d();
+    speakerPosition =
+        Constants.onRedAllianceSupplier.getAsBoolean()
+            ? GeometryUtil.flipFieldPosition(speakerPosition)
+            : speakerPosition;
+    final Transform2d fieldToTarget = new Transform2d(speakerPosition, new Rotation2d());
+    final Pose2d fieldToPredictedVehicle =
+        kLookaheadDisable ? getPose() : getPredictedPose(kLookaheadSeconds, kLookaheadSeconds);
+    final Pose2d fieldToPredictedVehicleFixed =
+        new Pose2d(fieldToPredictedVehicle.getTranslation(), new Rotation2d());
+
+    final Translation2d predictedVehicleToTargetTranslation =
+        poseInverse(fieldToPredictedVehicle).transformBy(fieldToTarget).getTranslation();
+    final Translation2d predictedVehicleFixedToTargetTranslation =
+        poseInverse(fieldToPredictedVehicleFixed).transformBy(fieldToTarget).getTranslation();
+
+    /**
+     * Rotate both angles by 180 degrees so that the back (shooter) points towards the target and
+     * not the front (intake)
+     */
+    final Rotation2d vehicleToGoalDirection =
+        predictedVehicleToTargetTranslation.getAngle().rotateBy(new Rotation2d(Math.PI));
+    final Rotation2d targetVehicleDirection =
+        predictedVehicleFixedToTargetTranslation.getAngle().rotateBy(new Rotation2d(Math.PI));
+
+    double targetDistance = predictedVehicleToTargetTranslation.getNorm();
+
+    double feedVelocity =
+        m_robotVelocity.dx * vehicleToGoalDirection.getSin() / targetDistance
+            - m_robotVelocity.dy * vehicleToGoalDirection.getCos() / targetDistance;
+
+    m_lastAimingParameters =
+        new AimingParameters(
+            targetVehicleDirection,
+            Rotation2d.fromDegrees(elbowAngleMap.get(targetDistance)),
+            targetDistance,
+            feedVelocity);
+    return m_lastAimingParameters;
+  }
+
+  private Pose2d poseInverse(Pose2d pose) {
+    Rotation2d rotationInverse = pose.getRotation().unaryMinus();
+    return new Pose2d(
+        pose.getTranslation().unaryMinus().rotateBy(rotationInverse), rotationInverse);
   }
 
   public void resetPose(

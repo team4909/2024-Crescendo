@@ -11,7 +11,8 @@ public class FieldPositions {
   public static class NotePositions {
     private static final AprilTagFieldLayout fieldLayout =
         AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
-    private static final double kCenterlineX = fieldLayout.getFieldLength() / 2.0;
+    public static final double fieldLength = fieldLayout.getFieldLength();
+    private static final double kCenterlineX = fieldLength / 2.0;
     private static final double kCenterlineFirstY = Units.inchesToMeters(29.638);
     private static final double kCenterlineSeparationY = Units.inchesToMeters(66);
     private static final double kSpikeX = Units.inchesToMeters(114);

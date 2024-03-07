@@ -6,7 +6,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -24,7 +24,7 @@ public class ArmIOTalonFX implements ArmIO {
       m_elbowRightFollowerMotor,
       m_wristLeftMotor,
       m_wristRightFollowerMotor;
-  private final VoltageOut m_elbowControl, m_wristControl;
+  private final MotionMagicVoltage m_elbowControl, m_wristControl;
   private final StatusSignal<Double> m_elbowPositionSignal,
       m_elbowVelocitySignal,
       m_elbowAppliedVoltsSignal,
@@ -105,10 +105,13 @@ public class ArmIOTalonFX implements ArmIO {
     ParentDevice.optimizeBusUtilizationForAll(
         m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
 
-    m_elbowControl = new VoltageOut(0.0, true, false, false, false).withUpdateFreqHz(0.0);
-    m_wristControl = new VoltageOut(0.0, true, false, false, false).withUpdateFreqHz(0.0);
+    m_elbowControl =
+        new MotionMagicVoltage(0.0, true, 0.0, 0, false, false, false).withUpdateFreqHz(0.0);
+    m_wristControl =
+        new MotionMagicVoltage(0.0, true, 0.0, 0, false, false, false).withUpdateFreqHz(0.0);
   }
 
+  @Override
   public void updateInputs(ArmIOInputs inputs) {
     inputs.allMotorsConnected =
         BaseStatusSignal.refreshAll(
@@ -147,14 +150,27 @@ public class ArmIOTalonFX implements ArmIO {
         new double[] {m_wristCurrentSignal.getValue(), m_wristFollowerCurrentSignal.getValue()};
   }
 
+  @Override
+  public void setElbowRotations(double angleRot) {
+    m_elbowLeftMotor.setControl(m_elbowControl.withPosition(angleRot));
+  }
+
+  @Override
+  public void setWristRotations(double angleRot) {
+    m_wristLeftMotor.setControl(m_wristControl.withPosition(angleRot));
+  }
+
+  @Override
   public void setElbowVoltage(double volts) {
-    m_elbowLeftMotor.setControl(m_elbowControl.withOutput(volts));
+    m_elbowLeftMotor.setVoltage(volts);
   }
 
+  @Override
   public void setWristVoltage(double volts) {
-    m_wristLeftMotor.setControl(m_wristControl.withOutput(volts));
+    m_wristLeftMotor.setVoltage(volts);
   }
 
+  @Override
   public void setBrakeMode(boolean enableBrakeMode) {
     final NeutralModeValue neutralModeValue =
         enableBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast;

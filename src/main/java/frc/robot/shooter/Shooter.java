@@ -36,6 +36,8 @@ public class Shooter extends SubsystemBase {
   private final ShooterIO m_io;
   private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
 
+  public final Trigger readyToShoot = new Trigger(() -> getRollersAtSetpoint()).debounce(0.5, DebounceType.kBoth);
+
   public Shooter(ShooterIO io) {
     m_io = io;
 
@@ -90,9 +92,6 @@ public class Shooter extends SubsystemBase {
     return m_bottomRollerController.atSetpoint() && m_topRollerController.atSetpoint();
   }
 
-  public Trigger readyToShoot() {
-    return new Trigger(() -> getRollersAtSetpoint()).debounce(0.5, DebounceType.kBoth);
-  }
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutine.quasistatic(direction);
@@ -122,7 +121,7 @@ public class Shooter extends SubsystemBase {
             })
         .finallyDo(
             () -> {
-              Logger.recordOutput("Shooter/Goal Roller RPS", 0);
+              Logger.recordOutput("Shooter/Goal Roller RPS", 0.0);
               m_topRollerController.reset();
               m_bottomRollerController.reset();
             });

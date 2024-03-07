@@ -21,6 +21,10 @@ public interface ArmIO {
 
   public default void updateInputs(ArmIOInputs inputs) {}
 
+  public default void setElbowRotations(double angleRot) {}
+
+  public default void setWristRotations(double angleRot) {}
+
   public default void setElbowVoltage(double volts) {}
 
   public default void setWristVoltage(double volts) {}

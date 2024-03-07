@@ -5,10 +5,8 @@ import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
 import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ctre.phoenix6.sim.Pigeon2SimState;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants;
 import java.util.Queue;
 
@@ -42,15 +40,5 @@ public class ImuIOPigeon2 implements ImuIO {
         m_yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
     m_yawPositionQueue.clear();
     m_yawTimestampQueue.clear();
-  }
-
-  public void setGyroAngle(double angleRad) {
-    m_imu.setYaw(angleRad);
-  }
-
-  public void updateSim(double dThetaRad) {
-    final Pigeon2SimState imuSimState = m_imu.getSimState();
-    imuSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    imuSimState.addYaw(Math.toDegrees(dThetaRad));
   }
 }

@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants;
 import java.util.Queue;
-import org.littletonrobotics.junction.Logger;
 
 public class ModuleIOTalonFX implements ModuleIO {
 
@@ -36,7 +35,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final double kDrivekA = 0.0057523;
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
-  private final double kSlipCurrent = Constants.kIsSim ? 400.0 : 60.0;
+  private final double kSlipCurrent = Constants.kIsSim ? 400.0 : 58.0;
 
   private final TalonFX m_driveMotor, m_steerMotor;
   private final CANcoder m_azimuthEncoder;
@@ -61,10 +60,8 @@ public class ModuleIOTalonFX implements ModuleIO {
           Module.kDriveRatio);
   private final DCMotorSim m_steerSim =
       new DCMotorSim(DCMotor.getFalcon500Foc(1), Module.kSteerRatio, 0.004);
-  private final int m_index;
 
   public ModuleIOTalonFX(int index) {
-    m_index = index;
     switch (index) {
       case 0: // FL
         m_driveMotor = new TalonFX(4, Constants.kDrivetrainCanBus);
@@ -237,16 +234,10 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_driveSim.update(0.02);
     m_steerSim.update(0.02);
 
-    Logger.recordOutput(
-        "Drivetrain/Sim/Module " + m_index + "/Drive Motor Output V",
-        driveSimState.getMotorVoltage());
     final double driveRotorVelocityRPS =
         Units.radiansToRotations(m_driveSim.getAngularVelocityRadPerSec()) * Module.kDriveRatio;
     driveSimState.addRotorPosition(driveRotorVelocityRPS * 0.02);
     driveSimState.setRotorVelocity(driveRotorVelocityRPS);
-    Logger.recordOutput(
-        "Drivetrain/Sim/Module " + m_index + "/Steer Motor Output V",
-        steerSimState.getMotorVoltage());
     /*
      * Note that since we are simulating a fused cancoder we cannot simulate the
      * internal rotor's state, just the cancoder

@@ -63,8 +63,6 @@ public class Module {
       setpointVelocityRPS += driveRateBackOut;
     }
 
-    Logger.recordOutput(
-        "Test/Desired Speed Module " + m_index, optimizedState.speedMetersPerSecond);
     m_io.setSteerRotations(optimizedState.angle.getRotations());
     m_io.setDriveRPS(setpointVelocityRPS);
     return state;
