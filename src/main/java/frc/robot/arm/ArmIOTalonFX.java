@@ -130,10 +130,10 @@ public class ArmIOTalonFX implements ArmIO {
     inputs.elbowPositionRad =
         MathUtil.angleModulus(
             Units.rotationsToRadians(
-                    m_elbowPositionSignal.getValue() / ArmModel.kElbowFinalReduction)
+                    m_elbowPositionSignal.getValue() / ArmConstants.kElbowReduction)
                 - kElbowRelativeEncoderOffsetRad);
     inputs.elbowVelocityRadPerSec =
-        Units.rotationsToRadians(m_elbowVelocitySignal.getValue() / ArmModel.kElbowFinalReduction);
+        Units.rotationsToRadians(m_elbowVelocitySignal.getValue() / ArmConstants.kElbowReduction);
     inputs.elbowAppliedVolts = m_elbowAppliedVoltsSignal.getValue();
     inputs.elbowCurrentAmps =
         new double[] {m_elbowCurrentSignal.getValue(), m_elbowFollowerCurrentSignal.getValue()};
@@ -141,10 +141,10 @@ public class ArmIOTalonFX implements ArmIO {
     inputs.wristPositionRad =
         MathUtil.angleModulus(
             Units.rotationsToRadians(
-                    m_wristPositionSignal.getValue() / ArmModel.kWristFinalReduction)
+                    m_wristPositionSignal.getValue() / ArmConstants.kWristReduction)
                 + kWristRelativeEncoderOffsetRad);
     inputs.wristVelocityRadPerSec =
-        Units.rotationsToRadians(m_wristVelocitySignal.getValue() / ArmModel.kWristFinalReduction);
+        Units.rotationsToRadians(m_wristVelocitySignal.getValue() / ArmConstants.kWristReduction);
     inputs.wristAppliedVolts = m_wristAppliedVoltsSignal.getValue();
     inputs.wristCurrentAmps =
         new double[] {m_wristCurrentSignal.getValue(), m_wristFollowerCurrentSignal.getValue()};

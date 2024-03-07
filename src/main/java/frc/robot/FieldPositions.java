@@ -1,17 +1,13 @@
 package frc.robot;
 
 import com.pathplanner.lib.util.GeometryUtil;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
 public class FieldPositions {
   public static class NotePositions {
-    private static final AprilTagFieldLayout fieldLayout =
-        AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
-    public static final double fieldLength = fieldLayout.getFieldLength();
+    public static final double fieldLength = Constants.fieldLayout.getFieldLength();
     private static final double kCenterlineX = fieldLength / 2.0;
     private static final double kCenterlineFirstY = Units.inchesToMeters(29.638);
     private static final double kCenterlineSeparationY = Units.inchesToMeters(66);

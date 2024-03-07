@@ -1,8 +1,8 @@
 package frc.robot.vision;
 
+import static frc.robot.Constants.fieldLayout;
+
 import edu.wpi.first.apriltag.AprilTag;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -44,8 +44,6 @@ public class Vision {
   private final VisionIOInputs[] m_inputs;
   private final PhotonPoseEstimator[] m_poseEstimators;
   private VisionSystemSim m_visionSimSystem = null;
-  private final AprilTagFieldLayout kTagLayout =
-      AprilTagFields.kDefaultField.loadAprilTagLayoutField();
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
   private ArrayList<VisionUpdate> m_newVisionUpdates;
   private final double kXYStdDevCoefficient = 0.05;
@@ -61,14 +59,14 @@ public class Vision {
           m_inputs[i]); // This is for initializing camera names and offsets into inputs.
       m_poseEstimators[i] =
           new PhotonPoseEstimator(
-              kTagLayout,
+              fieldLayout,
               PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
               new PhotonCamera(m_inputs[i].cameraName),
               m_inputs[i].robotToCamera);
     }
     if (Constants.kIsSim) {
       m_visionSimSystem = new VisionSystemSim("sim_vision_system");
-      m_visionSimSystem.addAprilTags(kTagLayout);
+      m_visionSimSystem.addAprilTags(fieldLayout);
       for (int index = 0; index < io.length; index++) {
         PhotonCameraSim cameraSim =
             new PhotonCameraSim(
@@ -78,7 +76,7 @@ public class Vision {
       }
     }
 
-    kTagLayout
+    fieldLayout
         .getTags()
         .forEach(
             (AprilTag tag) -> {
@@ -103,7 +101,7 @@ public class Vision {
               List<PhotonTrackedTarget> targets = result.getTargets();
               targets.forEach(
                   target -> {
-                    kTagLayout
+                    fieldLayout
                         .getTagPose(target.getFiducialId())
                         .ifPresent(
                             tagPose ->
@@ -131,7 +129,7 @@ public class Vision {
     List<Pose3d> targetPose3ds = new ArrayList<>();
     for (Map.Entry<Integer, Double> detectionEntry : m_lastDetectionTimeIds.entrySet())
       if (Timer.getFPGATimestamp() - detectionEntry.getValue() < kTargetLogTimeSecs)
-        kTagLayout.getTagPose(detectionEntry.getKey()).ifPresent(pose -> targetPose3ds.add(pose));
+        fieldLayout.getTagPose(detectionEntry.getKey()).ifPresent(pose -> targetPose3ds.add(pose));
 
     Logger.recordOutput("Vision/TagPoses", targetPose3ds.toArray(new Pose3d[targetPose3ds.size()]));
     Logger.recordOutput(
@@ -149,7 +147,7 @@ public class Vision {
     int tagCount = 0;
     double totalDistance = 0;
     for (PhotonTrackedTarget target : targets) {
-      Optional<Pose3d> tagPose = kTagLayout.getTagPose(target.getFiducialId());
+      Optional<Pose3d> tagPose = fieldLayout.getTagPose(target.getFiducialId());
       // Ignore tags whose ids are not in the field layout.
       if (tagPose.isEmpty()) continue;
       tagCount++;

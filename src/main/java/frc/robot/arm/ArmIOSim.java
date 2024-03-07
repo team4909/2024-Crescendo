@@ -1,40 +1,62 @@
 package frc.robot.arm;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.numbers.N4;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.arm.Arm.ArmSetpoints;
 
 public class ArmIOSim implements ArmIO {
-  private Vector<N4> m_elbowWristSimStates =
-      VecBuilder.fill(ArmSetpoints.kStowed.elbowAngle, ArmSetpoints.kStowed.wristAngle, 0.0, 0.0);
-  private ArmModel m_model = new ArmModel();
+
+  private final SingleJointedArmSim m_elbowSim, m_wristSim;
 
   private double m_elbowAppliedVolts = 0.0;
   private double m_wristAppliedVolts = 0.0;
 
-  public ArmIOSim() {}
+  public ArmIOSim() {
+    m_elbowSim =
+        new SingleJointedArmSim(
+            ArmConstants.kElbowGearbox,
+            ArmConstants.kElbowReduction,
+            ArmConstants.kElbowMoiKgMetersSq,
+            ArmConstants.kElbowLengthMeters,
+            ArmConstants.kElbowMinAngleRad,
+            ArmConstants.kElbowMaxAngleRad,
+            true,
+            ArmSetpoints.kStowed.elbowAngle);
+    m_wristSim =
+        new SingleJointedArmSim(
+            ArmConstants.kWristGearbox,
+            ArmConstants.kWristReduction,
+            ArmConstants.kWristMoiKgMetersSq,
+            ArmConstants.kWristLengthMeters,
+            ArmConstants.kWristMinAngleRad,
+            ArmConstants.kWristMaxAngleRad,
+            true,
+            ArmSetpoints.kStowed.wristAngle);
+  }
 
   public void updateInputs(ArmIOInputs inputs) {
 
-    m_elbowWristSimStates =
-        m_model.simulate(
-            m_elbowWristSimStates, VecBuilder.fill(m_elbowAppliedVolts, m_wristAppliedVolts), 0.02);
-    inputs.elbowPositionRad = m_elbowWristSimStates.get(0, 0);
-    inputs.elbowVelocityRadPerSec = m_elbowWristSimStates.get(2, 0);
+    m_elbowSim.setInputVoltage(m_elbowAppliedVolts);
+    m_wristSim.setInputVoltage(m_wristAppliedVolts);
+    m_elbowSim.update(0.02);
+    m_wristSim.update(0.02);
+
+    inputs.elbowPositionRad = m_elbowSim.getAngleRads();
+    inputs.elbowVelocityRadPerSec = m_elbowSim.getVelocityRadPerSec();
     inputs.elbowAppliedVolts = m_elbowAppliedVolts;
     inputs.elbowCurrentAmps =
         new double[] {
-          ArmModel.kElbowGearbox.getCurrent(m_elbowWristSimStates.get(2, 0), m_elbowAppliedVolts)
+          ArmConstants.kElbowGearbox.getCurrent(
+              m_elbowSim.getVelocityRadPerSec(), m_elbowAppliedVolts)
         };
 
-    inputs.wristPositionRad = m_elbowWristSimStates.get(1, 0);
-    inputs.wristVelocityRadPerSec = m_elbowWristSimStates.get(3, 0);
+    inputs.wristPositionRad = m_wristSim.getAngleRads();
+    inputs.wristVelocityRadPerSec = m_wristSim.getVelocityRadPerSec();
     inputs.wristAppliedVolts = m_wristAppliedVolts;
     inputs.wristCurrentAmps =
         new double[] {
-          ArmModel.kWristGearbox.getCurrent(m_elbowWristSimStates.get(3, 0), m_wristAppliedVolts)
+          ArmConstants.kWristGearbox.getCurrent(
+              m_wristSim.getVelocityRadPerSec(), m_wristAppliedVolts)
         };
 
     inputs.allMotorsConnected = true;

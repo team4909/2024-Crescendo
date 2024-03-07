@@ -36,11 +36,11 @@ public class ArmVisualizer {
     m_elbowLigament =
         m_fixedShoulderLigament.append(
             new MechanismLigament2d(
-                "Elbow", ArmModel.kElbowLengthMeters, 0, ligamentWidth, new Color8Bit(color)));
+                "Elbow", ArmConstants.kElbowLengthMeters, 0, ligamentWidth, new Color8Bit(color)));
     m_wristLigament =
         m_elbowLigament.append(
             new MechanismLigament2d(
-                "Wrist", ArmModel.kWristLengthMeters, 0, ligamentWidth, new Color8Bit(color)));
+                "Wrist", ArmConstants.kWristLengthMeters, 0, ligamentWidth, new Color8Bit(color)));
   }
 
   public void update(double elbowAngle, double wristAngle) {
@@ -53,7 +53,7 @@ public class ArmVisualizer {
     m_wristPose =
         m_elbowPose.transformBy(
             new Transform3d(
-                new Translation3d(ArmModel.kElbowLengthMeters, 0.0, 0.0),
+                new Translation3d(ArmConstants.kElbowLengthMeters, 0.0, 0.0),
                 new Rotation3d(0.0, -(wristAngle - elbowAngle), 0.0)));
     Logger.recordOutput("Mechanism3d/" + m_logKey, m_elbowPose, m_wristPose);
   }
