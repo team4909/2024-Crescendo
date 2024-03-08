@@ -6,7 +6,6 @@ import edu.wpi.first.math.util.Units;
 
 public class IntakeIOSparkMAX implements IntakeIO {
 
-  private final double kRollerReduction = 1.0;
   private final CANSparkMax topRollerMotor, bottomRollerMotor, centeringMotors;
   private final RelativeEncoder m_topRollerEncoder, m_bottomRollerEncoder;
 
@@ -29,15 +28,13 @@ public class IntakeIOSparkMAX implements IntakeIO {
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
     inputs.topRollerVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(
-            m_topRollerEncoder.getVelocity() / kRollerReduction);
+        Units.rotationsPerMinuteToRadiansPerSecond(m_topRollerEncoder.getVelocity());
     inputs.topRollerAppliedVolts =
         topRollerMotor.getAppliedOutput() * topRollerMotor.getBusVoltage();
     inputs.topRollerCurrentAmps = topRollerMotor.getOutputCurrent();
 
     inputs.bottomRollerVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(
-            m_bottomRollerEncoder.getVelocity() / kRollerReduction);
+        Units.rotationsPerMinuteToRadiansPerSecond(m_bottomRollerEncoder.getVelocity());
     inputs.bottomRollerAppliedVolts =
         bottomRollerMotor.getAppliedOutput() * bottomRollerMotor.getBusVoltage();
     inputs.bottomRollerCurrentAmps = bottomRollerMotor.getOutputCurrent();
