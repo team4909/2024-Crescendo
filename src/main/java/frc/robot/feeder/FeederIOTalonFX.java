@@ -4,7 +4,6 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -13,8 +12,6 @@ import frc.robot.Constants;
 public class FeederIOTalonFX implements FeederIO {
   private final TalonFX m_feederMotor;
   private final DigitalInput m_topNoteSensor;
-
-  private final DutyCycleOut m_feederControl;
 
   private final StatusSignal<Double> m_rollerPositionSignal,
       m_rollerVelocitySignal,
@@ -39,8 +36,6 @@ public class FeederIOTalonFX implements FeederIO {
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0, m_rollerVelocitySignal, m_rollerAppliedVoltageSignal, m_rollerCurrentSignal);
     m_feederMotor.optimizeBusUtilization();
-
-    m_feederControl = new DutyCycleOut(0, false, false, false, false).withUpdateFreqHz(0.0);
   }
 
   @Override
@@ -61,8 +56,8 @@ public class FeederIOTalonFX implements FeederIO {
   }
 
   @Override
-  public void setRollerSpeedDutyCycle(double volts) {
-    m_feederMotor.setControl(m_feederControl.withOutput(volts));
+  public void setRollerSpeedVolts(double volts) {
+    m_feederMotor.setVoltage(volts);
   }
 
   public void setBrakeMode(boolean enableBrakeMode) {
@@ -73,6 +68,6 @@ public class FeederIOTalonFX implements FeederIO {
 
   @Override
   public void stopRoller() {
-    m_feederMotor.setControl(m_feederControl.withOutput(0.0));
+    m_feederMotor.setVoltage(0.0);
   }
 }

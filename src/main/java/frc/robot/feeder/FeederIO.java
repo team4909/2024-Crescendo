@@ -18,7 +18,7 @@ public interface FeederIO {
 
   public default void updateInputs(FeederIOInputs inputs) {}
 
-  public default void setRollerSpeedDutyCycle(double dutyCycle) {}
+  public default void setRollerSpeedVolts(double volts) {}
 
   public default void setBrakeMode(boolean enableBrakeMode) {}
 
