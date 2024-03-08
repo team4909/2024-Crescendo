@@ -22,6 +22,7 @@ import frc.robot.feeder.FeederIOSim;
 import frc.robot.feeder.FeederIOTalonFX;
 import frc.robot.intake.Intake;
 import frc.robot.intake.IntakeIO;
+import frc.robot.intake.IntakeIOSim;
 import frc.robot.intake.IntakeIOSparkMAX;
 import frc.robot.shooter.Shooter;
 import frc.robot.shooter.ShooterIO;
@@ -88,6 +89,10 @@ public class Subsystems {
 
   public static Intake createSparkMAXIntake() {
     return new Intake(new IntakeIOSparkMAX());
+  }
+
+  public static Intake createSimIntake() {
+    return new Intake(new IntakeIOSim());
   }
 
   public static Intake createBlankIntake() {
