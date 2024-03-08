@@ -14,7 +14,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double kFarShotVelocityRpm = 5700.0;
+  private final double kFarShotVelocityRpm = 6000.0;
   private final double kAmpshot = 5000.0;
   private final double kReadyToShootToleranceRps = 2.5;
 

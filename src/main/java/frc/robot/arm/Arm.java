@@ -299,8 +299,8 @@ public class Arm extends SubsystemBase {
   }
 
   public static enum ArmSetpoints {
-    kStowed(-0.571, 2.46, 0.15, 0.0),
-    kAmp(1.49, -2.307, 0.0, 0.0),
+    kStowed(-0.548, 2.485, 0.15, 0.0),
+    kAmp(1.49 + 0.0873, -2.307, 0.0, 0.0),
     kClimb(1.633, -2.371, 0.0, 0.0);
 
     public final double elbowAngle;
