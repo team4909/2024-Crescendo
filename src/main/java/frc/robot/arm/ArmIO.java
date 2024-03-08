@@ -6,13 +6,15 @@ public interface ArmIO {
 
   @AutoLog
   public static class ArmIOInputs {
-    public double elbowPositionRad = 0.0;
-    public double elbowVelocityRadPerSec = 0.0;
+    public double elbowPositionRot = 0.0;
+    public double elbowPositionSetpointRot = 0.0;
+    public double elbowVelocityRps = 0.0;
     public double elbowAppliedVolts = 0.0;
     public double[] elbowCurrentAmps = new double[] {};
 
-    public double wristPositionRad = 0.0;
-    public double wristVelocityRadPerSec = 0.0;
+    public double wristPositionRot = 0.0;
+    public double wristPositionSetpointRot = 0.0;
+    public double wristVelocityRps = 0.0;
     public double wristAppliedVolts = 0.0;
     public double[] wristCurrentAmps = new double[] {};
 
@@ -30,4 +32,23 @@ public interface ArmIO {
   public default void setWristVoltage(double volts) {}
 
   public default void setBrakeMode(boolean enableBrakeMode) {}
+
+  public default void configPD(double elbowkP, double elbowkD, double wristkP, double wristkD) {}
+
+  /**
+   * Numerator is volts, denominator is in terms of rotations (where applicable)
+   */
+  public default void configFF(
+      double elbowkS,
+      double elbowkV,
+      double elbowkG,
+      double wristkS,
+      double wristkV,
+      double wristkG) {}
+
+  public default void configLimits(
+      double elbowCruiseVelocityRps,
+      double elbowAccelerationRpsSq,
+      double wristCruiseVelocityRps,
+      double wristAccelerationRpsSq) {}
 }

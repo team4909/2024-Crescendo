@@ -41,8 +41,8 @@ public class ArmIOSim implements ArmIO {
     m_elbowSim.update(0.02);
     m_wristSim.update(0.02);
 
-    inputs.elbowPositionRad = m_elbowSim.getAngleRads();
-    inputs.elbowVelocityRadPerSec = m_elbowSim.getVelocityRadPerSec();
+    inputs.elbowPositionRot = m_elbowSim.getAngleRads();
+    inputs.elbowVelocityRps = m_elbowSim.getVelocityRadPerSec();
     inputs.elbowAppliedVolts = m_elbowAppliedVolts;
     inputs.elbowCurrentAmps =
         new double[] {
@@ -50,8 +50,8 @@ public class ArmIOSim implements ArmIO {
               m_elbowSim.getVelocityRadPerSec(), m_elbowAppliedVolts)
         };
 
-    inputs.wristPositionRad = m_wristSim.getAngleRads();
-    inputs.wristVelocityRadPerSec = m_wristSim.getVelocityRadPerSec();
+    inputs.wristPositionRot = m_wristSim.getAngleRads();
+    inputs.wristVelocityRps = m_wristSim.getVelocityRadPerSec();
     inputs.wristAppliedVolts = m_wristAppliedVolts;
     inputs.wristCurrentAmps =
         new double[] {
