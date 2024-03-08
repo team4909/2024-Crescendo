@@ -8,7 +8,9 @@ import com.ctre.phoenix.led.StrobeAnimation;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 
@@ -69,5 +71,24 @@ public class Lights extends SubsystemBase {
     return new int[] {
       mapValue.apply(color.red), mapValue.apply(color.green), mapValue.apply(color.blue)
     };
+  }
+
+  public Command showReadyToShootStatus(Trigger readyToShoot) {
+    var lastState =
+        new Object() {
+          boolean value = false;
+        };
+    return new FunctionalCommand(
+        () -> setBlinkMethod(Color.kRed),
+        () -> {
+          boolean currentTriggerState = readyToShoot.getAsBoolean();
+          if (lastState.value == currentTriggerState) return;
+          if (readyToShoot.getAsBoolean()) setBlinkMethod(Color.kGreen);
+          else setBlinkMethod(Color.kRed);
+          lastState.value = readyToShoot.getAsBoolean();
+        },
+        (interrupted) -> {},
+        () -> false,
+        this);
   }
 }

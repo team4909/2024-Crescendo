@@ -220,8 +220,8 @@ public class Drivetrain extends SubsystemBase {
     UnaryOperator<Double> cubeAxis = axisMagnitude -> Math.pow(axisMagnitude, 3);
     return this.run(
             () -> {
-              var x = cubeAxis.apply(MathUtil.applyDeadband(xSupplier.getAsDouble(), kDeadband));
-              var y = cubeAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
+              double x = cubeAxis.apply(MathUtil.applyDeadband(xSupplier.getAsDouble(), kDeadband));
+              double y = cubeAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
               double omega =
                   cubeAxis.apply(MathUtil.applyDeadband(omegaSupplier.getAsDouble(), kDeadband));
               boolean isFlipped = Constants.onRedAllianceSupplier.getAsBoolean();
