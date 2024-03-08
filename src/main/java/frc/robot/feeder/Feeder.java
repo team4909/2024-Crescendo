@@ -30,7 +30,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command idle() {
-    return this.run(() -> m_io.setRollerSpeedDutyCycle(0.0));
+    return this.run(() -> m_io.setRollerSpeedVolts(0.0));
   }
 
   public Command stop() {
@@ -39,16 +39,16 @@ public class Feeder extends SubsystemBase {
 
   public Command shoot() {
     return Commands.parallel(
-        this.run(() -> m_io.setRollerSpeedDutyCycle(-0.8)),
+        this.run(() -> m_io.setRollerSpeedVolts(-9.6)),
         Commands.waitUntil(hasNote.negate()).andThen(NoteVisualizer.shoot()));
   }
 
   public Command feed() {
-    return this.run(() -> m_io.setRollerSpeedDutyCycle(-0.35));
+    return this.run(() -> m_io.setRollerSpeedVolts(-4.2));
   }
 
   public Command spit() {
-    return this.run(() -> m_io.setRollerSpeedDutyCycle(1.0));
+    return this.run(() -> m_io.setRollerSpeedVolts(12.0));
   }
 
   public Command enterCoast() {
@@ -56,6 +56,6 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command pullBack() {
-    return this.run(() -> m_io.setRollerSpeedDutyCycle(0.25));
+    return this.run(() -> m_io.setRollerSpeedVolts(3.0));
   }
 }

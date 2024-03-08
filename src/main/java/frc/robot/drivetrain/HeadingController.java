@@ -74,8 +74,4 @@ public class HeadingController {
         m_controller.getSetpoint().position,
         Units.degreesToRadians(toleranceDegrees.get()));
   }
-
-  private boolean epsilonEquals(double a, double b, double epsilon) {
-    return (a - epsilon <= b) && (a + epsilon >= b);
-  }
 }

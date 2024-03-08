@@ -8,7 +8,6 @@ import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
-import frc.robot.lights.DetectPiece;
 import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
 
@@ -50,9 +49,8 @@ public class Superstructure {
                         () -> PoseEstimation.getInstance().getAimingParameters().driveHeading()),
                 drivetrain::clearHeadingGoal),
             shooter.runShooter(),
-            new DetectPiece(
-                drivetrain.atHeadingGoal.and(shooter.readyToShoot).and(drivetrain.inRangeOfGoal),
-                lights))
+            lights.showReadyToShootStatus(
+                drivetrain.atHeadingGoal.and(shooter.readyToShoot).and(drivetrain.inRangeOfGoal)))
         .finallyDo(() -> lights.getCurrentCommand().cancel())
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }

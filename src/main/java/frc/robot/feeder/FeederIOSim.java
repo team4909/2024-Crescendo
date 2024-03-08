@@ -23,7 +23,7 @@ public class FeederIOSim implements FeederIO {
   }
 
   @Override
-  public void setRollerSpeedDutyCycle(double dutyCycle) {
-    m_appliedVoltage = MathUtil.clamp(dutyCycle * 12.0, -12.0, 12.0);
+  public void setRollerSpeedVolts(double volts) {
+    m_appliedVoltage = MathUtil.clamp(volts, -12.0, 12.0);
   }
 }
