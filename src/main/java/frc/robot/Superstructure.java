@@ -1,10 +1,10 @@
 package frc.robot;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.arm.Arm;
-import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
@@ -27,14 +27,17 @@ public class Superstructure {
 
   public static Command sensorCatch(Shooter shooter, Feeder feeder, Intake intake, Arm arm) {
     return Commands.parallel(
-            arm.aimWrist(Arm.kCatchWristAngleRad), feeder.enterCoast(), shooter.catchNote())
+            arm.goToSetpoint(-0.558, 2.264 - Units.degreesToRadians(5.0), 0, 0),
+            feeder.enterCoast(),
+            shooter.catchNote())
         .andThen(feeder.pullBack().until(feeder.hasNote))
         .withName("Sensor Catch");
   }
 
   public static Command ampShot(Arm arm, Shooter shooter) {
-    return Commands.parallel(arm.goToSetpoint(ArmSetpoints.kAmp), shooter.runShooter())
-        .finallyDo(() -> arm.goToSetpoint(ArmSetpoints.kStowed));
+    return Commands.parallel(
+            arm.goToSetpoint(1.49 + 0.0873, -2.307, 0.0, 0.0), shooter.runShooter())
+        .finallyDo(() -> arm.goToSetpoint(-0.548, 2.485, 0.15, 0.0));
   }
 
   public static Command spit(Shooter shooter, Feeder feeder, Intake intake) {

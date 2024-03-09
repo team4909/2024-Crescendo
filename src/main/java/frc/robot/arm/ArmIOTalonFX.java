@@ -6,25 +6,30 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import frc.robot.Constants;
 
 public class ArmIOTalonFX implements ArmIO {
 
   // Offsets to the horizontal
-  private final double kElbowRelativeEncoderOffsetRad = 0.558;
-  private final double kWristRelativeEncoderOffsetRad = 2.5;
+  private final double kElbowRelativeEncoderOffsetRad = 0.558; // .558;
+  private final double kWristRelativeEncoderOffsetRad = 2.5; // 2.5;
+  private final boolean kInvertWristAbsoluteEncoder = false;
+  private final boolean kInvertElbowAbsoluteEncoder = false;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,
       m_wristLeftMotor,
       m_wristRightFollowerMotor;
-  private final MotionMagicVoltage m_elbowControl, m_wristControl;
+  private final DutyCycleEncoder m_elbowAbsoluteEncoder, m_wristAbsoluteEncoder;
+  private final VoltageOut m_elbowControl, m_wristControl;
   private final StatusSignal<Double> m_elbowPositionSignal,
       m_elbowVelocitySignal,
       m_elbowAppliedVoltsSignal,
@@ -36,11 +41,21 @@ public class ArmIOTalonFX implements ArmIO {
       m_wristCurrentSignal,
       m_wristFollowerCurrentSignal;
 
+  private final Rotation2d elbowAbsoluteEncoderOffset = new Rotation2d(2.471);
+  private final Rotation2d wristAbsoluteEncoderOffset = new Rotation2d(0.646);
+  //   private final Rotation2d elbowAbsoluteEncoderOffset;
+  //   private final Rotation2d wristAbsoluteEncoderOffset;
+
   public ArmIOTalonFX() {
     m_elbowLeftMotor = new TalonFX(15, Constants.kSuperstructureCanBus);
     m_elbowRightFollowerMotor = new TalonFX(17, Constants.kSuperstructureCanBus);
     m_wristLeftMotor = new TalonFX(16, Constants.kSuperstructureCanBus);
     m_wristRightFollowerMotor = new TalonFX(18, Constants.kSuperstructureCanBus);
+
+    m_elbowAbsoluteEncoder = new DutyCycleEncoder(8);
+    m_wristAbsoluteEncoder = new DutyCycleEncoder(9);
+    m_elbowAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
+    m_wristAbsoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
 
     m_elbowLeftMotor.setPosition(0.0);
     m_wristLeftMotor.setPosition(0.0);
@@ -105,13 +120,10 @@ public class ArmIOTalonFX implements ArmIO {
     ParentDevice.optimizeBusUtilizationForAll(
         m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
 
-    m_elbowControl =
-        new MotionMagicVoltage(0.0, true, 0.0, 0, false, false, false).withUpdateFreqHz(0.0);
-    m_wristControl =
-        new MotionMagicVoltage(0.0, true, 0.0, 0, false, false, false).withUpdateFreqHz(0.0);
+    m_elbowControl = new VoltageOut(0.0, true, false, false, false).withUpdateFreqHz(0.0);
+    m_wristControl = new VoltageOut(0.0, true, false, false, false).withUpdateFreqHz(0.0);
   }
 
-  @Override
   public void updateInputs(ArmIOInputs inputs) {
     inputs.allMotorsConnected =
         BaseStatusSignal.refreshAll(
@@ -127,50 +139,52 @@ public class ArmIOTalonFX implements ArmIO {
                 m_wristFollowerCurrentSignal)
             .equals(StatusCode.OK);
 
-    inputs.elbowPositionRad =
+    inputs.elbowEncoderRaw = m_elbowPositionSignal.getValue();
+    inputs.wristEncoderRaw = m_wristPositionSignal.getValue();
+    inputs.elbowAbsolutePositionRad =
+        MathUtil.angleModulus(
+            Units.rotationsToRadians(m_elbowAbsoluteEncoder.get() / ArmModel.kElbowChainReduction)
+                    * (kInvertElbowAbsoluteEncoder ? -1 : 1)
+                - elbowAbsoluteEncoderOffset.getRadians());
+    inputs.elbowAbsoluteEncoderConnected = m_elbowAbsoluteEncoder.isConnected();
+    inputs.elbowRelativePositionRad =
         MathUtil.angleModulus(
             Units.rotationsToRadians(
-                    m_elbowPositionSignal.getValue() / ArmConstants.kElbowReduction)
+                    m_elbowPositionSignal.getValue() / ArmModel.kElbowFinalReduction)
                 - kElbowRelativeEncoderOffsetRad);
     inputs.elbowVelocityRadPerSec =
-        Units.rotationsToRadians(m_elbowVelocitySignal.getValue() / ArmConstants.kElbowReduction);
+        Units.rotationsToRadians(m_elbowVelocitySignal.getValue() / ArmModel.kElbowFinalReduction);
     inputs.elbowAppliedVolts = m_elbowAppliedVoltsSignal.getValue();
     inputs.elbowCurrentAmps =
         new double[] {m_elbowCurrentSignal.getValue(), m_elbowFollowerCurrentSignal.getValue()};
 
-    inputs.wristPositionRad =
+    inputs.wristAbsolutePositionRad =
+        MathUtil.angleModulus(
+            Units.rotationsToRadians(m_wristAbsoluteEncoder.get() / ArmModel.kWristChainReduction)
+                    * (kInvertWristAbsoluteEncoder ? -1 : 1)
+                - wristAbsoluteEncoderOffset.getRadians());
+
+    inputs.wristAbsoluteEncoderConnected = m_wristAbsoluteEncoder.isConnected();
+    inputs.wristRelativePositionRad =
         MathUtil.angleModulus(
             Units.rotationsToRadians(
-                    m_wristPositionSignal.getValue() / ArmConstants.kWristReduction)
+                    m_wristPositionSignal.getValue() / ArmModel.kWristFinalReduction)
                 + kWristRelativeEncoderOffsetRad);
     inputs.wristVelocityRadPerSec =
-        Units.rotationsToRadians(m_wristVelocitySignal.getValue() / ArmConstants.kWristReduction);
+        Units.rotationsToRadians(m_wristVelocitySignal.getValue() / ArmModel.kWristFinalReduction);
     inputs.wristAppliedVolts = m_wristAppliedVoltsSignal.getValue();
     inputs.wristCurrentAmps =
         new double[] {m_wristCurrentSignal.getValue(), m_wristFollowerCurrentSignal.getValue()};
   }
 
-  @Override
-  public void setElbowRotations(double angleRot) {
-    m_elbowLeftMotor.setControl(m_elbowControl.withPosition(angleRot));
-  }
-
-  @Override
-  public void setWristRotations(double angleRot) {
-    m_wristLeftMotor.setControl(m_wristControl.withPosition(angleRot));
-  }
-
-  @Override
   public void setElbowVoltage(double volts) {
-    m_elbowLeftMotor.setVoltage(volts);
+    m_elbowLeftMotor.setControl(m_elbowControl.withOutput(volts));
   }
 
-  @Override
   public void setWristVoltage(double volts) {
-    m_wristLeftMotor.setVoltage(volts);
+    m_wristLeftMotor.setControl(m_wristControl.withOutput(volts));
   }
 
-  @Override
   public void setBrakeMode(boolean enableBrakeMode) {
     final NeutralModeValue neutralModeValue =
         enableBrakeMode ? NeutralModeValue.Brake : NeutralModeValue.Coast;

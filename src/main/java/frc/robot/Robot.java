@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
-import frc.robot.arm.Arm.ArmSetpoints;
+import frc.robot.arm.ArmSetpoints;
 import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
@@ -99,7 +99,7 @@ public class Robot extends LoggedRobot {
         break;
     }
     m_lights = new Lights();
-    NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
+    // NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
     NoteVisualizer.resetNotes();
     NoteVisualizer.showStagedNotes();
     Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake);
@@ -107,7 +107,7 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("intakeOff", m_intake.idle());
     NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
     NamedCommands.registerCommand("runShooter", m_shooter.runShooter().withTimeout(0.1));
-    NamedCommands.registerCommand("subShot", m_arm.aimWrist(Arm.kSubwooferWristAngleRad));
+    NamedCommands.registerCommand("subShot", m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0));
     NamedCommands.registerCommand("feederOn", m_feeder.feed().withTimeout(.3));
     NamedCommands.registerCommand("feederOnTest", m_feeder.feed());
     NamedCommands.registerCommand("feederOff", m_feeder.idle().withTimeout(1));
@@ -150,26 +150,6 @@ public class Robot extends LoggedRobot {
         "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    m_autoChooser.addOption(
-        "Elbow SysId (Quasistatic Forward)",
-        m_arm.sysIdElbowQuasistatic(SysIdRoutine.Direction.kForward));
-    m_autoChooser.addOption(
-        "Elbow SysId (Quasistatic Reverse)",
-        m_arm.sysIdElbowQuasistatic(SysIdRoutine.Direction.kReverse));
-    m_autoChooser.addOption(
-        "Elbow SysId (Dynamic Forward)", m_arm.sysIdElbowDynamic(SysIdRoutine.Direction.kForward));
-    m_autoChooser.addOption(
-        "Elbow SysId (Dynamic Reverse)", m_arm.sysIdElbowDynamic(SysIdRoutine.Direction.kReverse));
-    m_autoChooser.addOption(
-        "Wrist SysId (Quasistatic Forward)",
-        m_arm.sysIdWristQuasistatic(SysIdRoutine.Direction.kForward));
-    m_autoChooser.addOption(
-        "Wrist SysId (Quasistatic Reverse)",
-        m_arm.sysIdWristQuasistatic(SysIdRoutine.Direction.kReverse));
-    m_autoChooser.addOption(
-        "Wrist SysId (Dynamic Forward)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kForward));
-    m_autoChooser.addOption(
-        "Wrist SysId (Dynamic Reverse)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kReverse));
     m_autoChooser.addOption("3 Piece Centerline", autos.centerlineTwoPiece());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
@@ -193,12 +173,10 @@ public class Robot extends LoggedRobot {
         .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_lights));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
-    m_driverController.leftStick().toggleOnTrue(m_arm.aimElbowForTuning());
-    m_driverController.rightStick().toggleOnTrue(m_arm.aimWristForTuning());
     // m_driverController.a().whileTrue(m_climber.unwindWinch());
     // m_driverController.y().whileTrue(m_climber.windWinch());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
-    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
+    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(1.633, -2.371, 0.0, 0.0));
     m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
 
@@ -212,7 +190,7 @@ public class Robot extends LoggedRobot {
     m_operatorController
         .povUp()
         .onTrue(
-            Commands.parallel(m_arm.aimWrist(Arm.kSubwooferWristAngleRad), m_shooter.runShooter()))
+            Commands.parallel(m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0), m_shooter.runShooter()))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_operatorController.y().whileTrue(m_shooter.runShooter());
