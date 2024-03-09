@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
 import frc.robot.PoseEstimation;
@@ -39,6 +40,7 @@ public class Vision {
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
   private final boolean kIgnoreVisionInSim = true;
+  private final boolean kIgnoreVisionInAuto = true;
   // #endregion
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
@@ -142,7 +144,8 @@ public class Vision {
 
   public Matrix<N3, N1> getEstimationStdDevs(
       Pose2d estimatedPose, List<PhotonTrackedTarget> targets) {
-    if (Constants.kIsSim && kIgnoreVisionInSim)
+    if ((Constants.kIsSim && kIgnoreVisionInSim)
+        || (DriverStation.isAutonomous() && kIgnoreVisionInAuto))
       return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     int tagCount = 0;
     double totalDistance = 0;
