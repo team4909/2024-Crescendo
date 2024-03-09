@@ -6,9 +6,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 public class IntakeIOSim implements IntakeIO {
 
-  private double m_topRollerAppliedVolts,
-      m_bottomRollerAppliedVolts,
-      m_centeringRollerAppliedVolts;
+  private double m_topRollerAppliedVolts, m_bottomRollerAppliedVolts, m_centeringRollerAppliedVolts;
 
   private final DCMotorSim m_topRollerSim = new DCMotorSim(DCMotor.getNEO(1), 1.0, 0.01);
   private final DCMotorSim m_bottomRollerSim = new DCMotorSim(DCMotor.getNEO(1), 1.0, 0.01);
