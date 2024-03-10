@@ -100,7 +100,7 @@ public class Robot extends LoggedRobot {
     NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
     NoteVisualizer.resetNotes();
     NoteVisualizer.showStagedNotes();
-    Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake);
+    final Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake);
     NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("intakeOff", m_intake.idle());
     NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
