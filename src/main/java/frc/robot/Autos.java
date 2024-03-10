@@ -63,7 +63,7 @@ public class Autos {
             m_shooter.runShooter(),
             Commands.waitUntil(m_shooter.readyToShoot)
                 .andThen(m_feeder.shoot().alongWith(m_intake.intake()).withTimeout(0.5)))
-        .andThen(m_shooter.stop(), m_feeder.stop())
+        .andThen(m_shooter.stop(), m_feeder.stop(), m_intake.stop())
         .finallyDo(() -> System.out.println("Shooting complete!"));
   }
 }
