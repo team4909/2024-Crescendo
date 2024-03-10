@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import java.util.function.BooleanSupplier;
 
 public final class Constants {
-  public static final Mode kCurrentMode = Mode.kReal;
+  public static final Mode kCurrentMode = Mode.kSim;
   public static final RobotName kRobot = RobotName.kViper;
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
@@ -20,11 +20,11 @@ public final class Constants {
       () ->
           DriverStation.getAlliance().isPresent()
               && DriverStation.getAlliance().get() == Alliance.Red;
-  public static final boolean useWpiFieldLayout = true;
+  private static final boolean kUseWpiFieldLayout = false;
   public static final AprilTagFieldLayout fieldLayout;
 
   static {
-    if (useWpiFieldLayout) {
+    if (kUseWpiFieldLayout) {
       try {
         fieldLayout =
             new AprilTagFieldLayout(
@@ -35,9 +35,7 @@ public final class Constants {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    } else
-      fieldLayout =
-          useWpiFieldLayout ? null : AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);
+    } else fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);
   }
 
   public static enum Mode {

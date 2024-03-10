@@ -20,7 +20,6 @@ import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
-import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -67,7 +66,6 @@ public class Robot extends LoggedRobot {
     }
 
     Logger.start();
-    LogTable.disableProtobufWarning();
 
     switch (Constants.kCurrentMode) {
       case kReal:
@@ -82,11 +80,11 @@ public class Robot extends LoggedRobot {
       case kSim:
         m_drivetrain = Subsystems.createSimDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
-        m_intake = Subsystems.createBlankIntake();
+        m_intake = Subsystems.createSimIntake();
         m_arm = Subsystems.createSimArm();
         m_climber = Subsystems.createBlankClimber();
         m_shooter = Subsystems.createSimShooter();
-        m_feeder = Subsystems.createBlankFeeder();
+        m_feeder = Subsystems.createSimFeeder();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
@@ -195,8 +193,6 @@ public class Robot extends LoggedRobot {
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_driverController.leftStick().toggleOnTrue(m_arm.aimElbowForTuning());
     m_driverController.rightStick().toggleOnTrue(m_arm.aimWristForTuning());
-    // m_driverController.a().whileTrue(m_climber.unwindWinch());
-    // m_driverController.y().whileTrue(m_climber.windWinch());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
