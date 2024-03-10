@@ -12,15 +12,15 @@ import java.util.Queue;
 
 public class ImuIOPigeon2 implements ImuIO {
   private final Pigeon2 m_imu = new Pigeon2(20, Constants.kDrivetrainCanBus);
-  private final StatusSignal<Double> yaw = m_imu.getYaw();
+  private final StatusSignal<Double> m_yawSignal = m_imu.getYaw();
+  private final StatusSignal<Double> m_yawVelocitySignal = m_imu.getAngularVelocityZWorld();
   private final Queue<Double> m_yawPositionQueue, m_yawTimestampQueue;
-  private final StatusSignal<Double> yawVelocity = m_imu.getAngularVelocityZWorld();
 
   public ImuIOPigeon2() {
     m_imu.getConfigurator().apply(new Pigeon2Configuration());
     m_imu.getConfigurator().setYaw(0.0);
-    yaw.setUpdateFrequency(PhoenixOdometryThread.kOdometryFrequencyHz);
-    yawVelocity.setUpdateFrequency(100.0);
+    m_yawSignal.setUpdateFrequency(PhoenixOdometryThread.kOdometryFrequencyHz);
+    m_yawVelocitySignal.setUpdateFrequency(100.0);
     m_imu.optimizeBusUtilization();
     m_yawPositionQueue = PhoenixOdometryThread.getInstance().registerSignal(m_imu, m_imu.getYaw());
     m_yawTimestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
@@ -28,9 +28,10 @@ public class ImuIOPigeon2 implements ImuIO {
 
   @Override
   public void updateInputs(ImuIOInputs inputs) {
-    inputs.connected = BaseStatusSignal.refreshAll(yaw, yawVelocity).equals(StatusCode.OK);
-    inputs.yawPosition = Rotation2d.fromDegrees(yaw.getValueAsDouble());
-    inputs.yawVelocityRadPerSec = Units.degreesToRadians(yawVelocity.getValueAsDouble());
+    inputs.connected =
+        BaseStatusSignal.refreshAll(m_yawSignal, m_yawVelocitySignal).equals(StatusCode.OK);
+    inputs.yawPosition = Rotation2d.fromDegrees(m_yawSignal.getValueAsDouble());
+    inputs.yawVelocityRadPerSec = Units.degreesToRadians(m_yawVelocitySignal.getValueAsDouble());
 
     inputs.odometryYawPositions =
         m_yawPositionQueue.stream()

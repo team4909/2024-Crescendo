@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
 import frc.robot.PoseEstimation;
@@ -26,6 +27,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.common.dataflow.structures.Packet;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
@@ -39,6 +41,7 @@ public class Vision {
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
   private final boolean kIgnoreVisionInSim = true;
+  private final boolean kIgnoreVisionInAuto = false;
   // #endregion
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
@@ -92,9 +95,19 @@ public class Vision {
 
     m_newVisionUpdates = new ArrayList<>();
     final List<Pose3d> estimatedPosesToLog = new ArrayList<>();
-    for (int i = 0; i < io.length; i++) {
-      for (PhotonPipelineResult result : m_inputs[i].results) {
-        Optional<EstimatedRobotPose> poseOptional = m_poseEstimators[i].update(result);
+    for (int ioIndex = 0; ioIndex < io.length; ioIndex++) {
+      for (int resultIndex = 0; resultIndex < m_inputs[ioIndex].results.length; resultIndex++) {
+        final byte[] rawResult = m_inputs[ioIndex].results[resultIndex];
+        final Packet dataPacket = new Packet(1);
+        dataPacket.setData(rawResult);
+        if (dataPacket.getSize() < 1)
+          DriverStation.reportError("Somehow photonvision data packet is empty", true);
+        final PhotonPipelineResult result = PhotonPipelineResult.serde.unpack(dataPacket);
+        final double timestampSeconds =
+            (m_inputs[ioIndex].timestampsMillis[resultIndex] / 1e6)
+                - (result.getLatencyMillis() / 1e3);
+        result.setTimestampSeconds(timestampSeconds);
+        final Optional<EstimatedRobotPose> poseOptional = m_poseEstimators[ioIndex].update(result);
         poseOptional.ifPresent(
             pose -> {
               Pose3d estimatedPose = pose.estimatedPose;
@@ -142,7 +155,8 @@ public class Vision {
 
   public Matrix<N3, N1> getEstimationStdDevs(
       Pose2d estimatedPose, List<PhotonTrackedTarget> targets) {
-    if (Constants.kIsSim && kIgnoreVisionInSim)
+    if ((Constants.kIsSim && kIgnoreVisionInSim)
+        || (DriverStation.isAutonomous() && kIgnoreVisionInAuto))
       return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     int tagCount = 0;
     double totalDistance = 0;
