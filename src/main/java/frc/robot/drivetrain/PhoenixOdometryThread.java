@@ -35,9 +35,7 @@ public class PhoenixOdometryThread extends Thread {
 
   @Override
   public void start() {
-    if (m_timestampQueues.size() > 0) {
-      super.start();
-    }
+    if (m_timestampQueues.size() > 0) super.start();
   }
 
   public Queue<Double> registerSignal(ParentDevice device, StatusSignal<Double> signal) {
