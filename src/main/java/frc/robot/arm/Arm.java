@@ -5,8 +5,6 @@ import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.util.Units;
@@ -15,7 +13,6 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.LoggedTunableNumber;
 import frc.robot.Constants;
@@ -31,8 +28,6 @@ public class Arm extends SubsystemBase {
   private final ArmIO m_io;
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
   private final ArmVisualizer m_goalVisualizer, m_setpointVisualizer, m_measuredVisualizer;
-  private final ArmFeedforward m_elbowFeedForward = new ArmFeedforward(0.55, 0.15, 2.31);
-  private final ArmFeedforward m_wristFeedForward = new ArmFeedforward(0.4, 0.51, 0.8);
 
   private static final LoggedTunableNumber elbowkP = new LoggedTunableNumber("Arm/Elbow/kP");
   private static final LoggedTunableNumber elbowkD = new LoggedTunableNumber("Arm/Elbow/kD");
@@ -194,21 +189,22 @@ public class Arm extends SubsystemBase {
     else m_io.setWristRotations(Units.degreesToRotations(wristAngleDeg));
   }
 
-  public Command storeInitialAngles =
-      this.runOnce(
-          () ->
-              m_profileInitialAngles =
-                  VecBuilder.fill(m_inputs.elbowPositionRot, m_inputs.wristPositionRot));
+  public Command storeInitialAngles() {
+    return this.runOnce(
+        () ->
+            m_profileInitialAngles =
+                VecBuilder.fill(m_inputs.elbowPositionRot, m_inputs.wristPositionRot));
+  }
 
   public Command aimElbow(double elbowAngleRad) {
-    return storeInitialAngles
+    return storeInitialAngles()
         .andThen(
             this.run(() -> runSetpoint(elbowAngleRad, ArmSetpoints.kStowed.wristAngle, 0.0, 0.0)))
         .withName("Aim Elbow");
   }
 
   public Command aimWrist(double wristAngleRad) {
-    return storeInitialAngles
+    return storeInitialAngles()
         .andThen(
             this.run(() -> runSetpoint(ArmSetpoints.kStowed.elbowAngle, wristAngleRad, 0.0, 0.0)))
         .withName("Aim Wrist");
@@ -222,12 +218,8 @@ public class Arm extends SubsystemBase {
     return Commands.defer(() -> aimWrist(Math.toRadians(wristAimTuningAngle.get())), Set.of(this));
   }
 
-  public Trigger readyToShoot() {
-    return new Trigger(() -> getJointsAtGoal()).debounce(0.2, DebounceType.kBoth);
-  }
-
   public Command goToSetpoint(ArmSetpoints setpoint) {
-    return storeInitialAngles
+    return storeInitialAngles()
         .andThen(
             this.run(
                 () ->
@@ -275,10 +267,6 @@ public class Arm extends SubsystemBase {
 
   public Command sysIdWristDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutineWrist.dynamic(direction);
-  }
-
-  private boolean getJointsAtGoal() {
-    return m_elbowController.atGoal() && m_wristController.atGoal();
   }
 
   public static enum ArmSetpoints {

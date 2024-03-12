@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 
@@ -31,6 +32,7 @@ public class Lights extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (Constants.kIsSim) return;
     Logger.recordOutput("CANdle/5VRailVoltage", m_ledController.get5VRailVoltage());
     Logger.recordOutput("CANdle/Current", m_ledController.getCurrent());
     Logger.recordOutput("CANdle/Temperature", m_ledController.getTemperature());

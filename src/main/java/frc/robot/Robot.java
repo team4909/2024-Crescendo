@@ -81,7 +81,7 @@ public class Robot extends LoggedRobot {
         m_drivetrain = Subsystems.createSimDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
         m_intake = Subsystems.createSimIntake();
-        m_arm = Subsystems.createSimArm();
+        m_arm = Subsystems.createTalonFXArm();
         m_climber = Subsystems.createBlankClimber();
         m_shooter = Subsystems.createSimShooter();
         m_feeder = Subsystems.createSimFeeder();

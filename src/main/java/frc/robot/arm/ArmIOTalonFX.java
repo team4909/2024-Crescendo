@@ -12,7 +12,12 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.sim.TalonFXSimState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.Constants;
+import frc.robot.arm.Arm.ArmSetpoints;
 
 public class ArmIOTalonFX implements ArmIO {
 
@@ -37,14 +42,35 @@ public class ArmIOTalonFX implements ArmIO {
       m_wristCurrentSignal,
       m_wristFollowerCurrentSignal;
 
+  private final SingleJointedArmSim m_elbowSim =
+      new SingleJointedArmSim(
+          ArmConstants.kElbowGearbox,
+          ArmConstants.kElbowReduction,
+          ArmConstants.kElbowMoiKgMetersSq,
+          ArmConstants.kElbowLengthMeters,
+          ArmConstants.kElbowMinAngleRad,
+          ArmConstants.kElbowMaxAngleRad,
+          false,
+          ArmSetpoints.kStowed.elbowAngle);
+  private final SingleJointedArmSim m_wristSim =
+      new SingleJointedArmSim(
+          ArmConstants.kWristGearbox,
+          ArmConstants.kWristReduction,
+          ArmConstants.kWristMoiKgMetersSq,
+          ArmConstants.kWristLengthMeters,
+          ArmConstants.kWristMinAngleRad,
+          ArmConstants.kWristMaxAngleRad,
+          false,
+          ArmSetpoints.kStowed.wristAngle);
+
   public ArmIOTalonFX() {
     m_elbowLeftMotor = new TalonFX(15, Constants.kSuperstructureCanBus);
     m_elbowRightFollowerMotor = new TalonFX(17, Constants.kSuperstructureCanBus);
     m_wristLeftMotor = new TalonFX(16, Constants.kSuperstructureCanBus);
     m_wristRightFollowerMotor = new TalonFX(18, Constants.kSuperstructureCanBus);
 
-    m_elbowLeftMotor.setPosition(0.0);
-    m_wristLeftMotor.setPosition(0.0);
+    // m_elbowLeftMotor.setPosition(kElbowRelativeEncoderOffsetRad);
+    // m_wristLeftMotor.setPosition(0.0);
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
     currentLimitsConfig.SupplyCurrentLimit = 80.0;
@@ -131,6 +157,7 @@ public class ArmIOTalonFX implements ArmIO {
 
   @Override
   public void updateInputs(ArmIOInputs inputs) {
+    if (Constants.kIsSim) updateSim();
     inputs.allMotorsConnected =
         BaseStatusSignal.refreshAll(
                 m_elbowPositionSignal,
@@ -147,19 +174,40 @@ public class ArmIOTalonFX implements ArmIO {
                 m_wristFollowerCurrentSignal)
             .equals(StatusCode.OK);
 
-    inputs.elbowPositionRot = m_elbowPositionSignal.getValue() - kElbowRelativeEncoderOffsetRad;
+    inputs.elbowPositionRot = m_elbowPositionSignal.getValue();
     inputs.elbowPositionSetpointRot = m_elbowPositionSetpointSignal.getValue();
     inputs.elbowVelocityRps = m_elbowVelocitySignal.getValue();
     inputs.elbowAppliedVolts = m_elbowAppliedVoltsSignal.getValue();
     inputs.elbowCurrentAmps =
         new double[] {m_elbowCurrentSignal.getValue(), m_elbowFollowerCurrentSignal.getValue()};
 
-    inputs.wristPositionRot = m_wristPositionSignal.getValue() + kWristRelativeEncoderOffsetRad;
+    inputs.wristPositionRot = m_wristPositionSignal.getValue();
     inputs.wristPositionSetpointRot = m_wristPositionSetpointSignal.getValue();
     inputs.wristVelocityRps = m_wristVelocitySignal.getValue();
     inputs.wristAppliedVolts = m_wristAppliedVoltsSignal.getValue();
     inputs.wristCurrentAmps =
         new double[] {m_wristCurrentSignal.getValue(), m_wristFollowerCurrentSignal.getValue()};
+  }
+
+  public void updateSim() {
+    final TalonFXSimState elbowSimState = m_elbowLeftMotor.getSimState();
+    final TalonFXSimState wristSimState = m_wristLeftMotor.getSimState();
+
+    elbowSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    wristSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
+    m_elbowSim.setInput(elbowSimState.getMotorVoltage());
+    m_wristSim.setInput(wristSimState.getMotorVoltage());
+
+    m_elbowSim.update(0.02);
+    m_wristSim.update(0.02);
+
+    final double elbowVelocityRps = Units.radiansToRotations(m_elbowSim.getVelocityRadPerSec());
+    elbowSimState.setRotorVelocity(elbowVelocityRps);
+    elbowSimState.setRawRotorPosition(Units.radiansToRotations(m_elbowSim.getAngleRads()));
+
+    final double wristVelocityRps = Units.radiansToRotations(m_wristSim.getVelocityRadPerSec());
+    wristSimState.setRotorVelocity(wristVelocityRps);
+    wristSimState.setRawRotorPosition(Units.radiansToRotations(m_wristSim.getAngleRads()));
   }
 
   @Override

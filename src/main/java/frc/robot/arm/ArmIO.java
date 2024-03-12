@@ -35,9 +35,7 @@ public interface ArmIO {
 
   public default void configPD(double elbowkP, double elbowkD, double wristkP, double wristkD) {}
 
-  /**
-   * Numerator is volts, denominator is in terms of rotations (where applicable)
-   */
+  /** Numerator is volts, denominator is in terms of rotations (where applicable) */
   public default void configFF(
       double elbowkS,
       double elbowkV,

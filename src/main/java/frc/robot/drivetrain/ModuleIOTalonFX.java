@@ -168,9 +168,7 @@ public class ModuleIOTalonFX implements ModuleIO {
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
-    if (Constants.kIsSim) {
-      updateSim();
-    }
+    if (Constants.kIsSim) updateSim();
     inputs.devicesConnected =
         BaseStatusSignal.refreshAll(
                 m_drivePositionSignal,

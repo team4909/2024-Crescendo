@@ -34,6 +34,7 @@ public class VisionIOPhotonVision implements VisionIO {
     inputs.robotToCamera = m_robotToCamera;
     TimestampedRaw[] dataQueue = m_photonDataSubscriber.readQueue();
     inputs.results = new byte[dataQueue.length][];
+    inputs.timestampsMillis = new double[dataQueue.length];
 
     for (int index = 0; index < dataQueue.length; index++) {
       inputs.results[index] = dataQueue[index].value;

@@ -101,12 +101,12 @@ public class Vision {
         final Packet dataPacket = new Packet(1);
         dataPacket.setData(rawResult);
         if (dataPacket.getSize() < 1)
-          DriverStation.reportError("Somehow photonvision data packet is empty", true);
+          DriverStation.reportError("Photonvision data packet is empty.", true);
         final PhotonPipelineResult result = PhotonPipelineResult.serde.unpack(dataPacket);
-        final double timestampSeconds =
+        final double latencyCompensatedTimestampSeconds =
             (m_inputs[ioIndex].timestampsMillis[resultIndex] / 1e6)
                 - (result.getLatencyMillis() / 1e3);
-        result.setTimestampSeconds(timestampSeconds);
+        result.setTimestampSeconds(latencyCompensatedTimestampSeconds);
         final Optional<EstimatedRobotPose> poseOptional = m_poseEstimators[ioIndex].update(result);
         poseOptional.ifPresent(
             pose -> {

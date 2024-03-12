@@ -40,7 +40,11 @@ public class ArmVisualizer {
     m_wristLigament =
         m_elbowLigament.append(
             new MechanismLigament2d(
-                "Wrist", ArmConstants.kWristLengthMeters, 0, ligamentWidth, new Color8Bit(color)));
+                "Wrist",
+                ArmConstants.kWristLengthMeters,
+                0,
+                ligamentWidth,
+                new Color8Bit(color)));
   }
 
   public void update(double elbowAngleRad, double wristAngleRad) {
