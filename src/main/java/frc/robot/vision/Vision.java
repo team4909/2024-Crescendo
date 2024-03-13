@@ -8,8 +8,12 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
@@ -41,7 +45,7 @@ public class Vision {
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
   private final boolean kIgnoreVisionInSim = true;
-  private final boolean kIgnoreVisionInAuto = false;
+  private final boolean kIgnoreVisionInAuto = true;
   // #endregion
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
@@ -49,7 +53,7 @@ public class Vision {
   private VisionSystemSim m_visionSimSystem = null;
   private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
   private ArrayList<VisionUpdate> m_newVisionUpdates;
-  private final double kXYStdDevCoefficient = 0.05;
+  private final double kXYStdDevCoefficient = 0.1;
   private final double kThetaStdDevCoefficient = 0.1;
 
   public Vision(VisionIO... io) {
@@ -121,7 +125,11 @@ public class Vision {
                                 m_lastDetectionTimeIds.put(
                                     target.getFiducialId(), Timer.getFPGATimestamp()));
                   });
-              estimatedPosesToLog.add(estimatedPose);
+              estimatedPosesToLog.add(
+                  estimatedPose.plus(
+                      new Transform3d(
+                          new Translation3d(Units.inchesToMeters(2.5), 0.0, 0.0),
+                          new Rotation3d())));
               m_newVisionUpdates.add(
                   new VisionUpdate(
                       estimatedPose.toPose2d(),

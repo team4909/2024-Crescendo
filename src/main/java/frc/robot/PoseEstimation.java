@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.util.Units;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision.VisionUpdate;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -73,7 +74,9 @@ public class PoseEstimation {
 
   @AutoLogOutput(key = "PoseEstimation/EstimatedPose")
   public Pose2d getPose() {
-    return m_poseEstimator.getEstimatedPosition();
+    return m_poseEstimator
+        .getEstimatedPosition()
+        .plus(new Transform2d(new Translation2d(Units.inchesToMeters(2.5), 0.0), new Rotation2d()));
   }
 
   @AutoLogOutput(key = "PoseEstimation/FieldVelocity")

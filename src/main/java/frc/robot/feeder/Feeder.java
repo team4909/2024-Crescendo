@@ -44,7 +44,7 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command feed() {
-    return this.run(() -> m_io.setRollerSpeedVolts(-4.2));
+    return this.run(() -> m_io.setRollerSpeedVolts(-6.0));
   }
 
   public Command spit() {
