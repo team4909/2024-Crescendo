@@ -39,7 +39,7 @@ public class Feeder extends SubsystemBase {
 
   public Command shoot() {
     return Commands.parallel(
-        this.run(() -> m_io.setRollerSpeedVolts(-6.0)),
+        this.run(() -> m_io.setRollerSpeedVolts(-5.0)),
         Commands.waitUntil(hasNote.negate()).andThen(NoteVisualizer.shoot()));
   }
 
