@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.arm.Arm;
-import frc.robot.arm.ArmSetpoints;
 import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
@@ -110,7 +109,7 @@ public class Robot extends LoggedRobot {
     NamedCommands.registerCommand("feederOnTest", m_feeder.feed());
     NamedCommands.registerCommand("feederOff", m_feeder.idle().withTimeout(1));
     NamedCommands.registerCommand("sensorIntake", Superstructure.sensorIntake(m_feeder, m_intake));
-    NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(ArmSetpoints.kStowed));
+    NamedCommands.registerCommand("armDown", m_arm.goToSetpoint(-0.548, 2.485, 0.15, 0.0));
 
     m_autoChooser = new LoggedDashboardChooser<>("Auto Chooser", AutoBuilder.buildAutoChooser());
     m_autoChooser.addOption(
@@ -182,21 +181,23 @@ public class Robot extends LoggedRobot {
         .leftTrigger()
         .whileTrue(
             Commands.parallel(
-                m_intake.feed(), m_shooter.ampShot(), m_arm.goToSetpoint(ArmSetpoints.kAmp)))
-        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
-    m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+                m_intake.feed(),
+                m_shooter.ampShot(),
+                m_arm.goToSetpoint(1.49 + 0.0873, -2.307, 0.0, 0.0)))
+        .onFalse(m_arm.goToSetpoint(-0.548, 2.485, 0.15, 0.0));
+    m_operatorController.rightTrigger().onTrue(m_arm.goToSetpoint(-0.548, 2.485, 0.15, 0.0));
     m_operatorController
         .povUp()
         .onTrue(
             Commands.parallel(m_arm.goToSetpoint(-0.52, 2.083, 0.0, 0.0), m_shooter.runShooter()))
-        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+        .onFalse(m_arm.goToSetpoint(-0.548, 2.485, 0.15, 0.0));
 
     m_operatorController.y().whileTrue(m_shooter.runShooter());
     m_operatorController.a().whileTrue(m_shooter.ampShot());
     m_operatorController
         .leftBumper()
         .onTrue(Superstructure.sensorCatch(m_shooter, m_feeder, m_intake, m_arm))
-        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+        .onFalse(m_arm.goToSetpoint(-0.548, 2.485, 0.15, 0.0));
   }
 
   /**

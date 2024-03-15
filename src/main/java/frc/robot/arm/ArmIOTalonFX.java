@@ -70,6 +70,7 @@ public class ArmIOTalonFX implements ArmIO {
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    elbowLeftMotorConfig.Voltage.PeakReverseVoltage = -4.0;
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
 
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
