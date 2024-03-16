@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.arm.Arm;
-import frc.robot.arm.ArmSetpoints;
+import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
@@ -28,7 +28,7 @@ public class Superstructure {
 
   public static Command sensorCatch(Shooter shooter, Feeder feeder, Intake intake, Arm arm) {
     return Commands.parallel(
-            arm.goToSetpoint(-0.558, 2.264 - Units.degreesToRadians(5.0), 0, 0),
+            arm.aimWrist(2.264 - Units.degreesToRadians(5.0)),
             feeder.enterCoast(),
             shooter.catchNote())
         .andThen(feeder.pullBack().until(feeder.hasNote))
