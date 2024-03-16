@@ -17,8 +17,9 @@ public class ImuIOPigeon2 implements ImuIO {
   private final Queue<Double> m_yawPositionQueue, m_yawTimestampQueue;
 
   public ImuIOPigeon2() {
-    m_imu.getConfigurator().apply(new Pigeon2Configuration());
-    m_imu.getConfigurator().setYaw(0.0);
+    final Pigeon2Configuration imuConfig = new Pigeon2Configuration();
+    m_imu.getConfigurator().apply(imuConfig);
+    m_imu.setYaw(0.0);
     m_yawSignal.setUpdateFrequency(PhoenixOdometryThread.kOdometryFrequencyHz);
     m_yawVelocitySignal.setUpdateFrequency(100.0);
     m_imu.optimizeBusUtilization();

@@ -9,6 +9,7 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 
 public class PhoenixOdometryThread extends Thread {
@@ -71,7 +72,7 @@ public class PhoenixOdometryThread extends Thread {
     while (true) {
       m_signalsLock.lock();
       try {
-        BaseStatusSignal.waitForAll(2.0 / kOdometryFrequencyHz, m_signals);
+        BaseStatusSignal.waitForAll(LoggedRobot.defaultPeriodSecs, m_signals);
       } finally {
         m_signalsLock.unlock();
       }
