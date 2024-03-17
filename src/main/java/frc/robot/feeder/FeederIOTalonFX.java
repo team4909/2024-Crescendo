@@ -1,7 +1,6 @@
 package frc.robot.feeder;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -27,6 +26,7 @@ public class FeederIOTalonFX implements FeederIO {
     feederMotorConfig.CurrentLimits.SupplyCurrentLimit = 40.0;
     feederMotorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     feederMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    feederMotorConfig.Feedback.SensorToMechanismRatio = Feeder.kFeederReduction;
     m_feederMotor.getConfigurator().apply(feederMotorConfig);
 
     m_rollerPositionSignal = m_feederMotor.getPosition();
@@ -46,10 +46,10 @@ public class FeederIOTalonFX implements FeederIO {
                 m_rollerVelocitySignal,
                 m_rollerAppliedVoltageSignal,
                 m_rollerCurrentSignal)
-            .equals(StatusCode.OK);
+            .isOK();
 
-    inputs.rollerPositionRot = m_rollerPositionSignal.getValue() / Feeder.kFeederReduction;
-    inputs.rollerVelocityRps = m_rollerVelocitySignal.getValue() / Feeder.kFeederReduction;
+    inputs.rollerPositionRot = m_rollerPositionSignal.getValue();
+    inputs.rollerVelocityRps = m_rollerVelocitySignal.getValue();
     inputs.rollerAppliedVolts = m_rollerAppliedVoltageSignal.getValue();
     inputs.rollerCurrentAmps = m_rollerCurrentSignal.getValue();
     inputs.topNoteSensorTripped = m_topNoteSensor.get();
