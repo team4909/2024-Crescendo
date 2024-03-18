@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import frc.lib.LoggedTunableNumber;
 import frc.robot.PoseEstimation;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -14,49 +13,36 @@ import org.littletonrobotics.junction.Logger;
 
 public class HeadingController {
 
-  private static final LoggedTunableNumber kP =
-      new LoggedTunableNumber("HeadingController/kP", 5.0);
-  private static final LoggedTunableNumber kD =
-      new LoggedTunableNumber("HeadingController/kD", 0.0);
-  private static final LoggedTunableNumber maxVelocityMultipler =
-      new LoggedTunableNumber("HeadingController/MaxVelocityMultipler", 0.8);
-  private static final LoggedTunableNumber maxAccelerationMultipler =
-      new LoggedTunableNumber("HeadingController/MaxAccelerationMultipler", 0.8);
-  private static final LoggedTunableNumber toleranceDegrees =
-      new LoggedTunableNumber("HeadingController/ToleranceDegrees", 1.0);
+  private static final double kToleranceDegrees = 1.0;
+  private static final double kP = 7.0;
+  private static final double kMaxVelocityMultipler = 0.8;
+  private static final double kMaxAccelerationMultipler = 0.8;
 
-  private final ProfiledPIDController m_controller;
+  private final ProfiledPIDController m_controller =
+      new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0), 0.02);
+  ;
   private final Supplier<Rotation2d> m_goalHeadingSupplier;
 
   public HeadingController(Supplier<Rotation2d> goalHeadingSupplier) {
-    m_controller =
-        new ProfiledPIDController(
-            kP.get(), 0, kD.get(), new TrapezoidProfile.Constraints(0.0, 0.0), 0.02);
+    m_controller.setP(kP);
+    final double maxAngularAcceleration =
+        9.0 / Drivetrain.kDriveBaseRadius * kMaxAccelerationMultipler;
+    final double maxAngularVelocity = 3.5 / Drivetrain.kDriveBaseRadius * kMaxVelocityMultipler;
+    m_controller.setConstraints(
+        new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
     m_controller.enableContinuousInput(-Math.PI, Math.PI);
-    m_controller.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
+    m_controller.setTolerance(Units.degreesToRadians(kToleranceDegrees));
     m_goalHeadingSupplier = goalHeadingSupplier;
-
     m_controller.reset(
         PoseEstimation.getInstance().getPose().getRotation().getRadians(),
         PoseEstimation.getInstance().getFieldVelocity().dtheta);
   }
 
   public double update() {
-    m_controller.setPID(kP.get(), 0, kD.get());
-    m_controller.setTolerance(Units.degreesToRadians(toleranceDegrees.get()));
-
-    final double maxAngularAcceleration =
-        9.0 / Drivetrain.kDriveBaseRadius * maxAccelerationMultipler.get();
-    final double maxAngularVelocity =
-        3.5 / Drivetrain.kDriveBaseRadius * maxVelocityMultipler.get();
-    m_controller.setConstraints(
-        new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
-
     final double output =
         m_controller.calculate(
             PoseEstimation.getInstance().getPose().getRotation().getRadians(),
             m_goalHeadingSupplier.get().getRadians());
-
     Logger.recordOutput(
         "HeadingController/Setpoint",
         new Pose2d(
@@ -72,6 +58,6 @@ public class HeadingController {
     return MathUtil.isNear(
         m_controller.getGoal().position,
         m_controller.getSetpoint().position,
-        Units.degreesToRadians(toleranceDegrees.get()));
+        Units.degreesToRadians(kToleranceDegrees));
   }
 }
