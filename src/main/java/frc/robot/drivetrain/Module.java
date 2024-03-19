@@ -96,6 +96,10 @@ public class Module {
     return m_lastPosition;
   }
 
+  public double getDrivePositionRad() {
+    return m_inputs.drivePositionRad;
+  }
+
   public SwerveModuleState getState() {
     return new SwerveModuleState(
         m_inputs.driveVelocityRadPerSec * kWheelRadiusMeters, m_inputs.steerPosition);

@@ -10,15 +10,17 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision.VisionUpdate;
+import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 public class PoseEstimation {
 
   private static PoseEstimation m_instance;
   private final SwerveDrivePoseEstimator m_poseEstimator;
-  private final boolean kLookaheadDisable = true;
+  private final BooleanSupplier lookaheadDisable = () -> false;
   private final double kLookaheadSeconds = 0.35;
   private Twist2d m_robotVelocity = new Twist2d();
   private AimingParameters m_lastAimingParameters = null;
@@ -87,6 +89,7 @@ public class PoseEstimation {
         linearFieldVelocity.getX(), linearFieldVelocity.getY(), m_robotVelocity.dtheta);
   }
 
+  @AutoLogOutput(key = "PoseEstimation/PredictedPose")
   public Pose2d getPredictedPose(double translationLookaheadS, double rotationLookaheadS) {
     return getPose()
         .exp(
@@ -106,7 +109,9 @@ public class PoseEstimation {
             : speakerPosition;
     final Transform2d fieldToTarget = new Transform2d(speakerPosition, new Rotation2d());
     final Pose2d fieldToPredictedVehicle =
-        kLookaheadDisable ? getPose() : getPredictedPose(kLookaheadSeconds, kLookaheadSeconds);
+        lookaheadDisable.getAsBoolean() || DriverStation.isAutonomousEnabled()
+            ? getPose()
+            : getPredictedPose(kLookaheadSeconds, kLookaheadSeconds);
     final Pose2d fieldToPredictedVehicleFixed =
         new Pose2d(fieldToPredictedVehicle.getTranslation(), new Rotation2d());
 

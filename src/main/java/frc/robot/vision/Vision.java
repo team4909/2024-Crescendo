@@ -79,6 +79,8 @@ public class Vision {
             new PhotonCameraSim(
                 new PhotonCamera(m_inputs[index].cameraName), getSimCameraProperties());
         cameraSim.enableDrawWireframe(true);
+        // FIXME this is incorrect as the robotToCamera transform here should not include the
+        // 2.5 inch intake offset
         m_visionSimSystem.addCamera(cameraSim, m_inputs[index].robotToCamera);
       }
     }
@@ -200,10 +202,10 @@ public class Vision {
 
   private SimCameraProperties getSimCameraProperties() {
     final SimCameraProperties cameraProperties = new SimCameraProperties();
-    cameraProperties.setCalibration(1280, 720, Rotation2d.fromDegrees(75));
-    cameraProperties.setCalibError(0.35, 0.10);
+    cameraProperties.setCalibration(1280, 960, Rotation2d.fromDegrees(75));
+    cameraProperties.setCalibError(0.15, 0.05);
     cameraProperties.setFPS(20);
-    cameraProperties.setAvgLatencyMs(50);
+    cameraProperties.setAvgLatencyMs(30);
     cameraProperties.setLatencyStdDevMs(15);
     return cameraProperties;
   }

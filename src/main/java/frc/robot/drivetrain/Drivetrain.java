@@ -155,9 +155,7 @@ public class Drivetrain extends SubsystemBase {
     if (DriverStation.isDisabled()) {
       Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
       Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
-      for (Module module : m_modules) {
-        module.stop();
-      }
+      for (Module module : m_modules) module.stop();
     }
 
     final double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
@@ -213,6 +211,14 @@ public class Drivetrain extends SubsystemBase {
 
     Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
     Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
+  }
+
+  public void runWheelRadiusCharacterization(double characterizationInput) {
+    runVelocity(new ChassisSpeeds(0.0, 0.0, characterizationInput));
+  }
+
+  public double[] getWheelRadiusCharacterizationPosition() {
+    return Arrays.stream(m_modules).mapToDouble(Module::getDrivePositionRad).toArray();
   }
 
   public Command joystickDrive(

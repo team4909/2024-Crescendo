@@ -1,7 +1,6 @@
 package frc.robot.drivetrain;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -141,21 +140,23 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     m_drivePositionQueue =
         PhoenixOdometryThread.getInstance()
-            .registerSignal(m_driveMotor, m_driveMotor.getPosition());
+            .registerSignals(m_driveMotor, m_drivePositionSignal, m_driveVelocitySignal);
     m_steerPositionQueue =
         PhoenixOdometryThread.getInstance()
-            .registerSignal(m_steerMotor, m_steerMotor.getPosition());
+            .registerSignals(m_steerMotor, m_steerPositionSignal, m_steerVelocitySignal);
     m_timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
-        PhoenixOdometryThread.kOdometryFrequencyHz, m_drivePositionSignal, m_steerPositionSignal);
+        PhoenixOdometryThread.kOdometryFrequencyHz,
+        m_drivePositionSignal,
+        m_steerPositionSignal,
+        m_driveVelocitySignal,
+        m_steerVelocitySignal);
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
-        m_driveVelocitySignal,
         m_driveAppliedVoltsSignal,
         m_driveCurrentSignal,
         m_steerAbsolutePositionSignal,
-        m_steerVelocitySignal,
         m_steerAppliedVoltsSignal,
         m_steerCurrentSignal);
     ParentDevice.optimizeBusUtilizationForAll(m_driveMotor, m_steerMotor, m_azimuthEncoder);
@@ -180,7 +181,7 @@ public class ModuleIOTalonFX implements ModuleIO {
                 m_steerVelocitySignal,
                 m_steerAppliedVoltsSignal,
                 m_steerCurrentSignal)
-            .equals(StatusCode.OK);
+            .isOK();
 
     inputs.drivePositionRad =
         Units.rotationsToRadians(m_drivePositionSignal.getValueAsDouble()) / Module.kDriveRatio;
@@ -191,7 +192,6 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     inputs.steerAbsolutePosition =
         Rotation2d.fromRotations(m_steerAbsolutePositionSignal.getValueAsDouble());
-    // V*s / rad -> V*s / rot
     /**
      * NOTE We do not need to divide by the steer ratio since we're fusing a cancoder with the ratio
      * already accounted for.
@@ -202,6 +202,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.steerAppliedVolts = m_steerAppliedVoltsSignal.getValueAsDouble();
     inputs.steerCurrentAmps = m_steerCurrentSignal.getValueAsDouble();
 
+    inputs.odometryLoopTime = PhoenixOdometryThread.getInstance().averageLoopTimeSupplier.get();
     inputs.odometryDrivePositionsRad =
         m_drivePositionQueue.stream()
             .mapToDouble((Double value) -> Units.rotationsToRadians(value))

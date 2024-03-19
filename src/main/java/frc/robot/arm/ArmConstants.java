@@ -11,9 +11,8 @@ public class ArmConstants {
   public static final double kElbowLengthMeters = Units.inchesToMeters(19.0);
   public static final double kElbowMinAngleRad = -Math.PI;
   public static final double kElbowMaxAngleRad = Math.PI;
-  public static final DCMotor kElbowGearbox =
-      DCMotor.getFalcon500Foc(2).withReduction(kElbowReduction);
-  public static final double kElbowMassKg = Units.lbsToKilograms(7.0);
+  public static final DCMotor kElbowGearbox = DCMotor.getFalcon500Foc(2);
+  public static final double kElbowMassKg = Units.lbsToKilograms(18.5);
   public static final double kElbowMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kElbowLengthMeters, kElbowMassKg);
 
@@ -22,9 +21,8 @@ public class ArmConstants {
   public static final double kWristReduction = kWristGearboxReduction * kWristChainReduction;
   public static final double kWristLengthMeters = Units.inchesToMeters(15.0);
   public static final double kWristMinAngleRad = -Math.PI;
-  public static final double kWristMaxAngleRad = Math.PI;
-  public static final DCMotor kWristGearbox =
-      DCMotor.getFalcon500Foc(2).withReduction(kWristReduction);
+  public static final double kWristMaxAngleRad = 1.5 * Math.PI;
+  public static final DCMotor kWristGearbox = DCMotor.getFalcon500Foc(2);
   public static final double kWristMassKg = Units.lbsToKilograms(11.5);
   public static final double kWristMoiKgMetersSq =
       SingleJointedArmSim.estimateMOI(kWristLengthMeters, kWristMassKg);

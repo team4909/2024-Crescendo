@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -49,6 +50,7 @@ public class Robot extends LoggedRobot {
   public Robot() {
     recordMetadeta();
     DriverStation.silenceJoystickConnectionWarning(true);
+    SignalLogger.enableAutoLogging(false);
     switch (Constants.kCurrentMode) {
       case kReal:
         if (RobotBase.isSimulation()) {
@@ -86,7 +88,7 @@ public class Robot extends LoggedRobot {
         m_drivetrain = Subsystems.createSimDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
         m_intake = Subsystems.createSimIntake();
-        m_arm = Subsystems.createTalonFXArm();
+        m_arm = Subsystems.createSimArm();
         m_climber = Subsystems.createBlankClimber();
         m_shooter = Subsystems.createSimShooter();
         m_feeder = Subsystems.createSimFeeder();
@@ -102,7 +104,7 @@ public class Robot extends LoggedRobot {
         break;
     }
     m_lights = new Lights();
-    // NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
+    NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
     NoteVisualizer.resetNotes();
     NoteVisualizer.showStagedNotes();
     final Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake);
@@ -153,6 +155,26 @@ public class Robot extends LoggedRobot {
         "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Elbow SysId (Quasistatic Forward)",
+        m_arm.sysIdElbowQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Elbow SysId (Quasistatic Reverse)",
+        m_arm.sysIdElbowQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Elbow SysId (Dynamic Forward)", m_arm.sysIdElbowDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Elbow SysId (Dynamic Reverse)", m_arm.sysIdElbowDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Wrist SysId (Quasistatic Forward)",
+        m_arm.sysIdWristQuasistatic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Wrist SysId (Quasistatic Reverse)",
+        m_arm.sysIdWristQuasistatic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption(
+        "Wrist SysId (Dynamic Forward)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kForward));
+    m_autoChooser.addOption(
+        "Wrist SysId (Dynamic Reverse)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kReverse));
     m_autoChooser.addOption("3 Piece Centerline", autos.centerlineTwoPiece());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
@@ -176,13 +198,18 @@ public class Robot extends LoggedRobot {
         .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_lights));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
-    // m_driverController.leftStick().toggleOnTrue(m_arm.aimElbowForTuning());
-    // m_driverController.rightStick().toggleOnTrue(m_arm.aimWristForTuning());
+    m_operatorController
+        .a()
+        .whileTrue(m_arm.aimElbowForTuning(() -> -m_operatorController.getLeftY()))
+        .onFalse(m_arm.holdSetpoint());
+    m_operatorController
+        .b()
+        .whileTrue(m_arm.aimWristForTuning(() -> -m_operatorController.getLeftY()))
+        .onFalse(m_arm.holdSetpoint());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
-
     m_operatorController
         .leftTrigger()
         .whileTrue(
@@ -196,20 +223,12 @@ public class Robot extends LoggedRobot {
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_operatorController.y().whileTrue(m_shooter.runShooter());
-    m_operatorController.a().whileTrue(m_shooter.ampShot());
     m_operatorController
         .leftBumper()
         .onTrue(Superstructure.sensorCatch(m_shooter, m_feeder, m_intake, m_arm))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
   }
 
-  /**
-   * This function is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
-   *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and`
-   * SmartDashboard integrated updating.
-   */
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
@@ -221,10 +240,14 @@ public class Robot extends LoggedRobot {
   public void autonomousInit() {
     NoteVisualizer.resetNotes();
     NoteVisualizer.setHasNote(true);
+    SignalLogger.start();
     Command autonomousCommand = m_autoChooser.get();
-    if (autonomousCommand != null) {
-      autonomousCommand.schedule();
-    }
+    if (autonomousCommand != null) autonomousCommand.schedule();
+  }
+
+  @Override
+  public void autonomousExit() {
+    SignalLogger.stop();
   }
 
   @Override

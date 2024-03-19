@@ -111,9 +111,6 @@ public class NoteVisualizer {
   }
 
   private static Pose3d getNotePose() {
-    if (m_wristPoseSupplier == null) {
-      return new Pose3d();
-    }
     Pose3d wristPose = m_wristPoseSupplier.get();
     Transform3d noteTransform =
         new Transform3d(
