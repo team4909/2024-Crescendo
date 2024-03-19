@@ -56,7 +56,7 @@ public class ArmIOSim implements ArmIO {
     m_currentElbowAngleRot = inputs.elbowPositionRot;
     inputs.elbowVelocityRps = Units.radiansToRotations(m_elbowSim.getVelocityRadPerSec());
     inputs.elbowAppliedVolts = m_elbowAppliedVolts;
-    inputs.elbowCurrentAmps =
+    inputs.elbowStatorCurrentAmps =
         new double[] {
           ArmConstants.kElbowGearbox.getCurrent(
               m_elbowSim.getVelocityRadPerSec(), m_elbowAppliedVolts)
@@ -66,7 +66,7 @@ public class ArmIOSim implements ArmIO {
     m_currentWristAngleRot = inputs.wristPositionRot;
     inputs.wristVelocityRps = Units.radiansToRotations(m_wristSim.getVelocityRadPerSec());
     inputs.wristAppliedVolts = m_wristAppliedVolts;
-    inputs.wristCurrentAmps =
+    inputs.wristStatorCurrentAmps =
         new double[] {
           ArmConstants.kWristGearbox.getCurrent(
               m_wristSim.getVelocityRadPerSec(), m_wristAppliedVolts)

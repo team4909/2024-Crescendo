@@ -29,14 +29,16 @@ public class ArmIOTalonFX implements ArmIO {
       m_elbowPositionSetpointSignal,
       m_elbowVelocitySignal,
       m_elbowAppliedVoltsSignal,
-      m_elbowCurrentSignal,
-      m_elbowFollowerCurrentSignal,
+      m_elbowTorqueCurrentSignal,
+      m_elbowStatorCurrentSignal,
+      m_elbowFollowerStatorCurrentSignal,
       m_wristPositionSignal,
       m_wristPositionSetpointSignal,
       m_wristVelocitySignal,
       m_wristAppliedVoltsSignal,
-      m_wristCurrentSignal,
-      m_wristFollowerCurrentSignal;
+      m_wristTorqueCurrentSignal,
+      m_wristStatorCurrentSignal,
+      m_wristFollowerStatorCurrentSignal;
 
   public ArmIOTalonFX() {
     m_elbowLeftMotor = new TalonFX(15, Constants.kSuperstructureCanBus);
@@ -97,14 +99,16 @@ public class ArmIOTalonFX implements ArmIO {
     m_elbowPositionSetpointSignal = m_elbowLeftMotor.getClosedLoopReference();
     m_elbowVelocitySignal = m_elbowLeftMotor.getVelocity();
     m_elbowAppliedVoltsSignal = m_elbowLeftMotor.getMotorVoltage();
-    m_elbowCurrentSignal = m_elbowLeftMotor.getStatorCurrent();
-    m_elbowFollowerCurrentSignal = m_elbowRightFollowerMotor.getStatorCurrent();
+    m_elbowTorqueCurrentSignal = m_elbowLeftMotor.getTorqueCurrent();
+    m_elbowStatorCurrentSignal = m_elbowLeftMotor.getStatorCurrent();
+    m_elbowFollowerStatorCurrentSignal = m_elbowRightFollowerMotor.getStatorCurrent();
     m_wristPositionSignal = m_wristLeftMotor.getPosition();
     m_wristPositionSetpointSignal = m_wristLeftMotor.getClosedLoopReference();
     m_wristVelocitySignal = m_wristLeftMotor.getVelocity();
     m_wristAppliedVoltsSignal = m_wristLeftMotor.getMotorVoltage();
-    m_wristCurrentSignal = m_wristLeftMotor.getStatorCurrent();
-    m_wristFollowerCurrentSignal = m_wristRightFollowerMotor.getStatorCurrent();
+    m_wristTorqueCurrentSignal = m_wristLeftMotor.getTorqueCurrent();
+    m_wristStatorCurrentSignal = m_wristLeftMotor.getStatorCurrent();
+    m_wristFollowerStatorCurrentSignal = m_wristRightFollowerMotor.getStatorCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         100.0,
@@ -112,14 +116,16 @@ public class ArmIOTalonFX implements ArmIO {
         m_elbowPositionSetpointSignal,
         m_elbowVelocitySignal,
         m_elbowAppliedVoltsSignal,
-        m_elbowCurrentSignal,
-        m_elbowFollowerCurrentSignal,
+        m_elbowTorqueCurrentSignal,
+        m_elbowStatorCurrentSignal,
+        m_elbowFollowerStatorCurrentSignal,
         m_wristPositionSignal,
         m_wristPositionSetpointSignal,
         m_wristVelocitySignal,
         m_wristAppliedVoltsSignal,
-        m_wristCurrentSignal,
-        m_wristFollowerCurrentSignal);
+        m_wristTorqueCurrentSignal,
+        m_wristStatorCurrentSignal,
+        m_wristFollowerStatorCurrentSignal);
 
     ParentDevice.optimizeBusUtilizationForAll(
         m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
@@ -136,29 +142,35 @@ public class ArmIOTalonFX implements ArmIO {
                 m_elbowPositionSetpointSignal,
                 m_elbowVelocitySignal,
                 m_elbowAppliedVoltsSignal,
-                m_elbowCurrentSignal,
-                m_elbowFollowerCurrentSignal,
+                m_elbowStatorCurrentSignal,
+                m_elbowFollowerStatorCurrentSignal,
                 m_wristPositionSignal,
                 m_wristPositionSetpointSignal,
                 m_wristVelocitySignal,
                 m_wristAppliedVoltsSignal,
-                m_wristCurrentSignal,
-                m_wristFollowerCurrentSignal)
+                m_wristStatorCurrentSignal,
+                m_wristFollowerStatorCurrentSignal)
             .isOK();
 
     inputs.elbowPositionRot = m_elbowPositionSignal.getValue();
     inputs.elbowPositionSetpointRot = m_elbowPositionSetpointSignal.getValue();
     inputs.elbowVelocityRps = m_elbowVelocitySignal.getValue();
     inputs.elbowAppliedVolts = m_elbowAppliedVoltsSignal.getValue();
-    inputs.elbowCurrentAmps =
-        new double[] {m_elbowCurrentSignal.getValue(), m_elbowFollowerCurrentSignal.getValue()};
+    inputs.elbowTorqueCurrentAmps = m_elbowTorqueCurrentSignal.getValue();
+    inputs.elbowStatorCurrentAmps =
+        new double[] {
+          m_elbowStatorCurrentSignal.getValue(), m_elbowFollowerStatorCurrentSignal.getValue()
+        };
 
     inputs.wristPositionRot = m_wristPositionSignal.getValue();
     inputs.wristPositionSetpointRot = m_wristPositionSetpointSignal.getValue();
     inputs.wristVelocityRps = m_wristVelocitySignal.getValue();
     inputs.wristAppliedVolts = m_wristAppliedVoltsSignal.getValue();
-    inputs.wristCurrentAmps =
-        new double[] {m_wristCurrentSignal.getValue(), m_wristFollowerCurrentSignal.getValue()};
+    inputs.wristTorqueCurrentAmps = m_wristTorqueCurrentSignal.getValue();
+    inputs.wristStatorCurrentAmps =
+        new double[] {
+          m_wristStatorCurrentSignal.getValue(), m_wristFollowerStatorCurrentSignal.getValue()
+        };
   }
 
   @Override

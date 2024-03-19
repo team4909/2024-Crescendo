@@ -10,13 +10,15 @@ public interface ArmIO {
     public double elbowPositionSetpointRot = 0.0;
     public double elbowVelocityRps = 0.0;
     public double elbowAppliedVolts = 0.0;
-    public double[] elbowCurrentAmps = new double[] {};
+    public double elbowTorqueCurrentAmps = 0.0;
+    public double[] elbowStatorCurrentAmps = new double[] {};
 
     public double wristPositionRot = 0.0;
     public double wristPositionSetpointRot = 0.0;
     public double wristVelocityRps = 0.0;
     public double wristAppliedVolts = 0.0;
-    public double[] wristCurrentAmps = new double[] {};
+    public double wristTorqueCurrentAmps = 0.0;
+    public double[] wristStatorCurrentAmps = new double[] {};
 
     public boolean allMotorsConnected = false;
   }
