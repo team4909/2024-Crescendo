@@ -71,21 +71,21 @@ public class Arm extends SubsystemBase {
     m_sysIdRoutineElbow =
         new SysIdRoutine(
             new SysIdRoutine.Config(
-                Volts.of(1.0).per(Seconds.of(1.0)),
-                Volts.of(10.0),
+                Volts.of(0.25).per(Seconds.of(1.0)),
+                Volts.of(2.0),
                 null,
                 state -> SignalLogger.writeString("ElbowSysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
-                voltage -> m_io.setElbowCurrent(voltage.in(Volts)), null, this));
+                voltage -> m_io.setElbowVoltage(voltage.in(Volts)), null, this));
     m_sysIdRoutineWrist =
         new SysIdRoutine(
             new SysIdRoutine.Config(
-                Volts.of(1.0).per(Seconds.of(1.0)),
-                Volts.of(10.0),
+                Volts.of(0.25).per(Seconds.of(1.0)),
+                Volts.of(2.0),
                 null,
                 state -> SignalLogger.writeString("WristSysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
-                voltage -> m_io.setWristCurrent(voltage.in(Volts)), null, this));
+                voltage -> m_io.setWristVoltage(voltage.in(Volts)), null, this));
     setDefaultCommand(idle());
   }
 

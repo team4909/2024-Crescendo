@@ -50,8 +50,8 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.setPosition(Units.radiansToRotations(kWristRelativeEncoderOffsetRad));
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
-    currentLimitsConfig.SupplyCurrentLimit = 80.0;
-    currentLimitsConfig.SupplyCurrentLimitEnable = true;
+    currentLimitsConfig.StatorCurrentLimit = 80.0;
+    currentLimitsConfig.StatorCurrentLimitEnable = true;
     final TalonFXConfiguration elbowLeftMotorConfig = new TalonFXConfiguration();
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
@@ -64,7 +64,7 @@ public class ArmIOTalonFX implements ArmIO {
     elbowLeftMotorConfig.Slot0.kS = 0.0;
     elbowLeftMotorConfig.Slot0.kV = 0.0;
     elbowLeftMotorConfig.Slot0.kG = 0.0;
-    m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
+    m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig, 1.0);
 
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
@@ -79,20 +79,20 @@ public class ArmIOTalonFX implements ArmIO {
     wristLeftMotorConfig.Slot0.kS = 0.0;
     wristLeftMotorConfig.Slot0.kV = 0.0;
     wristLeftMotorConfig.Slot0.kG = 0.0;
-    m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
+    m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig, 1.0);
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig);
     elbowRightMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig);
+    m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig, 1.0);
     m_elbowRightFollowerMotor.setControl(new Follower(m_elbowLeftMotor.getDeviceID(), true));
 
     final TalonFXConfiguration wristRightMotorConfig = new TalonFXConfiguration();
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig);
     wristRightMotorConfig.CurrentLimits = currentLimitsConfig;
     wristRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig);
+    m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig, 1.0);
     m_wristRightFollowerMotor.setControl(new Follower(m_wristLeftMotor.getDeviceID(), true));
 
     m_elbowPositionSignal = m_elbowLeftMotor.getPosition();
