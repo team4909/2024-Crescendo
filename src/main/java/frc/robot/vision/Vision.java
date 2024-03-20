@@ -5,18 +5,16 @@ import static frc.robot.Constants.fieldLayout;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
+import frc.robot.FieldConstants;
 import frc.robot.PoseEstimation;
 import frc.robot.vision.VisionIO.VisionIOInputs;
 import java.util.ArrayList;
@@ -25,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -44,7 +43,7 @@ public class Vision {
   // #region Set these to false to disable vision measurements;
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
-  private final boolean kIgnoreVisionInSim = true;
+  private final boolean kIgnoreVisionInSim = false;
   private final boolean kIgnoreVisionInAuto = true;
   // #endregion
   private final VisionIO[] io;
@@ -55,6 +54,12 @@ public class Vision {
   private ArrayList<VisionUpdate> m_newVisionUpdates;
   private final double kXYStdDevCoefficient = 0.1;
   private final double kThetaStdDevCoefficient = 0.1;
+  private final double kFieldBorderMargin = 0.5;
+  private final double kZMargin = 0.75;
+  private final List<Pose3d> m_allEstimatedPosesToLog = new ArrayList<>();
+  private final List<Pose3d> m_validEstimatedPosesToLog = new ArrayList<>();
+  private final UnaryOperator<Pose3d> offsetPose =
+      pose -> new Pose3d(pose.getTranslation().plus(Constants.poseOffset), pose.getRotation());
 
   public Vision(VisionIO... io) {
     this.io = io;
@@ -79,18 +84,11 @@ public class Vision {
             new PhotonCameraSim(
                 new PhotonCamera(m_inputs[index].cameraName), getSimCameraProperties());
         cameraSim.enableDrawWireframe(true);
-        // FIXME this is incorrect as the robotToCamera transform here should not include the
-        // 2.5 inch intake offset
         m_visionSimSystem.addCamera(cameraSim, m_inputs[index].robotToCamera);
       }
     }
 
-    fieldLayout
-        .getTags()
-        .forEach(
-            (AprilTag tag) -> {
-              m_lastDetectionTimeIds.put(tag.ID, 0.0);
-            });
+    fieldLayout.getTags().forEach((AprilTag tag) -> m_lastDetectionTimeIds.put(tag.ID, 0.0));
   }
 
   public void periodic() {
@@ -100,7 +98,8 @@ public class Vision {
     }
 
     m_newVisionUpdates = new ArrayList<>();
-    final List<Pose3d> estimatedPosesToLog = new ArrayList<>();
+    m_allEstimatedPosesToLog.clear();
+    m_validEstimatedPosesToLog.clear();
     for (int ioIndex = 0; ioIndex < io.length; ioIndex++) {
       for (int resultIndex = 0; resultIndex < m_inputs[ioIndex].results.length; resultIndex++) {
         final byte[] rawResult = m_inputs[ioIndex].results[resultIndex];
@@ -127,16 +126,12 @@ public class Vision {
                                 m_lastDetectionTimeIds.put(
                                     target.getFiducialId(), Timer.getFPGATimestamp()));
                   });
-              estimatedPosesToLog.add(
-                  estimatedPose.plus(
-                      new Transform3d(
-                          new Translation3d(Units.inchesToMeters(2.5), 0.0, 0.0),
-                          new Rotation3d())));
+              m_allEstimatedPosesToLog.add(estimatedPose);
               m_newVisionUpdates.add(
                   new VisionUpdate(
                       estimatedPose.toPose2d(),
                       result.getTimestampSeconds(),
-                      getEstimationStdDevs(estimatedPose.toPose2d(), targets)));
+                      getEstimationStdDevs(estimatedPose, targets)));
             });
       }
 
@@ -147,8 +142,11 @@ public class Vision {
     }
 
     Logger.recordOutput(
-        "Vision/EstimatedPoses",
-        estimatedPosesToLog.toArray(new Pose3d[estimatedPosesToLog.size()]));
+        "Vision/AllEstimatedPoses",
+        m_allEstimatedPosesToLog.stream().map(offsetPose).toArray(Pose3d[]::new));
+    Logger.recordOutput(
+        "Vision/ValidEstimatedPoses",
+        m_validEstimatedPosesToLog.stream().map(offsetPose).toArray(Pose3d[]::new));
     List<Pose3d> targetPose3ds = new ArrayList<>();
     for (Map.Entry<Integer, Double> detectionEntry : m_lastDetectionTimeIds.entrySet())
       if (Timer.getFPGATimestamp() - detectionEntry.getValue() < kTargetLogTimeSecs)
@@ -164,10 +162,19 @@ public class Vision {
   }
 
   public Matrix<N3, N1> getEstimationStdDevs(
-      Pose2d estimatedPose, List<PhotonTrackedTarget> targets) {
+      Pose3d estimatedPose, List<PhotonTrackedTarget> targets) {
+    Vector<N3> rejectMeasurement =
+        VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     if ((Constants.kIsSim && kIgnoreVisionInSim)
-        || (DriverStation.isAutonomous() && kIgnoreVisionInAuto))
-      return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+        || (DriverStation.isAutonomous() && kIgnoreVisionInAuto)) return rejectMeasurement;
+
+    if (estimatedPose.getX() < -kFieldBorderMargin
+        || estimatedPose.getX() > FieldConstants.kFieldLength + kFieldBorderMargin
+        || estimatedPose.getY() < -kFieldBorderMargin
+        || estimatedPose.getY() > FieldConstants.kFieldWidth + kFieldBorderMargin
+        || estimatedPose.getZ() < -kZMargin
+        || estimatedPose.getZ() > kZMargin) return rejectMeasurement;
+
     int tagCount = 0;
     double totalDistance = 0;
     for (PhotonTrackedTarget target : targets) {
@@ -176,7 +183,11 @@ public class Vision {
       if (tagPose.isEmpty()) continue;
       tagCount++;
       totalDistance +=
-          tagPose.get().toPose2d().getTranslation().getDistance(estimatedPose.getTranslation());
+          tagPose
+              .get()
+              .toPose2d()
+              .getTranslation()
+              .getDistance(estimatedPose.toPose2d().getTranslation());
     }
     double averageDistance = totalDistance / tagCount;
 
@@ -185,9 +196,8 @@ public class Vision {
      * ambiguity OR there is only one tag and the tag is too far.
      */
     if ((tagCount == 0)
-        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.25)
-        || (tagCount == 1 && averageDistance > 4))
-      return VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.2)
+        || (tagCount == 1 && averageDistance > 4)) return rejectMeasurement;
 
     double xyStdDev =
         kTrustVisionXY
@@ -197,12 +207,14 @@ public class Vision {
         kTrustVisionTheta
             ? kThetaStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount
             : Double.MAX_VALUE;
+
+    m_validEstimatedPosesToLog.add(estimatedPose);
     return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
   }
 
   private SimCameraProperties getSimCameraProperties() {
     final SimCameraProperties cameraProperties = new SimCameraProperties();
-    cameraProperties.setCalibration(1280, 960, Rotation2d.fromDegrees(75));
+    cameraProperties.setCalibration(1280, 720, Rotation2d.fromDegrees(75));
     cameraProperties.setCalibError(0.15, 0.05);
     cameraProperties.setFPS(20);
     cameraProperties.setAvgLatencyMs(30);
@@ -211,7 +223,10 @@ public class Vision {
   }
 
   public void updateSim(Pose2d currentPose) {
-    m_visionSimSystem.update(currentPose);
+    m_visionSimSystem.update(
+        new Pose2d(
+            currentPose.getTranslation().minus(Constants.poseOffset.toTranslation2d()),
+            currentPose.getRotation()));
   }
 
   public static record VisionUpdate(

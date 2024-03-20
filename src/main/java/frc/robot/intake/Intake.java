@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
-import frc.robot.FieldPositions.NotePositions;
+import frc.robot.FieldConstants.NotePositions;
 import frc.robot.NoteVisualizer;
 import frc.robot.PoseEstimation;
 import java.util.ArrayList;
