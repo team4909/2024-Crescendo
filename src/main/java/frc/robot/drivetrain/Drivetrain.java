@@ -308,8 +308,7 @@ public class Drivetrain extends SubsystemBase {
         this);
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
-          Logger.recordOutput(
-              "Drivetrain/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+          Logger.recordOutput("Drivetrain/Trajectory", activePath.toArray(Pose2d[]::new));
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         (targetPose) -> {

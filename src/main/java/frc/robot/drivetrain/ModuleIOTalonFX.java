@@ -205,14 +205,14 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.odometryLoopTime = PhoenixOdometryThread.getInstance().averageLoopTimeSupplier.get();
     inputs.odometryDrivePositionsRad =
         m_drivePositionQueue.stream()
-            .mapToDouble((Double value) -> Units.rotationsToRadians(value))
+            .mapToDouble(value -> Units.rotationsToRadians(value))
             .toArray();
     inputs.odometryTurnPositions =
         m_steerPositionQueue.stream()
             .map((Double value) -> Rotation2d.fromRotations(value))
             .toArray(Rotation2d[]::new);
     inputs.odometryTimestamps =
-        m_timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        m_timestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
     m_drivePositionQueue.clear();
     m_steerPositionQueue.clear();
     m_timestampQueue.clear();

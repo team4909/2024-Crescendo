@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -40,6 +39,10 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class Vision {
 
   private static final double kTargetLogTimeSecs = 0.1;
+  private final double kXYStdDevCoefficient = 0.1;
+  private final double kThetaStdDevCoefficient = 0.1;
+  private final double kFieldBorderMargin = 0.5;
+  private final double kZMargin = 0.75;
   // #region Set these to false to disable vision measurements;
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
@@ -50,15 +53,11 @@ public class Vision {
   private final VisionIOInputs[] m_inputs;
   private final PhotonPoseEstimator[] m_poseEstimators;
   private VisionSystemSim m_visionSimSystem = null;
-  private Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
-  private ArrayList<VisionUpdate> m_newVisionUpdates;
-  private final double kXYStdDevCoefficient = 0.1;
-  private final double kThetaStdDevCoefficient = 0.1;
-  private final double kFieldBorderMargin = 0.5;
-  private final double kZMargin = 0.75;
+  private final Map<Integer, Double> m_lastDetectionTimeIds = new HashMap<>();
+  private final ArrayList<VisionUpdate> m_newVisionUpdates = new ArrayList<>();
   private final List<Pose3d> m_allEstimatedPosesToLog = new ArrayList<>();
   private final List<Pose3d> m_validEstimatedPosesToLog = new ArrayList<>();
-  private final UnaryOperator<Pose3d> offsetPose =
+  private final UnaryOperator<Pose3d> applyPoseOffset =
       pose -> new Pose3d(pose.getTranslation().plus(Constants.poseOffset), pose.getRotation());
 
   public Vision(VisionIO... io) {
@@ -80,7 +79,7 @@ public class Vision {
       m_visionSimSystem = new VisionSystemSim("sim_vision_system");
       m_visionSimSystem.addAprilTags(fieldLayout);
       for (int index = 0; index < io.length; index++) {
-        PhotonCameraSim cameraSim =
+        final PhotonCameraSim cameraSim =
             new PhotonCameraSim(
                 new PhotonCamera(m_inputs[index].cameraName), getSimCameraProperties());
         cameraSim.enableDrawWireframe(true);
@@ -97,7 +96,7 @@ public class Vision {
       Logger.processInputs("VisionInputs/Cam" + Integer.toString(index), m_inputs[index]);
     }
 
-    m_newVisionUpdates = new ArrayList<>();
+    m_newVisionUpdates.clear();
     m_allEstimatedPosesToLog.clear();
     m_validEstimatedPosesToLog.clear();
     for (int ioIndex = 0; ioIndex < io.length; ioIndex++) {
@@ -115,8 +114,8 @@ public class Vision {
         final Optional<EstimatedRobotPose> poseOptional = m_poseEstimators[ioIndex].update(result);
         poseOptional.ifPresent(
             pose -> {
-              Pose3d estimatedPose = pose.estimatedPose;
-              List<PhotonTrackedTarget> targets = result.getTargets();
+              final Pose3d estimatedPose = pose.estimatedPose;
+              final List<PhotonTrackedTarget> targets = result.getTargets();
               targets.forEach(
                   target -> {
                     fieldLayout
@@ -143,22 +142,19 @@ public class Vision {
 
     Logger.recordOutput(
         "Vision/AllEstimatedPoses",
-        m_allEstimatedPosesToLog.stream().map(offsetPose).toArray(Pose3d[]::new));
+        m_allEstimatedPosesToLog.stream().map(applyPoseOffset).toArray(Pose3d[]::new));
     Logger.recordOutput(
         "Vision/ValidEstimatedPoses",
-        m_validEstimatedPosesToLog.stream().map(offsetPose).toArray(Pose3d[]::new));
-    List<Pose3d> targetPose3ds = new ArrayList<>();
+        m_validEstimatedPosesToLog.stream().map(applyPoseOffset).toArray(Pose3d[]::new));
+    final List<Pose3d> targetPose3ds = new ArrayList<>();
     for (Map.Entry<Integer, Double> detectionEntry : m_lastDetectionTimeIds.entrySet())
       if (Timer.getFPGATimestamp() - detectionEntry.getValue() < kTargetLogTimeSecs)
         fieldLayout.getTagPose(detectionEntry.getKey()).ifPresent(pose -> targetPose3ds.add(pose));
 
-    Logger.recordOutput("Vision/TagPoses", targetPose3ds.toArray(new Pose3d[targetPose3ds.size()]));
+    Logger.recordOutput("Vision/TagPoses", targetPose3ds.toArray(Pose3d[]::new));
     Logger.recordOutput(
         "Vision/TagPoses2D",
-        targetPose3ds.stream()
-            .map(pose3d -> pose3d.toPose2d())
-            .collect(Collectors.toList())
-            .toArray(new Pose2d[targetPose3ds.size()]));
+        targetPose3ds.stream().map(pose3d -> pose3d.toPose2d()).toArray(Pose2d[]::new));
   }
 
   public Matrix<N3, N1> getEstimationStdDevs(
@@ -189,7 +185,7 @@ public class Vision {
               .getTranslation()
               .getDistance(estimatedPose.toPose2d().getTranslation());
     }
-    double averageDistance = totalDistance / tagCount;
+    final double averageDistance = totalDistance / tagCount;
 
     /**
      * Reject tags is there are no valid tags OR there is only one tag and it has a high pose
@@ -199,11 +195,11 @@ public class Vision {
         || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.2)
         || (tagCount == 1 && averageDistance > 4)) return rejectMeasurement;
 
-    double xyStdDev =
+    final double xyStdDev =
         kTrustVisionXY
             ? kXYStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount
             : Double.MAX_VALUE;
-    double thetaStdDev =
+    final double thetaStdDev =
         kTrustVisionTheta
             ? kThetaStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount
             : Double.MAX_VALUE;

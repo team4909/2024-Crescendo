@@ -5,8 +5,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
+import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -24,7 +23,7 @@ public class ArmIOTalonFX implements ArmIO {
       m_elbowRightFollowerMotor,
       m_wristLeftMotor,
       m_wristRightFollowerMotor;
-  private final MotionMagicTorqueCurrentFOC m_elbowControl, m_wristControl;
+  private final MotionMagicExpoVoltage m_elbowControl, m_wristControl;
   private final StatusSignal<Double> m_elbowPositionSignal,
       m_elbowPositionSetpointSignal,
       m_elbowVelocitySignal,
@@ -50,7 +49,7 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.setPosition(Units.radiansToRotations(kWristRelativeEncoderOffsetRad));
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
-    currentLimitsConfig.StatorCurrentLimit = 80.0;
+    currentLimitsConfig.StatorCurrentLimit = 60.0;
     currentLimitsConfig.StatorCurrentLimitEnable = true;
     final TalonFXConfiguration elbowLeftMotorConfig = new TalonFXConfiguration();
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
@@ -59,11 +58,16 @@ public class ArmIOTalonFX implements ArmIO {
     elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     elbowLeftMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.kElbowReduction;
     elbowLeftMotorConfig.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-    elbowLeftMotorConfig.Slot0.kP = 20.0;
+    elbowLeftMotorConfig.Slot0.kP = 0.5;
     elbowLeftMotorConfig.Slot0.kD = 0.0;
     elbowLeftMotorConfig.Slot0.kS = 0.0;
     elbowLeftMotorConfig.Slot0.kV = 0.0;
     elbowLeftMotorConfig.Slot0.kG = 0.0;
+    elbowLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 0.5;
+    elbowLeftMotorConfig.MotionMagic.MotionMagicExpo_kV = 0.0;
+    elbowLeftMotorConfig.MotionMagic.MotionMagicExpo_kA = 0.0;
+    elbowLeftMotorConfig.Voltage.PeakForwardVoltage = 4.0;
+    elbowLeftMotorConfig.Voltage.PeakReverseVoltage = -4.0;
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig, 1.0);
 
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
@@ -74,11 +78,16 @@ public class ArmIOTalonFX implements ArmIO {
     wristLeftMotorConfig.ClosedLoopGeneral.ContinuousWrap = true;
     wristLeftMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.kWristReduction;
     wristLeftMotorConfig.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-    wristLeftMotorConfig.Slot0.kP = 20.0;
+    wristLeftMotorConfig.Slot0.kP = 0.5;
     wristLeftMotorConfig.Slot0.kD = 0.0;
     wristLeftMotorConfig.Slot0.kS = 0.0;
     wristLeftMotorConfig.Slot0.kV = 0.0;
     wristLeftMotorConfig.Slot0.kG = 0.0;
+    wristLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 0.5;
+    wristLeftMotorConfig.MotionMagic.MotionMagicExpo_kV = 0.0;
+    wristLeftMotorConfig.MotionMagic.MotionMagicExpo_kA = 0.0;
+    wristLeftMotorConfig.Voltage.PeakForwardVoltage = 4.0;
+    wristLeftMotorConfig.Voltage.PeakReverseVoltage = -4.0;
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig, 1.0);
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
@@ -130,8 +139,8 @@ public class ArmIOTalonFX implements ArmIO {
     ParentDevice.optimizeBusUtilizationForAll(
         m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
 
-    m_elbowControl = new MotionMagicTorqueCurrentFOC(0.0, 0.0, 0, false, false, false);
-    m_wristControl = new MotionMagicTorqueCurrentFOC(0.0, 0.0, 0, false, false, false);
+    m_elbowControl = new MotionMagicExpoVoltage(0.0, true, 0.0, 0, false, false, false);
+    m_wristControl = new MotionMagicExpoVoltage(0.0, true, 0.0, 0, false, false, false);
   }
 
   @Override
@@ -181,16 +190,6 @@ public class ArmIOTalonFX implements ArmIO {
   @Override
   public void setWristRotations(double angleRot) {
     m_wristLeftMotor.setControl(m_wristControl.withPosition(angleRot));
-  }
-
-  @Override
-  public void setElbowCurrent(double amps) {
-    m_elbowLeftMotor.setControl(new TorqueCurrentFOC(amps));
-  }
-
-  @Override
-  public void setWristCurrent(double amps) {
-    m_wristLeftMotor.setControl(new TorqueCurrentFOC(amps));
   }
 
   @Override

@@ -37,10 +37,10 @@ public class ImuIOPigeon2 implements ImuIO {
 
     inputs.odometryYawPositions =
         m_yawPositionQueue.stream()
-            .map((Double value) -> Rotation2d.fromDegrees(value))
+            .map(value -> Rotation2d.fromDegrees(value))
             .toArray(Rotation2d[]::new);
     inputs.odometryYawTimestamps =
-        m_yawTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        m_yawTimestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
     m_yawPositionQueue.clear();
     m_yawTimestampQueue.clear();
   }
