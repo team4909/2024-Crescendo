@@ -53,7 +53,7 @@ public class Superstructure {
                 drivetrain::clearHeadingGoal),
             shooter.runShooter(),
             lights.showReadyToShootStatus(
-                drivetrain.atHeadingGoal.and(shooter.readyToShoot).and(drivetrain.inRangeOfGoal)))
+                drivetrain.atHeadingGoal.and(shooter.readyToShoot).and(drivetrain.atHeadingGoal)))
         .finallyDo(() -> lights.getCurrentCommand().cancel())
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }

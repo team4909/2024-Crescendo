@@ -339,7 +339,6 @@ public class Drivetrain extends SubsystemBase {
     Logger.recordOutput("HeadingController/Setpoint", new Pose2d());
   }
 
-  @AutoLogOutput(key = "Drivetrain/AtHeadingGoal")
   public boolean atHeadingGoal() {
     return m_headingController != null && m_headingController.atGoal();
   }
