@@ -151,12 +151,14 @@ public class ArmIOTalonFX implements ArmIO {
                 m_elbowPositionSetpointSignal,
                 m_elbowVelocitySignal,
                 m_elbowAppliedVoltsSignal,
+                m_elbowTorqueCurrentSignal,
                 m_elbowStatorCurrentSignal,
                 m_elbowFollowerStatorCurrentSignal,
                 m_wristPositionSignal,
                 m_wristPositionSetpointSignal,
                 m_wristVelocitySignal,
                 m_wristAppliedVoltsSignal,
+                m_wristTorqueCurrentSignal,
                 m_wristStatorCurrentSignal,
                 m_wristFollowerStatorCurrentSignal)
             .isOK();
