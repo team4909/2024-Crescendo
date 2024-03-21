@@ -63,7 +63,7 @@ public class NoteVisualizer {
 
   public static void resetNotes() {
     m_notes.clear();
-    for (Translation2d note : FieldPositions.NotePositions.noteTranslations) m_notes.add(note);
+    for (Translation2d note : FieldConstants.NotePositions.noteTranslations) m_notes.add(note);
   }
 
   public static Command shoot() {
@@ -74,7 +74,7 @@ public class NoteVisualizer {
                   m_hasNote = false;
                   final Pose3d startPose = getNotePose();
                   final Translation3d speakerTranslation =
-                      FieldPositions.Speaker.centerSpeakerOpening;
+                      FieldConstants.Speaker.centerSpeakerOpening;
                   final Pose3d endPose;
                   if (Constants.onRedAllianceSupplier.getAsBoolean()) {
                     double flippedX =
@@ -115,7 +115,7 @@ public class NoteVisualizer {
     Transform3d noteTransform =
         new Transform3d(
                 wristPose.getX(), wristPose.getY(), wristPose.getZ(), wristPose.getRotation())
-            .plus(new Transform3d(0.0, 0.0, 0.0, new Rotation3d()));
+            .plus(new Transform3d(0.1, 0.0, 0.0, new Rotation3d()));
     return new Pose3d(PoseEstimation.getInstance().getPose()).transformBy(noteTransform);
   }
 }

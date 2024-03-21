@@ -308,8 +308,7 @@ public class Drivetrain extends SubsystemBase {
         this);
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
-          Logger.recordOutput(
-              "Drivetrain/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+          Logger.recordOutput("Drivetrain/Trajectory", activePath.toArray(Pose2d[]::new));
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         (targetPose) -> {
@@ -340,7 +339,6 @@ public class Drivetrain extends SubsystemBase {
     Logger.recordOutput("HeadingController/Setpoint", new Pose2d());
   }
 
-  @AutoLogOutput(key = "Drivetrain/AtHeadingGoal")
   public boolean atHeadingGoal() {
     return m_headingController != null && m_headingController.atGoal();
   }

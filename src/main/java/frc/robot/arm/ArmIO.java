@@ -29,10 +29,6 @@ public interface ArmIO {
 
   public default void setWristRotations(double angleRot) {}
 
-  public default void setElbowCurrent(double amps) {}
-
-  public default void setWristCurrent(double amps) {}
-
   public default void setElbowVoltage(double volts) {}
 
   public default void setWristVoltage(double volts) {}

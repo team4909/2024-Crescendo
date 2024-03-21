@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision.VisionUpdate;
@@ -76,9 +75,10 @@ public class PoseEstimation {
 
   @AutoLogOutput(key = "PoseEstimation/EstimatedPose")
   public Pose2d getPose() {
-    return m_poseEstimator
-        .getEstimatedPosition()
-        .plus(new Transform2d(new Translation2d(Units.inchesToMeters(2.5), 0.0), new Rotation2d()));
+    final Pose2d estimatedPosition = m_poseEstimator.getEstimatedPosition();
+    return new Pose2d(
+        estimatedPosition.getTranslation().plus(Constants.poseOffset.toTranslation2d()),
+        estimatedPosition.getRotation());
   }
 
   @AutoLogOutput(key = "PoseEstimation/FieldVelocity")
@@ -102,7 +102,7 @@ public class PoseEstimation {
   public AimingParameters getAimingParameters() {
     if (m_lastAimingParameters != null) return m_lastAimingParameters;
 
-    Translation2d speakerPosition = FieldPositions.Speaker.centerSpeakerOpening.toTranslation2d();
+    Translation2d speakerPosition = FieldConstants.Speaker.centerSpeakerOpening.toTranslation2d();
     speakerPosition =
         Constants.onRedAllianceSupplier.getAsBoolean()
             ? GeometryUtil.flipFieldPosition(speakerPosition)
