@@ -3,6 +3,8 @@ package frc.robot;
 import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.util.Color;
@@ -59,6 +61,7 @@ public class Robot extends LoggedRobot {
         }
         Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
         Logger.addDataReceiver(new NT4Publisher());
+        PortForwarder.add(5800, "photonvision.local", 5800);
         break;
       case kSim:
         Logger.addDataReceiver(new WPILOGWriter());
