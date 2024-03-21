@@ -6,8 +6,6 @@ import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.RawSubscriber;
 import edu.wpi.first.networktables.TimestampedRaw;
 import edu.wpi.first.wpilibj.Timer;
-import org.photonvision.common.dataflow.structures.Packet;
-import org.photonvision.targeting.PhotonPipelineResult;
 
 public class VisionIOPhotonVision implements VisionIO {
 
@@ -35,27 +33,19 @@ public class VisionIOPhotonVision implements VisionIO {
     inputs.cameraName = m_cameraName;
     inputs.robotToCamera = m_robotToCamera;
     TimestampedRaw[] dataQueue = m_photonDataSubscriber.readQueue();
-    inputs.results = new PhotonPipelineResult[dataQueue.length];
+    inputs.results = new byte[dataQueue.length][];
+    inputs.timestampsMillis = new double[dataQueue.length];
 
     for (int index = 0; index < dataQueue.length; index++) {
-      Packet dataPacket = new Packet(1);
-      dataPacket.setData(dataQueue[index].value);
-      if (dataPacket.getSize() < 1) {
-        throw new NullPointerException("Data packet is empty. This should NEVER happen.");
-      }
-      PhotonPipelineResult result = PhotonPipelineResult.serde.unpack(dataPacket);
-      double timestampSeconds =
-          (dataQueue[index].timestamp / 1e6) - (result.getLatencyMillis() / 1e3);
-      result.setTimestampSeconds(timestampSeconds);
-      inputs.results[index] = result;
+      inputs.results[index] = dataQueue[index].value;
+      inputs.timestampsMillis[index] = dataQueue[index].timestamp;
     }
 
     if (dataQueue.length > 0) {
+      inputs.connected = true;
       m_disconnectedTimer.reset();
     } else if (m_disconnectedTimer.hasElapsed(kDisconnectedTimeout)) {
       inputs.connected = false;
-    } else {
-      inputs.connected = true;
     }
   }
 }

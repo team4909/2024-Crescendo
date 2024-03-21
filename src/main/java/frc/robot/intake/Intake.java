@@ -1,78 +1,108 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.intake;
 
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkMax;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
+import frc.robot.FieldPositions.NotePositions;
+import frc.robot.NoteVisualizer;
+import frc.robot.PoseEstimation;
+import java.util.ArrayList;
+import java.util.List;
+import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
-  // private final double Speed = 1;
-  private final double StopSpeed = 0;
-  private double defaultFrontRollerSpeed = -.8;
-  private double defaultBackRollerSpeed = -.8;
-  private double defaultFrontRollerSpeedSpit = .8;
-  private double defaultBackRollerSpeedSpit = .8;
+  private final IntakeIO m_io;
+  private final IntakeIOInputsAutoLogged m_inputs = new IntakeIOInputsAutoLogged();
+  private boolean m_isIntakingPieceSim = false;
+  private final double kIntakeTimeSimSeconds = 0.1;
+  private final List<Integer> m_intookPieces = new ArrayList<>();
+  public final Trigger hasIntookPieceSim =
+      new Trigger(() -> m_isIntakingPieceSim).debounce(kIntakeTimeSimSeconds, DebounceType.kRising);
 
-  private CANSparkMax topRoller = new CANSparkMax(5, CANSparkMax.MotorType.kBrushless);
-  private CANSparkMax bottomRoller = new CANSparkMax(6, CANSparkMax.MotorType.kBrushless);
-
-  public Intake() {
-    SmartDashboard.putNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
-    SmartDashboard.putNumber("BackRollerSpeed", defaultBackRollerSpeed);
-    SmartDashboard.putNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeed);
-    SmartDashboard.putNumber("BackRollerSpeedSpit", defaultBackRollerSpeed);
-
-    topRoller.setIdleMode(IdleMode.kBrake);
-    bottomRoller.setIdleMode(IdleMode.kBrake);
-
-    // frontRoller.getFault(FaultID.)
+  public Intake(IntakeIO io) {
+    m_io = io;
+    setDefaultCommand(idle());
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    m_io.updateInputs(m_inputs);
+    Logger.processInputs("IntakeInputs", m_inputs);
+    Logger.recordOutput("Intake/Sim/HasIntookPiece", hasIntookPieceSim.getAsBoolean());
   }
 
-  public Command Stop() {
-    return new RunCommand(
+  public Command idle() {
+    return this.run(
         () -> {
-          topRoller.set(StopSpeed);
-          bottomRoller.set(StopSpeed);
-        },
-        this);
+          m_io.setTopRollerDutyCycle(0.0);
+          m_io.setBottomRollerDutyCycle(0.0);
+          m_io.setCenteringMotorsDutyCycle(0.0);
+        });
   }
 
-  public Command Spit() {
-    return new RunCommand(
-        () -> {
-          double FrontRollerSpeedSpit =
-              SmartDashboard.getNumber("FrontRollerSpeedSpit", defaultFrontRollerSpeedSpit);
-          topRoller.set(defaultFrontRollerSpeedSpit);
+  public Command stop() {
+    return this.runOnce(m_io::stopRollers);
+  }
 
-          double BackRollerSpeedSpit =
-              SmartDashboard.getNumber("BackRollerSpeedSpit", defaultBackRollerSpeedSpit);
-          bottomRoller.set(defaultBackRollerSpeedSpit);
-        },
-        this);
+  public Command spit() {
+    return this.run(
+        () -> {
+          m_io.setTopRollerDutyCycle(-0.8);
+          m_io.setBottomRollerDutyCycle(-0.8);
+          m_io.setCenteringMotorsDutyCycle(-0.5);
+        });
   }
 
   public Command intake() {
-    return new RunCommand(
-        () -> {
-          double FrontRollerSpeed =
-              SmartDashboard.getNumber("FrontRollerSpeed", defaultFrontRollerSpeed);
-          topRoller.set(defaultFrontRollerSpeed);
+    return this.run(
+            () -> {
+              m_io.setTopRollerDutyCycle(0.8);
+              m_io.setBottomRollerDutyCycle(0.8);
+              m_io.setCenteringMotorsDutyCycle(0.85);
+            })
+        .alongWith(
+            Commands.run(() -> m_isIntakingPieceSim = simulateIsIntakingPiece())
+                .until(() -> m_isIntakingPieceSim)
+                .andThen(Commands.run(() -> m_isIntakingPieceSim = true))
+                .finallyDo(() -> m_isIntakingPieceSim = false)
+                .unless(() -> !Constants.kIsSim));
+  }
 
-          double BackRollerSpeed =
-              SmartDashboard.getNumber("BackRollerSpeed", defaultBackRollerSpeed);
-          bottomRoller.set(defaultBackRollerSpeed);
-        },
-        this);
+  private boolean simulateIsIntakingPiece() {
+    final Translation2d intakeOffsetFromRobotCenter =
+        new Translation2d(Units.inchesToMeters(10.0), 0.0);
+    final Translation2d intakePosition =
+        PoseEstimation.getInstance().getPose().getTranslation().plus(intakeOffsetFromRobotCenter);
+    final double kIntakeXRangeInches = 9.0;
+    final double kIntakeYRangeInches = 27.0 / 2.0;
+    for (int noteIndex = 0; noteIndex < NotePositions.noteTranslations.length; noteIndex++) {
+      if (m_intookPieces.contains(noteIndex)) continue;
+      final Translation2d intakeToNote =
+          NotePositions.noteTranslations[noteIndex].minus(intakePosition);
+      if (MathUtil.isNear(
+              0, Math.abs(intakeToNote.getX()), Units.inchesToMeters(kIntakeXRangeInches))
+          && MathUtil.isNear(
+              0, Math.abs(intakeToNote.getY()), Units.inchesToMeters(kIntakeYRangeInches))) {
+        m_intookPieces.add(noteIndex);
+        NoteVisualizer.removeNote(noteIndex);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public Command feed() {
+    return this.run(
+        () -> {
+          m_io.setTopRollerDutyCycle(0.4);
+          m_io.setBottomRollerDutyCycle(0.4);
+          m_io.setCenteringMotorsDutyCycle(0.5);
+        });
   }
 }

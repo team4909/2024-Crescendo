@@ -1,108 +1,157 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.shooter;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import static edu.wpi.first.units.Units.Volts;
+
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double InSpeed = -1;
-  private final double OutSpeed = 1;
-  private final double StopSpeed = 0;
-  private double defaultDelay = .3;
+  private final double kFarShotVelocityRpm = 5600.0;
+  private final double kAmpshot = 5000.0;
+  private final double kReadyToShootToleranceRps = 3.0;
 
-  private TalonFX feeder = new TalonFX(19, "CANivore2");
-  private TalonFX shooterTop = new TalonFX(17, "CANivore2");
-  private TalonFX shooterBottom = new TalonFX(18, "CANivore2");
+  // Denominator for gains here are in rotations
+  public static final double topRollerkS = 0.18039;
+  public static final double topRollerkV = 0.11968;
+  public static final double topRollerkA = 0.0089044;
+  public static final double bottomRollerkS = 0.19936;
+  public static final double bottomRollerkV = 0.12041;
+  public static final double bottomRollerkA = 0.0071461;
 
-  /** Creates a new Rev_1Shooter. */
-  public Shooter() {
-    SmartDashboard.putNumber("ShooterDelay", defaultDelay);
-    shooterTop.getConfigurator().apply(new TalonFXConfiguration());
-    shooterBottom.getConfigurator().apply(new TalonFXConfiguration());
-    feeder.getConfigurator().apply(new TalonFXConfiguration());
+  private final double topRollerkP = 0.13085;
+  private final double bottomRollerkP = 0.11992;
 
-    TalonFXConfiguration brakeMode = new TalonFXConfiguration();
-    brakeMode.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+  private final PIDController m_topRollerController, m_bottomRollerController;
+  private final SimpleMotorFeedforward m_topRollerFeedforward, m_bottomRollerFeedforward;
+  private final SysIdRoutine m_sysIdRoutine;
 
-    shooterTop.getConfigurator().apply(brakeMode);
-    shooterBottom.getConfigurator().apply(brakeMode);
-    feeder.getConfigurator().apply(brakeMode);
+  private final ShooterIO m_io;
+  private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
+
+  public final Trigger readyToShoot =
+      new Trigger(() -> getRollersAtSetpoint()).debounce(0.1, DebounceType.kBoth);
+
+  public Shooter(ShooterIO io) {
+    m_io = io;
+
+    m_topRollerFeedforward = new SimpleMotorFeedforward(topRollerkS, topRollerkV, topRollerkA);
+    m_topRollerController = new PIDController(topRollerkP, 0.0, 0.0);
+    m_bottomRollerFeedforward =
+        new SimpleMotorFeedforward(bottomRollerkS, bottomRollerkV, bottomRollerkA);
+    m_bottomRollerController = new PIDController(bottomRollerkP, 0.0, 0.0);
+
+    m_topRollerController.setTolerance(kReadyToShootToleranceRps);
+    m_bottomRollerController.setTolerance(kReadyToShootToleranceRps);
+    m_sysIdRoutine =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                null,
+                null,
+                state -> Logger.recordOutput("Shooter/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                voltage -> {
+                  m_io.setTopRollerVoltage(voltage.in(Volts));
+                  m_io.setBottomRollerVoltage(voltage.in(Volts));
+                },
+                null,
+                this));
+    setDefaultCommand(idle());
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+    m_io.updateInputs(m_inputs);
+    Logger.processInputs("ShooterInputs", m_inputs);
+    Logger.recordOutput(
+        "Shooter/Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
+  }
 
-  public Command Shoot() {
-    return new InstantCommand(
+  private void setRollersSetpointRpm(double velocityRpm) {
+    double goalVelocityRps = velocityRpm / 60.0;
+    Logger.recordOutput("Shooter/Goal Roller RPS", goalVelocityRps);
+    double topRollerFeedforwardOutput = m_topRollerFeedforward.calculate(goalVelocityRps);
+    double bottomRollerFeedforwardOutput = m_bottomRollerFeedforward.calculate(goalVelocityRps);
+    double topRollerFeedbackOutput =
+        m_topRollerController.calculate(m_inputs.topRollerVelocityRps, goalVelocityRps);
+    double bottomRollerFeedbackOutput =
+        m_bottomRollerController.calculate(m_inputs.bottomRollerVelocityRps, goalVelocityRps);
+    m_io.setTopRollerVoltage(topRollerFeedforwardOutput + topRollerFeedbackOutput);
+    m_io.setBottomRollerVoltage(bottomRollerFeedforwardOutput + bottomRollerFeedbackOutput);
+  }
+
+  @AutoLogOutput(key = "Shooter/RollersAtSetpoint")
+  private boolean getRollersAtSetpoint() {
+    return m_bottomRollerController.atSetpoint() && m_topRollerController.atSetpoint();
+  }
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
+  }
+
+  public Command idle() {
+    return this.run(
             () -> {
-              shooterTop.set(OutSpeed);
-              shooterBottom.set(OutSpeed);
-            },
-            this)
-        .repeatedly();
+              m_io.setTopRollerVoltage(0.0);
+              m_io.setBottomRollerVoltage(0.0);
+            })
+        .withName("Idle");
   }
 
-  public Command Stop() {
-    return new InstantCommand(
+  public Command stop() {
+    return this.runOnce(m_io::stopRollers);
+  }
+
+  public Command runShooter() {
+    return this.run(
             () -> {
-              SmartDashboard.putNumber("ShooterSpeed", StopSpeed);
-
-              shooterTop.set(StopSpeed);
-              shooterBottom.set(StopSpeed);
-              feeder.set(StopSpeed);
-            },
-            this)
-        .repeatedly();
-  }
-
-  public Command Intake() {
-    return new InstantCommand(
-        () -> {
-          System.out.println("InSpeed");
-          SmartDashboard.putNumber("ShooterSpeed", InSpeed);
-
-          feeder.set(InSpeed);
-        },
-        this);
-  }
-
-  public Command PullBack() {
-    return new RunCommand(() -> feeder.set(0.3), this).repeatedly().withTimeout(0.25);
-  }
-
-  public Command Feeder() {
-    return new InstantCommand(
+              setRollersSetpointRpm(kFarShotVelocityRpm);
+            })
+        .finallyDo(
             () -> {
-              feeder.set(-OutSpeed);
-            },
-            this)
-        .repeatedly()
-        .withTimeout(1)
-        .finallyDo(() -> Stop());
+              Logger.recordOutput("Shooter/Goal Roller RPS", 0.0);
+              m_topRollerController.reset();
+              m_bottomRollerController.reset();
+            });
   }
 
-  public double getCurrent() {
-    return feeder.getTorqueCurrent().getValue();
+  public Command ampShot() {
+    return this.run(() -> setRollersSetpointRpm(kAmpshot));
   }
 
-  public Command FeederOut() {
-    return new InstantCommand(
+  public Command catchNote() {
+    return this.run(
             () -> {
-              feeder.set(OutSpeed);
-            },
-            this)
-        .repeatedly()
-        .withTimeout(1)
-        .finallyDo(() -> Stop());
+              m_io.setTopRollerVoltage(-9.0);
+              m_io.setBottomRollerVoltage(-9.0);
+            })
+        .withName("Catch Note");
+  }
+
+  public Command spit() {
+    return this.run(
+            () -> {
+              m_io.setTopRollerVoltage(-6.0);
+              m_io.setBottomRollerVoltage(-6.0);
+            })
+        .withName("Spit");
+  }
+
+  public Command shootWithFeederDelay() {
+    return this.run(() -> setRollersSetpointRpm(kFarShotVelocityRpm))
+        .until(() -> getRollersAtSetpoint())
+        .andThen(runShooter());
   }
 }

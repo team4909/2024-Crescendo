@@ -1,18 +1,19 @@
 package frc.robot.drivetrain;
 
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.pathplanner.lib.util.GeometryUtil;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -23,53 +24,66 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.lib.LocalADStarAK;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.lib.LoggedTunableNumber;
 import frc.robot.Constants;
-import frc.robot.vision.Vision.VisionUpdate;
+import frc.robot.PoseEstimation;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Drivetrain extends SubsystemBase {
 
-  public final double kTrackwidthMeters = Units.inchesToMeters(26.0);
-  public final double kWheelbaseMeters = Units.inchesToMeters(26.0);
-  private final double kDriveBaseRadius =
-      Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
-  private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16.5);
-  private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
-  private final double kDeadband = 0.07;
-  private final boolean kUseVisionCorrection = true;
-
   public static final Lock odometryLock = new ReentrantLock();
+  public final BooleanSupplier onRedAllianceSupplier;
+
+  private static final double kTrackwidthMeters = Units.inchesToMeters(20.75);
+  private static double kWheelbaseMeters = Units.inchesToMeters(15.75);
+  private static final Translation2d[] m_modulePositions =
+      new Translation2d[] {
+        new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
+        new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
+        new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
+        new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0)
+      };
+  public static final SwerveDriveKinematics swerveKinematics =
+      new SwerveDriveKinematics(m_modulePositions);
+  public static final double kDriveBaseRadius =
+      Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
+  private static final LoggedTunableNumber inRangeRadius =
+      new LoggedTunableNumber("Drivetrain/InRangeRadius", 2.10);
+  private static final LoggedTunableNumber inRangeTolerance =
+      new LoggedTunableNumber("Drivetrain/InRangeTolerance", 0.25);
+  private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
+  private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
+  private final double kDeadband = 0.1;
   private final ImuIO m_imuIO;
   private final ImuIOInputsAutoLogged m_imuInputs = new ImuIOInputsAutoLogged();
   private final Module[] m_modules = new Module[4]; // FL, FR, BL, BR
-  private final SwerveDrivePoseEstimator m_poseEstimator;
-  private final SwerveDriveKinematics m_kinematics =
-      new SwerveDriveKinematics(
-          new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
-          new Translation2d(kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0),
-          new Translation2d(-kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
-          new Translation2d(-kTrackwidthMeters / 2.0, -kWheelbaseMeters / 2.0));
+  private final SysIdRoutine m_sysIdRoutineDrive, m_sysIdRoutineRotation;
 
-  // For calculating chassis position deltas in simulation.
-  private SwerveModulePosition[] m_lastModulePositions =
-      new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition()
-      };
+  private Rotation2d m_gyroRotation = new Rotation2d();
+  private HeadingController m_headingController;
+  private SwerveModulePosition[] m_lastModulePositions = {
+    new SwerveModulePosition(),
+    new SwerveModulePosition(),
+    new SwerveModulePosition(),
+    new SwerveModulePosition()
+  };
 
-  private final Consumer<VisionUpdate> m_visionUpdateConsumer;
-  private final SysIdRoutine m_sysIdRoutine;
+  public final Trigger atHeadingGoal = new Trigger(this::atHeadingGoal);
+  public final Trigger inRangeOfGoal = new Trigger(this::inRange);
+  public final Pose2d m_sourcePoseBlueOrigin =
+      new Pose2d(15.40, 0.95, Rotation2d.fromDegrees(-60.0));
 
   public Drivetrain(
       ImuIO imuIO,
@@ -83,20 +97,12 @@ public class Drivetrain extends SubsystemBase {
     m_modules[2] = new Module(backLeftModuleIO, 2);
     m_modules[3] = new Module(backRightModuleIO, 3);
     PhoenixOdometryThread.getInstance().start();
-    m_poseEstimator =
-        new SwerveDrivePoseEstimator(
-            m_kinematics, new Rotation2d(), getModulePositions(), new Pose2d());
-    m_visionUpdateConsumer =
-        (VisionUpdate visionUpdate) -> {
-          if (!kUseVisionCorrection) {
-            return;
-          }
-          m_poseEstimator.addVisionMeasurement(
-              visionUpdate.pose(),
-              visionUpdate.timestampSeconds(),
-              visionUpdate.standardDeviations());
-        };
-    m_sysIdRoutine =
+
+    onRedAllianceSupplier =
+        () ->
+            DriverStation.getAlliance().isPresent()
+                && DriverStation.getAlliance().get() == Alliance.Red;
+    m_sysIdRoutineDrive =
         new SysIdRoutine(
             new SysIdRoutine.Config(
                 null,
@@ -107,6 +113,23 @@ public class Drivetrain extends SubsystemBase {
                 (voltage) -> {
                   for (Module module : m_modules) {
                     module.runCharacterization(voltage.in(Volts));
+                  }
+                },
+                null,
+                this));
+    m_sysIdRoutineRotation =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                Volts.of(4.0),
+                null,
+                (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  for (int i = 0; i < m_modules.length; ++i) {
+                    m_modules[i].runCharacterization(
+                        m_modulePositions[i].getAngle().plus(Rotation2d.fromDegrees(90)),
+                        voltage.in(Volts));
                   }
                 },
                 null,
@@ -125,7 +148,7 @@ public class Drivetrain extends SubsystemBase {
 
     odometryLock.unlock();
     Logger.processInputs("DrivetrainInputs/IMU", m_imuInputs);
-    for (var module : m_modules) {
+    for (Module module : m_modules) {
       module.periodic();
     }
 
@@ -137,7 +160,7 @@ public class Drivetrain extends SubsystemBase {
       }
     }
 
-    double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
+    final double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
     for (int updateIndex = 0; updateIndex < sampleTimestamps.length; updateIndex++) {
       SwerveModulePosition[] newModulePositions = new SwerveModulePosition[m_modules.length];
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
@@ -151,28 +174,35 @@ public class Drivetrain extends SubsystemBase {
                 newModulePositions[moduleIndex].angle);
         m_lastModulePositions[moduleIndex] = newModulePositions[moduleIndex];
       }
-      if (Constants.kIsSim) {
-        Logger.recordOutput("Drivetrain/dtheta", m_kinematics.toTwist2d(moduleDeltas).dtheta);
-        // TODO we cannot update the gyro sim state in the same loop we read it, it will always be
-        // behind causing inaccurate behavior
-        // m_imuIO.updateSim(m_kinematics.toTwist2d(moduleDeltas).dtheta);
+
+      // Update gyro angle
+      if (m_imuInputs.connected) {
+        m_gyroRotation = m_imuInputs.odometryYawPositions[updateIndex];
+      } else {
+        final Twist2d twist = swerveKinematics.toTwist2d(moduleDeltas);
+        m_gyroRotation = m_gyroRotation.plus(new Rotation2d(twist.dtheta));
       }
 
-      // The reason we are bothering with timestamps here is so vision updates can be properly
-      // chronologized with odometry updates.
-      m_poseEstimator.updateWithTime(
-          sampleTimestamps[updateIndex],
-          m_imuInputs.odometryYawPositions[updateIndex],
-          newModulePositions);
+      PoseEstimation.getInstance()
+          .addOdometryMeasurement(
+              sampleTimestamps[updateIndex], m_gyroRotation, newModulePositions);
     }
+
+    final ChassisSpeeds robotRelativeVelocity = swerveKinematics.toChassisSpeeds(getModuleStates());
+    PoseEstimation.getInstance()
+        .setVelocity(
+            new Twist2d(
+                robotRelativeVelocity.vxMetersPerSecond,
+                robotRelativeVelocity.vyMetersPerSecond,
+                m_imuInputs.connected
+                    ? m_imuInputs.yawVelocityRadPerSec
+                    : robotRelativeVelocity.omegaRadiansPerSecond));
   }
 
-  private void runVelocity(ChassisSpeeds speeds) {
-    if (Constants.kIsSim) {
-      m_imuIO.updateSim(speeds.omegaRadiansPerSecond * 0.02);
-    }
+  public void runVelocity(ChassisSpeeds speeds) {
+    if (m_headingController != null) speeds.omegaRadiansPerSecond += m_headingController.update();
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
-    SwerveModuleState[] setpointStates = m_kinematics.toSwerveModuleStates(discreteSpeeds);
+    SwerveModuleState[] setpointStates = swerveKinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, kMaxLinearSpeedMetersPerSecond);
 
     SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
@@ -185,51 +215,82 @@ public class Drivetrain extends SubsystemBase {
     Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
   }
 
-  public Command testDrive() {
-    return this.run(
-            () -> {
-              runVelocity(new ChassisSpeeds(1, 1, 0));
-            })
-        .withName("Test Drive");
-  }
-
   public Command joystickDrive(
       DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier omegaSupplier) {
-    UnaryOperator<Double> squareAxis =
-        (Double axisMagnitude) -> Math.copySign(Math.pow(axisMagnitude, 2), axisMagnitude);
+    UnaryOperator<Double> cubeAxis = axisMagnitude -> Math.pow(axisMagnitude, 3);
     return this.run(
             () -> {
-              var x = squareAxis.apply(MathUtil.applyDeadband(xSupplier.getAsDouble(), kDeadband));
-              var y = squareAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
-              var omega =
-                  squareAxis.apply(MathUtil.applyDeadband(omegaSupplier.getAsDouble(), kDeadband));
+              double x = cubeAxis.apply(MathUtil.applyDeadband(xSupplier.getAsDouble(), kDeadband));
+              double y = cubeAxis.apply(MathUtil.applyDeadband(ySupplier.getAsDouble(), kDeadband));
+              double omega =
+                  cubeAxis.apply(MathUtil.applyDeadband(omegaSupplier.getAsDouble(), kDeadband));
+              boolean isFlipped = Constants.onRedAllianceSupplier.getAsBoolean();
               runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       x * kMaxLinearSpeedMetersPerSecond,
                       y * kMaxLinearSpeedMetersPerSecond,
                       omega * kMaxAngularSpeedRadPerSec,
-                      m_imuInputs.yawPosition));
+                      isFlipped
+                          ? PoseEstimation.getInstance()
+                              .getPose()
+                              .getRotation()
+                              .plus(new Rotation2d(Math.PI))
+                          : PoseEstimation.getInstance().getPose().getRotation()));
             })
         .withName("Joystick Drive");
   }
 
   public Command zeroGyro() {
-    return Commands.runOnce(() -> m_imuIO.setGyroAngle(0.0)).ignoringDisable(true);
+    return Commands.runOnce(
+            () ->
+                resetPose.accept(
+                    new Pose2d(
+                        PoseEstimation.getInstance().getPose().getTranslation(),
+                        onRedAllianceSupplier.getAsBoolean()
+                            ? GeometryUtil.flipFieldRotation(new Rotation2d())
+                            : new Rotation2d())))
+        .ignoringDisable(true);
   }
 
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
+  public Command sysIdDriveQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineDrive.quasistatic(direction);
   }
 
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
+  public Command sysIdDriveDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineDrive.dynamic(direction);
+  }
+
+  public Command sysIdRotationQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineRotation.quasistatic(direction);
+  }
+
+  public Command sysIdRotationDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutineRotation.dynamic(direction);
+  }
+
+  public Command sysIdSlipCurrent() {
+    return new SysIdRoutine(
+            new SysIdRoutine.Config(
+                Volts.of(0.2).per(Seconds.of(1.0)),
+                Volts.of(0.0),
+                Seconds.of(30.0),
+                (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  for (Module module : m_modules) {
+                    module.runCharacterization(voltage.in(Volts));
+                  }
+                },
+                null,
+                this))
+        .quasistatic(Direction.kForward);
   }
 
   private void configurePathing() {
     AutoBuilder.configureHolonomic(
-        this::getPose,
-        this::setPose,
-        () -> m_kinematics.toChassisSpeeds(getModuleStates()),
+        PoseEstimation.getInstance()::getPose,
+        resetPose,
+        () -> swerveKinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
         new HolonomicPathFollowerConfig(
             new PIDConstants(5.0, 0.0, 0.0),
@@ -237,11 +298,8 @@ public class Drivetrain extends SubsystemBase {
             kMaxLinearSpeedMetersPerSecond,
             kDriveBaseRadius,
             new ReplanningConfig()),
-        () ->
-            DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == Alliance.Red,
+        onRedAllianceSupplier,
         this);
-    Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
           Logger.recordOutput(
@@ -253,25 +311,39 @@ public class Drivetrain extends SubsystemBase {
         });
   }
 
-  @AutoLogOutput(key = "SwerveStates/Measured")
+  @AutoLogOutput(key = "SwerveStates/StatesMeasured")
   private SwerveModuleState[] getModuleStates() {
     return Arrays.stream(m_modules).map(Module::getState).toArray(SwerveModuleState[]::new);
   }
 
+  @AutoLogOutput(key = "SwerveStates/PositionsMeasured")
   private SwerveModulePosition[] getModulePositions() {
     return Arrays.stream(m_modules).map(Module::getPosition).toArray(SwerveModulePosition[]::new);
   }
 
-  @AutoLogOutput(key = "Drivetrain/Estimated Pose")
-  public Pose2d getPose() {
-    return m_poseEstimator.getEstimatedPosition();
+  public Consumer<Pose2d> resetPose =
+      (newPose) ->
+          PoseEstimation.getInstance().resetPose(m_gyroRotation, getModulePositions(), newPose);
+
+  public void setHeadingGoal(Supplier<Rotation2d> headingGoal) {
+    m_headingController = new HeadingController(headingGoal);
   }
 
-  public void setPose(Pose2d pose) {
-    m_poseEstimator.resetPosition(m_imuInputs.yawPosition, getModulePositions(), pose);
+  public void clearHeadingGoal() {
+    m_headingController = null;
+    Logger.recordOutput("HeadingController/Setpoint", new Pose2d());
   }
 
-  public Consumer<VisionUpdate> getVisionPoseConsumer() {
-    return m_visionUpdateConsumer;
+  @AutoLogOutput(key = "Drivetrain/AtHeadingGoal")
+  public boolean atHeadingGoal() {
+    return m_headingController != null && m_headingController.atGoal();
+  }
+
+  @AutoLogOutput(key = "Drivetrain/InRangeOfGoal")
+  public boolean inRange() {
+    return MathUtil.isNear(
+        inRangeRadius.get(),
+        PoseEstimation.getInstance().getAimingParameters().effectiveDistance(),
+        inRangeTolerance.get());
   }
 }
