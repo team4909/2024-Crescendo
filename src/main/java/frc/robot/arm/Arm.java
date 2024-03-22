@@ -105,9 +105,16 @@ public class Arm extends SubsystemBase {
           wristCruiseVelocityRadPerSec.get(),
           wristMaxAccelerationRadPerSecSq.get());
 
+    Logger.recordOutput(
+        "Current Elbow Angle Degrees", Units.rotationsToDegrees(m_inputs.elbowPositionRot));
+    Logger.recordOutput(
+        "Current Wrist Angle Degrees", Units.rotationsToDegrees(m_inputs.wristPositionRot));
     m_measuredVisualizer.update(
         Units.rotationsToRadians(m_inputs.elbowPositionRot),
         Units.rotationsToRadians(m_inputs.wristPositionRot));
+    m_setpointVisualizer.update(
+        Units.rotationsToRadians(m_inputs.elbowPositionSetpointRot),
+        Units.rotationsToRadians(m_inputs.wristPositionSetpointRot));
     Logger.recordOutput(
         "Arm/Current Command",
         getCurrentCommand() == null ? "Null" : getCurrentCommand().getName());
@@ -123,12 +130,9 @@ public class Arm extends SubsystemBase {
       throw new IllegalArgumentException("Only one joint can be delayed at a time.");
     if (elbowDelay < 0.0 || wristDelay < 0.0)
       throw new IllegalArgumentException("Percent delay can't be negative.");
-    Logger.recordOutput("Arm/Goal Elbow Angle", elbowAngleRad);
-    Logger.recordOutput("Arm/Goal Wrist Angle", wristAngleRad);
+    Logger.recordOutput("Arm/Goal Elbow Angle", Units.radiansToDegrees(elbowAngleRad));
+    Logger.recordOutput("Arm/Goal Wrist Angle", Units.radiansToDegrees(wristAngleRad));
     m_goalVisualizer.update(elbowAngleRad, wristAngleRad);
-    m_setpointVisualizer.update(
-        Units.rotationsToRadians(m_inputs.elbowPositionSetpointRot),
-        Units.rotationsToRadians(m_inputs.wristPositionSetpointRot));
     double elbowProgress =
         Math.abs(m_inputs.elbowPositionRot - m_initialAngles.get(0, 0))
             / Math.abs(Units.degreesToRotations(elbowAngleRad) - m_initialAngles.get(0, 0));

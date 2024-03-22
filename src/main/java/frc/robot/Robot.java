@@ -77,6 +77,7 @@ public class Robot extends LoggedRobot {
     }
 
     Logger.start();
+    SignalLogger.start();
 
     switch (Constants.kCurrentMode) {
       case kReal:
@@ -182,6 +183,7 @@ public class Robot extends LoggedRobot {
         "Wrist SysId (Dynamic Forward)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Wrist SysId (Dynamic Reverse)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));
     m_autoChooser.addOption("3 Piece Centerline", autos.centerlineTwoPiece());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
@@ -248,14 +250,9 @@ public class Robot extends LoggedRobot {
   public void autonomousInit() {
     NoteVisualizer.resetNotes();
     NoteVisualizer.setHasNote(true);
-    SignalLogger.start();
+
     Command autonomousCommand = m_autoChooser.get();
     if (autonomousCommand != null) autonomousCommand.schedule();
-  }
-
-  @Override
-  public void autonomousExit() {
-    SignalLogger.stop();
   }
 
   @Override
