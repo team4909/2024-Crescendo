@@ -21,6 +21,7 @@ import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
 import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
+import frc.robot.vision.GamePieceDetection;
 import frc.robot.vision.Vision;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -41,6 +42,7 @@ public class Robot extends LoggedRobot {
   private final Shooter m_shooter;
   private final Feeder m_feeder;
   private final Lights m_lights;
+  private final GamePieceDetection m_gamePieceDetection;
 
   @SuppressWarnings("unused")
   private final PoseEstimation m_poseEstimation = PoseEstimation.getInstance();
@@ -85,6 +87,7 @@ public class Robot extends LoggedRobot {
         m_climber = Subsystems.createSparkMAXClimber();
         m_shooter = Subsystems.createTalonFXShooter();
         m_feeder = Subsystems.createTalonFXFeeder();
+        m_gamePieceDetection = Subsystems.createBlankGamePieceDetection();
         break;
       case kSim:
         m_drivetrain = Subsystems.createSimDrivetrain();
@@ -94,6 +97,7 @@ public class Robot extends LoggedRobot {
         m_climber = Subsystems.createBlankClimber();
         m_shooter = Subsystems.createSimShooter();
         m_feeder = Subsystems.createSimFeeder();
+        m_gamePieceDetection = Subsystems.createBlankGamePieceDetection();
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
@@ -103,6 +107,7 @@ public class Robot extends LoggedRobot {
         m_climber = Subsystems.createBlankClimber();
         m_shooter = Subsystems.createBlankShooter();
         m_feeder = Subsystems.createBlankFeeder();
+        m_gamePieceDetection = Subsystems.createBlankGamePieceDetection();
         break;
     }
     m_lights = new Lights();
@@ -235,6 +240,7 @@ public class Robot extends LoggedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
     m_vision.periodic();
+    m_gamePieceDetection.periodic();
     NoteVisualizer.showHeldNotes();
   }
 

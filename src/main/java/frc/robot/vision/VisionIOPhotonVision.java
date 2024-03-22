@@ -9,9 +9,9 @@ import edu.wpi.first.wpilibj.Timer;
 
 public class VisionIOPhotonVision implements VisionIO {
 
-  private static final double kDisconnectedTimeout = 0.5;
-  private RawSubscriber m_photonDataSubscriber;
+  private final double kDisconnectedTimeoutSeconds = 0.5;
   private final Timer m_disconnectedTimer = new Timer();
+  private RawSubscriber m_photonDataSubscriber;
   private final String m_cameraName;
   private final Transform3d m_robotToCamera;
 
@@ -44,7 +44,7 @@ public class VisionIOPhotonVision implements VisionIO {
     if (dataQueue.length > 0) {
       inputs.connected = true;
       m_disconnectedTimer.reset();
-    } else if (m_disconnectedTimer.hasElapsed(kDisconnectedTimeout)) {
+    } else if (m_disconnectedTimer.hasElapsed(kDisconnectedTimeoutSeconds)) {
       inputs.connected = false;
     }
   }

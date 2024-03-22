@@ -71,7 +71,7 @@ public class Intake extends SubsystemBase {
                 .until(() -> m_isIntakingPieceSim)
                 .andThen(Commands.run(() -> m_isIntakingPieceSim = true))
                 .finallyDo(() -> m_isIntakingPieceSim = false)
-                .unless(() -> !Constants.kIsSim));
+                .unless(() -> !Constants.kIsSim)).withName("Intake");
   }
 
   private boolean simulateIsIntakingPiece() {

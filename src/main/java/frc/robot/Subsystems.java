@@ -28,6 +28,9 @@ import frc.robot.shooter.Shooter;
 import frc.robot.shooter.ShooterIO;
 import frc.robot.shooter.ShooterIOSim;
 import frc.robot.shooter.ShooterIOTalonFX;
+import frc.robot.vision.GamePieceDetection;
+import frc.robot.vision.GamePieceDetectionIO;
+import frc.robot.vision.GamePieceDetectionIOLimelight;
 import frc.robot.vision.Vision;
 import frc.robot.vision.VisionIO;
 import frc.robot.vision.VisionIOPhotonVision;
@@ -141,5 +144,13 @@ public class Subsystems {
 
   public static Feeder createBlankFeeder() {
     return new Feeder(new FeederIO() {});
+  }
+
+  public static GamePieceDetection createLimelightGamePieceDetection() {
+    return new GamePieceDetection(new GamePieceDetectionIOLimelight() {});
+  }
+
+  public static GamePieceDetection createBlankGamePieceDetection() {
+    return new GamePieceDetection(new GamePieceDetectionIO() {});
   }
 }
