@@ -3,8 +3,9 @@ package frc.robot.shooter;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import frc.robot.Constants;
@@ -12,7 +13,7 @@ import frc.robot.Constants;
 public class ShooterIOTalonFX implements ShooterIO {
 
   private final TalonFX m_topRoller, m_bottomRoller;
-  private final VoltageOut m_topRollerControl, m_bottomRollerControl;
+  private final MotionMagicVelocityVoltage m_topRollerControl, m_bottomRollerControl;
   private final StatusSignal<Double> m_topRollerPositionSignal,
       m_topRollerVelocitySignal,
       m_topRollerAppliedVoltageSignal,
@@ -26,9 +27,21 @@ public class ShooterIOTalonFX implements ShooterIO {
     m_topRoller = new TalonFX(20, Constants.kSuperstructureCanBus);
     m_bottomRoller = new TalonFX(21, Constants.kSuperstructureCanBus);
 
+    final MotionMagicConfigs motionMagicConfigs =
+        new MotionMagicConfigs().withMotionMagicAcceleration(6000 * (1 / 0.25));
     final TalonFXConfiguration topRollerMotorConfig = new TalonFXConfiguration();
+    topRollerMotorConfig.Slot0.kS = 0.0;
+    topRollerMotorConfig.Slot0.kV = 0.0;
+    topRollerMotorConfig.Slot0.kA = 0.0;
+    topRollerMotorConfig.Slot0.kP = 0.0;
+    topRollerMotorConfig.MotionMagic = motionMagicConfigs;
     m_topRoller.getConfigurator().apply(topRollerMotorConfig);
     final TalonFXConfiguration bottomRollerMotorConfig = new TalonFXConfiguration();
+    bottomRollerMotorConfig.Slot0.kS = 0.0;
+    bottomRollerMotorConfig.Slot0.kV = 0.0;
+    bottomRollerMotorConfig.Slot0.kA = 0.0;
+    bottomRollerMotorConfig.Slot0.kP = 0.0;
+    bottomRollerMotorConfig.MotionMagic = motionMagicConfigs;
     m_bottomRoller.getConfigurator().apply(bottomRollerMotorConfig);
 
     m_topRollerPositionSignal = m_topRoller.getPosition();
@@ -51,8 +64,8 @@ public class ShooterIOTalonFX implements ShooterIO {
 
     ParentDevice.optimizeBusUtilizationForAll(m_topRoller, m_bottomRoller);
 
-    m_topRollerControl = new VoltageOut(0, true, false, false, false).withUpdateFreqHz(0.0);
-    m_bottomRollerControl = new VoltageOut(0, true, false, false, false).withUpdateFreqHz(0.0);
+    m_topRollerControl = new MotionMagicVelocityVoltage(0, 0, true, 0, 0, false, false, false);
+    m_bottomRollerControl = new MotionMagicVelocityVoltage(0, 0, true, 0, 0, false, false, false);
   }
 
   @Override
@@ -81,12 +94,22 @@ public class ShooterIOTalonFX implements ShooterIO {
 
   @Override
   public void setTopRollerVoltage(double volts) {
-    m_topRoller.setControl(m_topRollerControl.withOutput(volts));
+    m_topRoller.setVoltage(volts);
   }
 
   @Override
   public void setBottomRollerVoltage(double volts) {
-    m_bottomRoller.setControl(m_bottomRollerControl.withOutput(volts));
+    m_bottomRoller.setVoltage(volts);
+  }
+
+  @Override
+  public void setTopRollerVelocity(double velocityRps) {
+    m_topRoller.setControl(m_topRollerControl.withVelocity(velocityRps));
+  }
+
+  @Override
+  public void setBottomRollerVelocity(double velocityRps) {
+    m_bottomRoller.setControl(m_bottomRollerControl.withVelocity(velocityRps));
   }
 
   public void stopRollers() {
