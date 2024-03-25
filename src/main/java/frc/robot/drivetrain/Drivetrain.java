@@ -21,7 +21,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -34,7 +33,6 @@ import frc.robot.PoseEstimation;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -45,7 +43,6 @@ import org.littletonrobotics.junction.Logger;
 public class Drivetrain extends SubsystemBase {
 
   public static final Lock odometryLock = new ReentrantLock();
-  public final BooleanSupplier onRedAllianceSupplier;
 
   private static final double kTrackwidthMeters = Units.inchesToMeters(20.75);
   private static double kWheelbaseMeters = Units.inchesToMeters(15.75);
@@ -99,10 +96,6 @@ public class Drivetrain extends SubsystemBase {
     m_modules[3] = new Module(backRightModuleIO, 3);
     PhoenixOdometryThread.getInstance().start();
 
-    onRedAllianceSupplier =
-        () ->
-            DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == Alliance.Red;
     m_sysIdRoutineDrive =
         new SysIdRoutine(
             new SysIdRoutine.Config(
@@ -261,7 +254,7 @@ public class Drivetrain extends SubsystemBase {
                 resetPose.accept(
                     new Pose2d(
                         PoseEstimation.getInstance().getPose().getTranslation(),
-                        onRedAllianceSupplier.getAsBoolean()
+                        Constants.onRedAllianceSupplier.getAsBoolean()
                             ? GeometryUtil.flipFieldRotation(new Rotation2d())
                             : new Rotation2d())))
         .ignoringDisable(true);
@@ -313,16 +306,13 @@ public class Drivetrain extends SubsystemBase {
             kMaxLinearSpeedMetersPerSecond,
             kDriveBaseRadius,
             new ReplanningConfig()),
-        onRedAllianceSupplier,
+        Constants.onRedAllianceSupplier,
         this);
     PathPlannerLogging.setLogActivePathCallback(
-        (activePath) -> {
-          Logger.recordOutput("Drivetrain/Trajectory", activePath.toArray(Pose2d[]::new));
-        });
+        activePath ->
+            Logger.recordOutput("Drivetrain/Trajectory", activePath.toArray(Pose2d[]::new)));
     PathPlannerLogging.setLogTargetPoseCallback(
-        (targetPose) -> {
-          Logger.recordOutput("Drivetrain/TrajectorySetpoint", targetPose);
-        });
+        targetPose -> Logger.recordOutput("Drivetrain/TrajectorySetpoint", targetPose));
   }
 
   @AutoLogOutput(key = "SwerveStates/StatesMeasured")

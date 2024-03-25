@@ -1,9 +1,9 @@
 package frc.robot;
 
 import com.choreo.lib.Choreo;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathPlannerPath;
+import com.choreo.lib.ChoreoControlFunction;
 import com.pathplanner.lib.util.GeometryUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -76,8 +76,24 @@ public class Autos {
         .withName("Six Piece");
   }
 
+  private Command getPathFollowingCommand(
+      String trajectoryName, ChoreoControlFunction controlFunction) {
+    return Choreo.choreoSwerveCommand(
+        Choreo.getTrajectory(trajectoryName),
+        PoseEstimation.getInstance()::getPose,
+        controlFunction,
+        m_drivetrain::runVelocity,
+        Constants.onRedAllianceSupplier,
+        m_drivetrain);
+  }
+
   private Command getPathFollowingCommand(String trajectoryName) {
-    return AutoBuilder.followPath(PathPlannerPath.fromChoreoTrajectory(trajectoryName));
+    return getPathFollowingCommand(
+        trajectoryName,
+        Choreo.choreoSwerveController(
+            new PIDController(5.0, 0.0, 0.0),
+            new PIDController(5.0, 0.0, 0.0),
+            new PIDController(5.0, 0.0, 0.0)));
   }
 
   private Command resetPose(String trajectoryName) {
@@ -85,7 +101,7 @@ public class Autos {
     return Commands.runOnce(
         () ->
             m_drivetrain.resetPose.accept(
-                m_drivetrain.onRedAllianceSupplier.getAsBoolean()
+                Constants.onRedAllianceSupplier.getAsBoolean()
                     ? GeometryUtil.flipFieldPose(startingPose)
                     : startingPose));
   }
