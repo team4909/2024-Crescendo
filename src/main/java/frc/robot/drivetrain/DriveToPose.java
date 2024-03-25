@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.PoseEstimation;
 import org.littletonrobotics.junction.Logger;
 
@@ -37,7 +38,7 @@ public class DriveToPose extends Command {
   @Override
   public void initialize() {
     m_goalPose =
-        m_drivetrain.onRedAllianceSupplier.getAsBoolean()
+        Constants.onRedAllianceSupplier.getAsBoolean()
             ? GeometryUtil.flipFieldPose(m_pose)
             : m_pose;
     Pose2d initialPose = PoseEstimation.getInstance().getPose();
@@ -110,9 +111,9 @@ public class DriveToPose extends Command {
     Logger.recordOutput("DriveToPose/ThetaMeasured", currentPose.getRotation().getRadians());
     Logger.recordOutput("DriveToPose/ThetaSetpoint", m_thetaController.getSetpoint().position);
     Logger.recordOutput(
-        "Odometry/DriveToPoseSetpoint",
+        "DriveToPoseSetpoint/Setpoint",
         new Pose2d(
             m_lastSetpointTranslation, new Rotation2d(m_thetaController.getSetpoint().position)));
-    Logger.recordOutput("Odometry/DriveToPoseGoal", m_goalPose);
+    Logger.recordOutput("DriveToPoseSetpoint/Goal", m_goalPose);
   }
 }
