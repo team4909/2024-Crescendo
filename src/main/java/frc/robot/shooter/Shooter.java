@@ -6,9 +6,11 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -91,12 +93,15 @@ public class Shooter extends SubsystemBase {
     return m_bottomRollerController.atSetpoint() && m_topRollerController.atSetpoint();
   }
 
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
-  }
-
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
+  public Command sysId() {
+    return Commands.sequence(
+        m_sysIdRoutine.quasistatic(Direction.kForward),
+        Commands.waitSeconds(10.0),
+        m_sysIdRoutine.quasistatic(Direction.kReverse),
+        Commands.waitSeconds(10.0),
+        m_sysIdRoutine.dynamic(Direction.kForward),
+        Commands.waitSeconds(10.0),
+        m_sysIdRoutine.dynamic(Direction.kReverse));
   }
 
   public Command idle() {

@@ -106,7 +106,7 @@ public class Robot extends LoggedRobot {
         break;
       default:
         m_drivetrain = Subsystems.createBlankDrivetrain();
-        m_vision = Subsystems.createBlankFourCameraVision();
+        m_vision = Subsystems.createBlankVision();
         m_intake = Subsystems.createBlankIntake();
         m_arm = Subsystems.createBlankArm();
         m_climber = Subsystems.createBlankClimber();
@@ -163,16 +163,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption(
         "Radius Characterization Counterclockwise",
         new WheelRadiusCharacterization(m_drivetrain, Direction.COUNTER_CLOCKWISE));
-    m_autoChooser.addOption(
-        "Shooter SysId (Quasistatic Forward)",
-        m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    m_autoChooser.addOption(
-        "Shooter SysId (Quasistatic Reverse)",
-        m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    m_autoChooser.addOption(
-        "Shooter SysId (Dynamic Forward)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    m_autoChooser.addOption(
-        "Shooter SysId (Dynamic Reverse)", m_shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption("Shooter SysId", m_shooter.sysId());
     m_autoChooser.addOption(
         "Elbow SysId (Quasistatic Forward)",
         m_arm.sysIdElbowQuasistatic(SysIdRoutine.Direction.kForward));

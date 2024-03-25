@@ -32,7 +32,6 @@ import frc.robot.vision.GamePieceDetection;
 import frc.robot.vision.GamePieceDetectionIO;
 import frc.robot.vision.GamePieceDetectionIOLimelight;
 import frc.robot.vision.Vision;
-import frc.robot.vision.VisionIO;
 import frc.robot.vision.VisionIOPhotonVision;
 
 public class Subsystems {
@@ -86,8 +85,8 @@ public class Subsystems {
                     Units.degreesToRadians(-150.0)))));
   }
 
-  public static Vision createBlankFourCameraVision() {
-    return new Vision(new VisionIO() {}, new VisionIO() {}, new VisionIO() {}, new VisionIO() {});
+  public static Vision createBlankVision() {
+    return new Vision();
   }
 
   public static Intake createSparkMAXIntake() {
