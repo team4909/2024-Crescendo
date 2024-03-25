@@ -45,18 +45,18 @@ public class IntakeIOSparkMAX implements IntakeIO {
   }
 
   @Override
-  public void setTopRollerDutyCycle(double outputDutyCycle) {
-    topRollerMotor.set(outputDutyCycle);
+  public void setTopRollerVoltage(double volts) {
+    topRollerMotor.setVoltage(volts);
   }
 
   @Override
-  public void setBottomRollerDutyCycle(double outputDutyCycle) {
-    bottomRollerMotor.set(outputDutyCycle);
+  public void setBottomRollerVoltage(double volts) {
+    bottomRollerMotor.setVoltage(volts);
   }
 
   @Override
-  public void setCenteringMotorsDutyCycle(double outputDutyCycle) {
-    centeringMotors.set(outputDutyCycle);
+  public void setCenteringMotorsVoltage(double volts) {
+    centeringMotors.setVoltage(volts);
   }
 
   @Override

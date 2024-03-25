@@ -12,7 +12,7 @@ public class Module {
   // However, our first stage is 50:13 instead of 50:14 because we have a different gear.
   public static final double kDriveRatio = (50.0 / 13.0) * (16.0 / 28.0) * (45.0 / 15.0);
   public static final double kSteerRatio = 150.0 / 7.0;
-  private final double kWheelDiameterMeters = Units.inchesToMeters(3.87);
+  private final double kWheelDiameterMeters = Units.inchesToMeters(1.87 * 2);
   private final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;
   private final double kCouplingGearRatio = 50.0 / 13.0;
 
@@ -41,7 +41,7 @@ public class Module {
       Rotation2d steerAngle = m_inputs.odometryTurnPositions[i];
       driveRotations -= steerAngle.getRotations() * kCouplingGearRatio;
       double driveRadians = Units.rotationsToRadians(driveRotations);
-      double positionMeters = driveRadians / (kDriveRatio / kWheelRadiusMeters);
+      double positionMeters = driveRadians * kWheelRadiusMeters;
       m_odometryPositions[i] = new SwerveModulePosition(positionMeters, steerAngle);
       m_lastPosition = m_odometryPositions[i];
     }
@@ -51,8 +51,7 @@ public class Module {
     final SwerveModuleState optimizedState =
         SwerveModuleState.optimize(state, m_inputs.steerPosition);
     double setpointVelocityRPS =
-        Units.radiansToRotations(optimizedState.speedMetersPerSecond / kWheelRadiusMeters)
-            * kDriveRatio;
+        Units.radiansToRotations(optimizedState.speedMetersPerSecond / kWheelRadiusMeters);
 
     double angleError = optimizedState.angle.getRadians() - m_inputs.steerPosition.getRadians();
     setpointVelocityRPS *= Math.max(0.0, Math.cos(angleError));

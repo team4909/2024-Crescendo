@@ -8,8 +8,9 @@ public class IntakeIOSim implements IntakeIO {
 
   private double m_topRollerAppliedVolts, m_bottomRollerAppliedVolts, m_centeringRollerAppliedVolts;
 
-  private final DCMotorSim m_topRollerSim = new DCMotorSim(DCMotor.getNEO(1), 1.0, 0.01);
-  private final DCMotorSim m_bottomRollerSim = new DCMotorSim(DCMotor.getNEO(1), 1.0, 0.01);
+  private final DCMotorSim m_topRollerSim = new DCMotorSim(DCMotor.getKrakenX60Foc(1), 1.0, 0.01);
+  private final DCMotorSim m_bottomRollerSim =
+      new DCMotorSim(DCMotor.getKrakenX60Foc(1), 1.0, 0.01);
   private final DCMotorSim m_centeringRollersSim = new DCMotorSim(DCMotor.getBag(2), 1.0, 0.01);
 
   @Override
@@ -35,18 +36,18 @@ public class IntakeIOSim implements IntakeIO {
   }
 
   @Override
-  public void setTopRollerDutyCycle(double outputDutyCycle) {
-    m_topRollerAppliedVolts = MathUtil.clamp(outputDutyCycle * 12.0, -12.0, 12.0);
+  public void setTopRollerVoltage(double voltage) {
+    m_topRollerAppliedVolts = MathUtil.clamp(voltage, -12.0, 12.0);
   }
 
   @Override
-  public void setBottomRollerDutyCycle(double outputDutyCycle) {
-    m_bottomRollerAppliedVolts = MathUtil.clamp(outputDutyCycle * 12.0, -12.0, 12.0);
+  public void setBottomRollerVoltage(double voltage) {
+    m_bottomRollerAppliedVolts = MathUtil.clamp(voltage, -12.0, 12.0);
   }
 
   @Override
-  public void setCenteringMotorsDutyCycle(double outputDutyCycle) {
-    m_centeringRollerAppliedVolts = MathUtil.clamp(outputDutyCycle * 12.0, -12.0, 12.0);
+  public void setCenteringMotorsVoltage(double voltage) {
+    m_centeringRollerAppliedVolts = MathUtil.clamp(voltage, -12.0, 12.0);
   }
 
   @Override

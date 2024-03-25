@@ -3,6 +3,7 @@ package frc.robot.drivetrain;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.GeometryUtil;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -108,7 +109,7 @@ public class Drivetrain extends SubsystemBase {
                 null,
                 null,
                 null,
-                (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
+                (state) -> SignalLogger.writeString("Drivetrain/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> {
                   for (Module module : m_modules) {
@@ -246,6 +247,14 @@ public class Drivetrain extends SubsystemBase {
         .withName("Joystick Drive");
   }
 
+  /**
+   * This allows us to run auto-aim in auto when no other driving commands are active (no joystick
+   * drive, no path following)
+   */
+  public Command blankDrive() {
+    return this.run(() -> runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0)));
+  }
+
   public Command zeroGyro() {
     return Commands.runOnce(
             () ->
@@ -336,9 +345,10 @@ public class Drivetrain extends SubsystemBase {
 
   public void clearHeadingGoal() {
     m_headingController = null;
-    Logger.recordOutput("HeadingController/Setpoint", new Pose2d());
+    Logger.recordOutput("Drivetrain/HeadingController/Setpoint", new Pose2d());
   }
 
+  @AutoLogOutput(key = "Drivetrain/HeadingController/AtGoal")
   public boolean atHeadingGoal() {
     return m_headingController != null && m_headingController.atGoal();
   }

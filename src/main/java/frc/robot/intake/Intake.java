@@ -2,6 +2,8 @@ package frc.robot.intake;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -39,11 +41,12 @@ public class Intake extends SubsystemBase {
 
   public Command idle() {
     return this.run(
-        () -> {
-          m_io.setTopRollerDutyCycle(0.0);
-          m_io.setBottomRollerDutyCycle(0.0);
-          m_io.setCenteringMotorsDutyCycle(0.0);
-        });
+            () -> {
+              m_io.setTopRollerVoltage(0.0);
+              m_io.setBottomRollerVoltage(0.0);
+              m_io.setCenteringMotorsVoltage(0.0);
+            })
+        .withName("Idle (Intake)");
   }
 
   public Command stop() {
@@ -52,19 +55,20 @@ public class Intake extends SubsystemBase {
 
   public Command spit() {
     return this.run(
-        () -> {
-          m_io.setTopRollerDutyCycle(-0.8);
-          m_io.setBottomRollerDutyCycle(-0.8);
-          m_io.setCenteringMotorsDutyCycle(-0.5);
-        });
+            () -> {
+              m_io.setTopRollerVoltage(-9.6);
+              m_io.setBottomRollerVoltage(-9.6);
+              m_io.setCenteringMotorsVoltage(-10.2);
+            })
+        .withName("Spit (Intake)");
   }
 
   public Command intake() {
     return this.run(
             () -> {
-              m_io.setTopRollerDutyCycle(0.8);
-              m_io.setBottomRollerDutyCycle(0.8);
-              m_io.setCenteringMotorsDutyCycle(0.85);
+              m_io.setTopRollerVoltage(9.6);
+              m_io.setBottomRollerVoltage(9.6);
+              m_io.setCenteringMotorsVoltage(10.2);
             })
         .alongWith(
             Commands.run(() -> m_isIntakingPieceSim = simulateIsIntakingPiece())
@@ -72,14 +76,17 @@ public class Intake extends SubsystemBase {
                 .andThen(Commands.run(() -> m_isIntakingPieceSim = true))
                 .finallyDo(() -> m_isIntakingPieceSim = false)
                 .unless(() -> !Constants.kIsSim))
-        .withName("Intake");
+        .withName("Intake (Intake)");
   }
 
   private boolean simulateIsIntakingPiece() {
     final Translation2d intakeOffsetFromRobotCenter =
         new Translation2d(Units.inchesToMeters(10.0), 0.0);
     final Translation2d intakePosition =
-        PoseEstimation.getInstance().getPose().getTranslation().plus(intakeOffsetFromRobotCenter);
+        PoseEstimation.getInstance()
+            .getPose()
+            .transformBy(new Transform2d(intakeOffsetFromRobotCenter, new Rotation2d()))
+            .getTranslation();
     final double kIntakeXRangeInches = 9.0;
     final double kIntakeYRangeInches = 27.0 / 2.0;
     for (int noteIndex = 0; noteIndex < NotePositions.noteTranslations.length; noteIndex++) {
@@ -98,12 +105,16 @@ public class Intake extends SubsystemBase {
     return false;
   }
 
+  public void resetSimIntookPieces() {
+    m_intookPieces.clear();
+  }
+
   public Command feed() {
     return this.run(
         () -> {
-          m_io.setTopRollerDutyCycle(0.4);
-          m_io.setBottomRollerDutyCycle(0.4);
-          m_io.setCenteringMotorsDutyCycle(0.5);
+          m_io.setTopRollerVoltage(4.8);
+          m_io.setBottomRollerVoltage(4.8);
+          m_io.setCenteringMotorsVoltage(6.0);
         });
   }
 }

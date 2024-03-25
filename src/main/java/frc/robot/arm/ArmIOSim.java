@@ -26,7 +26,7 @@ public class ArmIOSim implements ArmIO {
             ArmConstants.kElbowLengthMeters,
             ArmSetpoints.kStowed.elbowAngle,
             ArmConstants.kElbowMaxAngleRad,
-            true,
+            false,
             ArmSetpoints.kStowed.elbowAngle);
     m_wristSim =
         new SingleJointedArmSim(
@@ -36,19 +36,17 @@ public class ArmIOSim implements ArmIO {
             ArmConstants.kWristLengthMeters,
             ArmConstants.kWristMinAngleRad,
             ArmConstants.kWristMaxAngleRad,
-            true,
+            false,
             ArmSetpoints.kStowed.wristAngle);
-    m_elbowFeedback = new PIDController(15.0, 0.0, 0.0);
-    m_wristFeedback = new PIDController(10.0, 0.0, 0.0);
+    m_elbowFeedback = new PIDController(25.0, 0.0, 0.0);
+    m_wristFeedback = new PIDController(20.0, 0.0, 0.0);
     m_elbowFeedforward = new ArmFeedforward(0.0, 0.0, 0.0);
-    m_wristFeedforward = new ArmFeedforward(0.0, 0.4, 0.0);
+    m_wristFeedforward = new ArmFeedforward(0.0, 0.0, 0.0);
     m_wristFeedback.enableContinuousInput(-0.5, 0.5);
   }
 
   public void updateInputs(ArmIOInputs inputs) {
 
-    m_elbowSim.setInputVoltage(m_elbowAppliedVolts);
-    m_wristSim.setInputVoltage(m_wristAppliedVolts);
     m_elbowSim.update(0.02);
     m_wristSim.update(0.02);
 
@@ -77,16 +75,21 @@ public class ArmIOSim implements ArmIO {
 
   @Override
   public void setElbowRotations(double angleRot) {
+    m_elbowFeedback.reset();
     m_elbowAppliedVolts =
         m_elbowFeedback.calculate(m_currentElbowAngleRot, angleRot)
             + m_elbowFeedforward.calculate(Units.rotationsToRadians(angleRot), 0.0);
+    m_elbowSim.setInputVoltage(m_elbowAppliedVolts);
   }
 
   @Override
   public void setWristRotations(double angleRot) {
+    m_wristFeedback.reset();
     m_wristAppliedVolts =
         m_wristFeedback.calculate(m_currentWristAngleRot, angleRot)
             + m_wristFeedforward.calculate(Units.rotationsToRadians(angleRot), 0.0);
+
+    m_wristSim.setInputVoltage(m_wristAppliedVolts);
   }
 
   @Override

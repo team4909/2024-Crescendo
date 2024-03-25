@@ -13,16 +13,21 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.PoseEstimation.AimingParameters;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
+import frc.robot.drivetrain.WheelRadiusCharacterization;
+import frc.robot.drivetrain.WheelRadiusCharacterization.Direction;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
 import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.GamePieceDetection;
 import frc.robot.vision.Vision;
+import java.util.HashMap;
+import java.util.function.BiConsumer;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -77,7 +82,6 @@ public class Robot extends LoggedRobot {
     }
 
     Logger.start();
-    SignalLogger.start();
 
     switch (Constants.kCurrentMode) {
       case kReal:
@@ -115,7 +119,7 @@ public class Robot extends LoggedRobot {
     NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
     NoteVisualizer.resetNotes();
     NoteVisualizer.showStagedNotes();
-    final Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake);
+    final Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake, m_arm, m_lights);
     NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("intakeOff", m_intake.idle());
     NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
@@ -154,6 +158,12 @@ public class Robot extends LoggedRobot {
         m_drivetrain.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
     m_autoChooser.addOption("Slip Current SysId", m_drivetrain.sysIdSlipCurrent());
     m_autoChooser.addOption(
+        "Radius Characterization Clockwise",
+        new WheelRadiusCharacterization(m_drivetrain, Direction.CLOCKWISE));
+    m_autoChooser.addOption(
+        "Radius Characterization Counterclockwise",
+        new WheelRadiusCharacterization(m_drivetrain, Direction.COUNTER_CLOCKWISE));
+    m_autoChooser.addOption(
         "Shooter SysId (Quasistatic Forward)",
         m_shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
@@ -183,8 +193,9 @@ public class Robot extends LoggedRobot {
         "Wrist SysId (Dynamic Forward)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Wrist SysId (Dynamic Reverse)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption("Start Signal Logger", Commands.runOnce(SignalLogger::start));
     m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));
-    m_autoChooser.addOption("3 Piece Centerline", autos.centerlineTwoPiece());
+    m_autoChooser.addOption("6 Piece", autos.sixPiece());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
@@ -204,7 +215,7 @@ public class Robot extends LoggedRobot {
         .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
     m_driverController
         .leftTrigger()
-        .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_lights));
+        .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_arm, m_lights));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_operatorController
@@ -217,7 +228,8 @@ public class Robot extends LoggedRobot {
         .onFalse(m_arm.holdSetpoint());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
-    m_driverController.b().whileTrue(Commands.parallel(m_arm.idleCoast(), m_climber.windWinch()));
+    m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
+    m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
     m_operatorController
         .leftTrigger()
@@ -236,6 +248,23 @@ public class Robot extends LoggedRobot {
         .leftBumper()
         .onTrue(Superstructure.sensorCatch(m_shooter, m_feeder, m_intake, m_arm))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+
+    final HashMap<String, Integer> commandCounts = new HashMap<>();
+    final BiConsumer<Command, Boolean> logCommandConsumer =
+        (Command command, Boolean active) -> {
+          final String name = command.getName();
+          final int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
+          commandCounts.put(name, count);
+          Logger.recordOutput(
+              "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
+          Logger.recordOutput("CommandsAll/" + name, count > 0);
+        };
+    CommandScheduler.getInstance()
+        .onCommandInitialize(command -> logCommandConsumer.accept(command, true));
+    CommandScheduler.getInstance()
+        .onCommandFinish(command -> logCommandConsumer.accept(command, false));
+    CommandScheduler.getInstance()
+        .onCommandInterrupt(command -> logCommandConsumer.accept(command, false));
   }
 
   @Override
@@ -244,12 +273,14 @@ public class Robot extends LoggedRobot {
     m_vision.periodic();
     m_gamePieceDetection.periodic();
     NoteVisualizer.showHeldNotes();
+    logAimingParameters();
   }
 
   @Override
   public void autonomousInit() {
     NoteVisualizer.resetNotes();
     NoteVisualizer.setHasNote(true);
+    m_intake.resetSimIntookPieces();
 
     Command autonomousCommand = m_autoChooser.get();
     if (autonomousCommand != null) autonomousCommand.schedule();
@@ -302,5 +333,19 @@ public class Robot extends LoggedRobot {
         Logger.recordMetadata("GitDirty", "Unknown");
         break;
     }
+  }
+
+  private void logAimingParameters() {
+    final AimingParameters aimingParameters = PoseEstimation.getInstance().getAimingParameters();
+    Logger.recordOutput(
+        "PoseEstimation/AimingParameters/DriveHeading", aimingParameters.driveHeading());
+    Logger.recordOutput("PoseEstimation/AimingParameters/ArmAngle", aimingParameters.armAngle());
+    Logger.recordOutput(
+        "PoseEstimation/AimingParameters/DriveFeedVelocity", aimingParameters.driveFeedVelocity());
+    Logger.recordOutput(
+        "PoseEstimation/AimingParameters/EffectiveDistance",
+        PoseEstimation.getInstance().getAimingParameters().effectiveDistance());
+    Logger.recordOutput(
+        "PoseEstimation/AimingParameters/AimingJointIndex", aimingParameters.aimingJointIndex());
   }
 }

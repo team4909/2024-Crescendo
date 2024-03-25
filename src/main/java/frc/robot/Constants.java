@@ -12,14 +12,14 @@ import java.nio.file.Path;
 import java.util.function.BooleanSupplier;
 
 public final class Constants {
-  public static final Mode kCurrentMode = Mode.kReal;
+  public static final Mode kCurrentMode = Mode.kSim;
   public static final RobotName kRobot = RobotName.kViper;
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
   public static final String kSuperstructureCanBus = "CANivore2";
   public static final boolean kInTuningMode = true;
   public static final Translation3d poseOffset =
-      new Translation3d(Units.inchesToMeters(2.5), 0.0, 0.0);
+      new Translation3d(Units.inchesToMeters(0), 0.0, 0.0);
   public static final BooleanSupplier onRedAllianceSupplier =
       () ->
           DriverStation.getAlliance().isPresent()

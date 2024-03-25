@@ -14,7 +14,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double kFarShotVelocityRpm = 6000.0;
+  private final double kFarShotVelocityRpm = 5600.0;
   private final double kAmpshot = 5000.0;
   private final double kReadyToShootToleranceRps = 3.0;
 
@@ -71,8 +71,6 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("ShooterInputs", m_inputs);
-    Logger.recordOutput(
-        "Shooter/Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
   }
 
   private void setRollersSetpointRpm(double velocityRpm) {
@@ -107,7 +105,7 @@ public class Shooter extends SubsystemBase {
               m_io.setTopRollerVoltage(0.0);
               m_io.setBottomRollerVoltage(0.0);
             })
-        .withName("Idle");
+        .withName("Idle (Shooter)");
   }
 
   public Command stop() {
@@ -124,7 +122,8 @@ public class Shooter extends SubsystemBase {
               Logger.recordOutput("Shooter/Goal Roller RPS", 0.0);
               m_topRollerController.reset();
               m_bottomRollerController.reset();
-            });
+            })
+        .withName("Spin Up (Shooter)");
   }
 
   public Command ampShot() {
@@ -137,7 +136,7 @@ public class Shooter extends SubsystemBase {
               m_io.setTopRollerVoltage(-9.0);
               m_io.setBottomRollerVoltage(-9.0);
             })
-        .withName("Catch Note");
+        .withName("Catch (Shooter)");
   }
 
   public Command spit() {
@@ -146,7 +145,7 @@ public class Shooter extends SubsystemBase {
               m_io.setTopRollerVoltage(-6.0);
               m_io.setBottomRollerVoltage(-6.0);
             })
-        .withName("Spit");
+        .withName("Spit (Shooter)");
   }
 
   public Command shootWithFeederDelay() {

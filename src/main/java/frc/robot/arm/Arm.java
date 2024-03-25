@@ -7,24 +7,30 @@ import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Arm extends SubsystemBase {
 
   public static final double kCatchWristAngleRad = 2.264 - Units.degreesToRadians(5.0);
   public static final double kSubwooferWristAngleRad = 2.083;
+  private final double kJointTolerenceDegrees = 1.0;
 
   private final ArmIO m_io;
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
@@ -40,6 +46,8 @@ public class Arm extends SubsystemBase {
       new LoggedTunableNumber("Arm/Wrist/MaxAcceleration");
 
   private Vector<N2> m_initialAngles;
+  private boolean m_atGoal = false;
+  public Trigger atGoal = new Trigger(this::getJointsAtGoal).debounce(0.1, DebounceType.kBoth);
   public Supplier<Pose3d> wristPoseSupplier;
   private final SysIdRoutine m_sysIdRoutineElbow, m_sysIdRoutineWrist;
 
@@ -106,18 +114,15 @@ public class Arm extends SubsystemBase {
           wristMaxAccelerationRadPerSecSq.get());
 
     Logger.recordOutput(
-        "Current Elbow Angle Degrees", Units.rotationsToDegrees(m_inputs.elbowPositionRot));
+        "Arm/Current Elbow Angle Degrees", Units.rotationsToDegrees(m_inputs.elbowPositionRot));
     Logger.recordOutput(
-        "Current Wrist Angle Degrees", Units.rotationsToDegrees(m_inputs.wristPositionRot));
+        "Arm/Current Wrist Angle Degrees", Units.rotationsToDegrees(m_inputs.wristPositionRot));
     m_measuredVisualizer.update(
         Units.rotationsToRadians(m_inputs.elbowPositionRot),
         Units.rotationsToRadians(m_inputs.wristPositionRot));
     m_setpointVisualizer.update(
         Units.rotationsToRadians(m_inputs.elbowPositionSetpointRot),
         Units.rotationsToRadians(m_inputs.wristPositionSetpointRot));
-    Logger.recordOutput(
-        "Arm/Current Command",
-        getCurrentCommand() == null ? "Null" : getCurrentCommand().getName());
   }
 
   /**
@@ -141,10 +146,28 @@ public class Arm extends SubsystemBase {
             / Math.abs(Units.degreesToRotations(wristAngleRad) - m_initialAngles.get(1, 0));
     Logger.recordOutput("Arm/Elbow Progress", elbowProgress);
     Logger.recordOutput("Arm/Wrist Progress", wristProgress);
+    m_atGoal = anglesAtGoal(new Rotation2d(elbowAngleRad), new Rotation2d(wristAngleRad));
+
     if (wristProgress < elbowDelay) m_io.setElbowRotations(m_inputs.elbowPositionRot);
     else m_io.setElbowRotations(Units.radiansToRotations(elbowAngleRad));
     if (elbowProgress < wristDelay) m_io.setWristRotations(m_inputs.wristPositionRot);
     else m_io.setWristRotations(Units.radiansToRotations(wristAngleRad));
+  }
+
+  private boolean anglesAtGoal(Rotation2d elbowGoal, Rotation2d wristGoal) {
+    return (MathUtil.isNear(
+            0.0,
+            elbowGoal.minus(Rotation2d.fromRotations(m_inputs.elbowPositionRot)).getDegrees(),
+            kJointTolerenceDegrees)
+        && MathUtil.isNear(
+            0.0,
+            wristGoal.minus(Rotation2d.fromRotations(m_inputs.wristPositionRot)).getDegrees(),
+            kJointTolerenceDegrees));
+  }
+
+  @AutoLogOutput(key = "Arm/JointsAtGoal")
+  private boolean getJointsAtGoal() {
+    return m_atGoal;
   }
 
   public Command storeInitialAngles() {
@@ -152,6 +175,24 @@ public class Arm extends SubsystemBase {
         () ->
             m_initialAngles =
                 VecBuilder.fill(m_inputs.elbowPositionRot, m_inputs.wristPositionRot));
+  }
+
+  // Joint Index: 0 = elbow, 1 = wrist
+  public Command aim(IntSupplier jointIndexSupplier, DoubleSupplier angleSupplier) {
+    return storeInitialAngles()
+        .andThen(
+            this.run(
+                () -> {
+                  if (jointIndexSupplier.getAsInt() == 0)
+                    runSetpoint(
+                        angleSupplier.getAsDouble(), ArmSetpoints.kStowed.wristAngle, 0.0, 0.0);
+                  else if (jointIndexSupplier.getAsInt() == 1)
+                    runSetpoint(
+                        ArmSetpoints.kStowed.elbowAngle, angleSupplier.getAsDouble(), 0.0, 0.0);
+                  else throw new IllegalArgumentException("Invalid joint index.");
+                }))
+        .finallyDo(() -> m_atGoal = false)
+        .withName("Aim (Arm)");
   }
 
   public Command aimElbow(double elbowAngleRad) {
@@ -212,7 +253,7 @@ public class Arm extends SubsystemBase {
   }
 
   public Command idle() {
-    return this.run(() -> m_io.stop()).withName("Idle");
+    return this.run(() -> m_io.stop()).withName("Idle (Arm)");
   }
 
   public Command idleCoast() {
@@ -220,7 +261,7 @@ public class Arm extends SubsystemBase {
         .andThen(this.run(() -> m_io.stop()))
         .finallyDo(() -> m_io.setBrakeMode(true))
         .ignoringDisable(true)
-        .withName("Idle Coast");
+        .withName("Idle Coast (Arm)");
   }
 
   public Command sysIdElbowQuasistatic(SysIdRoutine.Direction direction) {
@@ -241,8 +282,9 @@ public class Arm extends SubsystemBase {
 
   public static enum ArmSetpoints {
     kStowed(-0.548, 2.485, 0.15, 0.0),
-    kAmp(1.49 + 0.0873, -2.307, 0.0, 0.0),
-    kClimb(1.633, -2.371, 0.0, 0.0);
+    kAmp(1.49 + 0.0873, Units.degreesToRadians(230), 0.0, 0.0),
+    kClimb(1.633, -2.371, 0.0, 0.0),
+    kTrap(Units.degreesToRadians(18), Units.degreesToRadians(84), 0.0, 0.0);
 
     public final double elbowAngle;
     public final double wristAngle;

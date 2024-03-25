@@ -9,6 +9,9 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -47,7 +50,7 @@ public class Vision {
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
   private final boolean kIgnoreVisionInSim = false;
-  private final boolean kIgnoreVisionInAuto = true;
+  private final boolean kIgnoreVisionInAuto = false;
   // #endregion
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;
@@ -58,7 +61,7 @@ public class Vision {
   private final List<Pose3d> m_allEstimatedPosesToLog = new ArrayList<>();
   private final List<Pose3d> m_validEstimatedPosesToLog = new ArrayList<>();
   private final UnaryOperator<Pose3d> applyPoseOffset =
-      pose -> new Pose3d(pose.getTranslation().plus(Constants.poseOffset), pose.getRotation());
+      pose -> pose.transformBy(new Transform3d(Constants.poseOffset, new Rotation3d()));
 
   public Vision(VisionIO... io) {
     this.io = io;
@@ -159,10 +162,15 @@ public class Vision {
 
   public Matrix<N3, N1> getEstimationStdDevs(
       Pose3d estimatedPose, List<PhotonTrackedTarget> targets) {
-    Vector<N3> rejectMeasurement =
+    final Vector<N3> rejectMeasurement =
         VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+    final boolean moving =
+        Math.abs(PoseEstimation.getInstance().getFieldVelocity().dx) >= 0.01
+            || Math.abs(PoseEstimation.getInstance().getFieldVelocity().dy) >= 0.01
+            || Math.abs(PoseEstimation.getInstance().getFieldVelocity().dtheta) >= 0.01;
     if ((Constants.kIsSim && kIgnoreVisionInSim)
-        || (DriverStation.isAutonomous() && kIgnoreVisionInAuto)) return rejectMeasurement;
+        || (DriverStation.isAutonomous() && (kIgnoreVisionInAuto || moving)))
+      return rejectMeasurement;
 
     if (estimatedPose.getX() < -kFieldBorderMargin
         || estimatedPose.getX() > FieldConstants.kFieldLength + kFieldBorderMargin
@@ -192,7 +200,7 @@ public class Vision {
      * ambiguity OR there is only one tag and the tag is too far.
      */
     if ((tagCount == 0)
-        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.2)
+        || (tagCount == 1 && targets.get(0).getPoseAmbiguity() > 0.15)
         || (tagCount == 1 && averageDistance > 4)) return rejectMeasurement;
 
     final double xyStdDev =
@@ -204,6 +212,7 @@ public class Vision {
             ? kThetaStdDevCoefficient * Math.pow(averageDistance, 2) / tagCount
             : Double.MAX_VALUE;
 
+    m_allEstimatedPosesToLog.remove(estimatedPose);
     m_validEstimatedPosesToLog.add(estimatedPose);
     return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
   }
@@ -220,9 +229,9 @@ public class Vision {
 
   public void updateSim(Pose2d currentPose) {
     m_visionSimSystem.update(
-        new Pose2d(
-            currentPose.getTranslation().minus(Constants.poseOffset.toTranslation2d()),
-            currentPose.getRotation()));
+        currentPose.transformBy(
+            new Transform2d(
+                Constants.poseOffset.toTranslation2d().unaryMinus(), new Rotation2d())));
   }
 
   public static record VisionUpdate(

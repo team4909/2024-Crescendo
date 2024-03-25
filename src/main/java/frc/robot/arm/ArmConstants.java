@@ -20,8 +20,8 @@ public class ArmConstants {
   private static final double kWristChainReduction = 36.0 / 22.0;
   public static final double kWristReduction = kWristGearboxReduction * kWristChainReduction;
   public static final double kWristLengthMeters = Units.inchesToMeters(15.0);
-  public static final double kWristMinAngleRad = -Math.PI;
-  public static final double kWristMaxAngleRad = 1.5 * Math.PI;
+  public static final double kWristMinAngleRad = Double.NEGATIVE_INFINITY;
+  public static final double kWristMaxAngleRad = Double.POSITIVE_INFINITY;
   public static final DCMotor kWristGearbox = DCMotor.getFalcon500Foc(2);
   public static final double kWristMassKg = Units.lbsToKilograms(11.5);
   public static final double kWristMoiKgMetersSq =

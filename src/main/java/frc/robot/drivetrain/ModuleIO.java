@@ -22,7 +22,7 @@ public interface ModuleIO {
     public double[] odometryDrivePositionsRad = new double[] {};
     public Rotation2d[] odometryTurnPositions = new Rotation2d[] {};
 
-    public double odometryLoopTime = 0.0;
+    public double totalOdometryLoopTime = 0.0;
     public boolean devicesConnected = false;
   }
 

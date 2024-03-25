@@ -44,7 +44,7 @@ public class Superstructure {
     return Commands.parallel(shooter.spit(), feeder.spit(), intake.spit()).withName("Spit");
   }
 
-  public static Command aimAtGoal(Drivetrain drivetrain, Shooter shooter, Lights lights) {
+  public static Command aimAtGoal(Drivetrain drivetrain, Shooter shooter, Arm arm, Lights lights) {
     return Commands.parallel(
             Commands.startEnd(
                 () ->
@@ -52,9 +52,15 @@ public class Superstructure {
                         () -> PoseEstimation.getInstance().getAimingParameters().driveHeading()),
                 drivetrain::clearHeadingGoal),
             shooter.runShooter(),
+            arm.aim(
+                () -> PoseEstimation.getInstance().getAimingParameters().aimingJointIndex(),
+                () -> PoseEstimation.getInstance().getAimingParameters().armAngle().getRadians()),
             lights.showReadyToShootStatus(
-                drivetrain.atHeadingGoal.and(shooter.readyToShoot).and(drivetrain.atHeadingGoal)))
-        .finallyDo(() -> lights.getCurrentCommand().cancel())
+                drivetrain
+                    .atHeadingGoal
+                    .and(shooter.readyToShoot)
+                    .and(drivetrain.atHeadingGoal)
+                    .and(arm.atGoal)))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }
 }

@@ -103,6 +103,7 @@ public class NoteVisualizer {
                       .finallyDo(() -> Logger.recordOutput("NoteVisualizer/ShotNotes"));
                 },
                 Set.of())
+            .withName("Note Shot Visualization")
             .ignoringDisable(true));
   }
 

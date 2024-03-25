@@ -4,7 +4,6 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -93,10 +92,5 @@ public class ShooterIOTalonFX implements ShooterIO {
   public void stopRollers() {
     m_topRoller.setVoltage(0.0);
     m_bottomRoller.setVoltage(0.0);
-  }
-
-  public void setRollerDutyCycle(double volts) {
-    m_topRoller.setControl(new DutyCycleOut(volts));
-    m_bottomRoller.setControl(new DutyCycleOut(volts));
   }
 }

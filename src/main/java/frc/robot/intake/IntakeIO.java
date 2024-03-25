@@ -19,11 +19,11 @@ public interface IntakeIO {
 
   public default void updateInputs(IntakeIOInputs inputs) {}
 
-  public default void setTopRollerDutyCycle(double outputDutyCycle) {}
+  public default void setTopRollerVoltage(double volts) {}
 
-  public default void setBottomRollerDutyCycle(double outputDutyCycle) {}
+  public default void setBottomRollerVoltage(double volts) {}
 
-  public default void setCenteringMotorsDutyCycle(double outputDutyCycle) {}
+  public default void setCenteringMotorsVoltage(double volts) {}
 
   public default void stopRollers() {}
 }

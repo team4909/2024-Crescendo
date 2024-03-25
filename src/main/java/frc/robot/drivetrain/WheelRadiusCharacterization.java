@@ -11,7 +11,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class WheelRadiusCharacterization extends Command {
   private static final LoggedTunableNumber characterizationSpeed =
-      new LoggedTunableNumber("WheelRadiusCharacterization/SpeedRadsPerSec", 0.1);
+      new LoggedTunableNumber("WheelRadiusCharacterization/SpeedRadsPerSec", 1.0);
   private static final double driveRadius = Drivetrain.kDriveBaseRadius;
   private static final DoubleSupplier gyroYawRadsSupplier =
       () -> PoseEstimation.getInstance().getPose().getRotation().getRadians();

@@ -21,6 +21,7 @@ public class PoseEstimation {
   private final SwerveDrivePoseEstimator m_poseEstimator;
   private final BooleanSupplier lookaheadDisable = () -> false;
   private final double kLookaheadSeconds = 0.35;
+  private final double jointSwitchDistanceMeters = 2.35;
   private Twist2d m_robotVelocity = new Twist2d();
   private AimingParameters m_lastAimingParameters = null;
 
@@ -28,19 +29,21 @@ public class PoseEstimation {
   private static final InterpolatingDoubleTreeMap elbowAngleMap = new InterpolatingDoubleTreeMap();
 
   static {
-    wristAngleMap.put(1.0, 0.0);
-    wristAngleMap.put(1.0, 0.0);
+    wristAngleMap.put(1.2, 119.3);
+    wristAngleMap.put(2.88, 142.4);
   }
 
   static {
-    elbowAngleMap.put(1.0, 0.0);
+    elbowAngleMap.put(2.4, -31.4);
+    elbowAngleMap.put(4.07, -15.4);
   }
 
   public record AimingParameters(
       Rotation2d driveHeading,
       Rotation2d armAngle,
       double effectiveDistance,
-      double driveFeedVelocity) {}
+      double driveFeedVelocity,
+      int aimingJointIndex) {}
 
   public PoseEstimation() {
     m_poseEstimator =
@@ -76,9 +79,8 @@ public class PoseEstimation {
   @AutoLogOutput(key = "PoseEstimation/EstimatedPose")
   public Pose2d getPose() {
     final Pose2d estimatedPosition = m_poseEstimator.getEstimatedPosition();
-    return new Pose2d(
-        estimatedPosition.getTranslation().plus(Constants.poseOffset.toTranslation2d()),
-        estimatedPosition.getRotation());
+    return estimatedPosition.transformBy(
+        new Transform2d(Constants.poseOffset.toTranslation2d(), new Rotation2d()));
   }
 
   @AutoLogOutput(key = "PoseEstimation/FieldVelocity")
@@ -135,12 +137,17 @@ public class PoseEstimation {
         m_robotVelocity.dx * vehicleToGoalDirection.getSin() / targetDistance
             - m_robotVelocity.dy * vehicleToGoalDirection.getCos() / targetDistance;
 
+    int jointToAim = targetDistance < jointSwitchDistanceMeters ? 1 : 0;
+    double armAngle =
+        jointToAim == 1 ? wristAngleMap.get(targetDistance) : elbowAngleMap.get(targetDistance);
+
     m_lastAimingParameters =
         new AimingParameters(
             targetVehicleDirection,
-            Rotation2d.fromDegrees(elbowAngleMap.get(targetDistance)),
+            Rotation2d.fromDegrees(armAngle),
             targetDistance,
-            feedVelocity);
+            feedVelocity,
+            jointToAim);
     return m_lastAimingParameters;
   }
 
@@ -154,7 +161,12 @@ public class PoseEstimation {
       Rotation2d currentYawPosition,
       SwerveModulePosition[] currentModulePositions,
       Pose2d newPose) {
-    m_poseEstimator.resetPosition(currentYawPosition, currentModulePositions, newPose);
+    m_poseEstimator.resetPosition(
+        currentYawPosition,
+        currentModulePositions,
+        newPose.transformBy(
+            new Transform2d(
+                Constants.poseOffset.toTranslation2d().unaryMinus(), new Rotation2d())));
   }
 
   public static PoseEstimation getInstance() {

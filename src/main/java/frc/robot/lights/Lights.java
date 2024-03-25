@@ -89,7 +89,9 @@ public class Lights extends SubsystemBase {
           else setBlinkMethod(Color.kRed);
           lastState.value = readyToShoot.getAsBoolean();
         },
-        (interrupted) -> {},
+        (interrupted) -> {
+          setRainbow();
+        },
         () -> false,
         this);
   }

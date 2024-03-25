@@ -8,7 +8,6 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.PoseEstimation;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class HeadingController {
@@ -19,12 +18,10 @@ public class HeadingController {
   private static final double kMaxAccelerationMultipler = 0.8;
 
   private final ProfiledPIDController m_controller =
-      new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0), 0.02);
-  ;
+      new ProfiledPIDController(kP, 0.0, 0.0, new TrapezoidProfile.Constraints(0.0, 0.0), 0.02);
   private final Supplier<Rotation2d> m_goalHeadingSupplier;
 
   public HeadingController(Supplier<Rotation2d> goalHeadingSupplier) {
-    m_controller.setP(kP);
     final double maxAngularAcceleration =
         9.0 / Drivetrain.kDriveBaseRadius * kMaxAccelerationMultipler;
     final double maxAngularVelocity = 3.5 / Drivetrain.kDriveBaseRadius * kMaxVelocityMultipler;
@@ -44,16 +41,15 @@ public class HeadingController {
             PoseEstimation.getInstance().getPose().getRotation().getRadians(),
             m_goalHeadingSupplier.get().getRadians());
     Logger.recordOutput(
-        "HeadingController/Setpoint",
+        "Drivetrain/HeadingController/Setpoint",
         new Pose2d(
             PoseEstimation.getInstance().getPose().getTranslation(), m_goalHeadingSupplier.get()));
     Logger.recordOutput(
-        "HeadingController/HeadingErrorDegrees",
+        "Drivetrain/HeadingController/HeadingErrorDegrees",
         Units.radiansToDegrees(m_controller.getPositionError()));
     return output;
   }
 
-  @AutoLogOutput(key = "HeadingController/AtGoal")
   public boolean atGoal() {
     return MathUtil.isNear(
         m_controller.getGoal().position,

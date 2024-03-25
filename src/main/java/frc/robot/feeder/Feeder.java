@@ -25,12 +25,10 @@ public class Feeder extends SubsystemBase {
   public void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("FeederInputs", m_inputs);
-    Logger.recordOutput(
-        "Feeder/Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
   }
 
   public Command idle() {
-    return this.run(() -> m_io.setRollerSpeedVolts(0.0));
+    return this.run(() -> m_io.setRollerSpeedVolts(0.0)).withName("Idle (Feeder)");
   }
 
   public Command stop() {
@@ -39,16 +37,17 @@ public class Feeder extends SubsystemBase {
 
   public Command shoot() {
     return Commands.parallel(
-        this.run(() -> m_io.setRollerSpeedVolts(-5.0)),
-        Commands.waitUntil(hasNote.negate()).andThen(NoteVisualizer.shoot()));
+            this.run(() -> m_io.setRollerSpeedVolts(-5.0)),
+            Commands.waitUntil(hasNote.negate()).andThen(NoteVisualizer.shoot()))
+        .withName("Shoot (Feeder)");
   }
 
   public Command feed() {
-    return this.run(() -> m_io.setRollerSpeedVolts(-6.0));
+    return this.run(() -> m_io.setRollerSpeedVolts(-6.0)).withName("Feed (Feeder)");
   }
 
   public Command spit() {
-    return this.run(() -> m_io.setRollerSpeedVolts(12.0));
+    return this.run(() -> m_io.setRollerSpeedVolts(12.0)).withName("Spit (Feeder)");
   }
 
   public Command enterCoast() {

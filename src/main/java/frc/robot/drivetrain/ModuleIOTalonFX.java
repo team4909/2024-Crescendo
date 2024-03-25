@@ -19,7 +19,6 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -28,10 +27,9 @@ import java.util.Queue;
 
 public class ModuleIOTalonFX implements ModuleIO {
 
-  private final double kDrivekP = 0.031509;
-  private final double kDrivekS = 0.21806;
-  private final double kDrivekV = 0.13279;
-  private final double kDrivekA = 0.0057523;
+  private final double kDrivekP = 0.15;
+  private final double kDrivekS;
+  private final double kDrivekV;
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
   private final double kSlipCurrent = Constants.kIsSim ? 400.0 : 58.0;
@@ -53,10 +51,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final MotionMagicExpoVoltage m_steerControl;
   private final VelocityVoltage m_driveControl;
   private final DCMotorSim m_driveSim =
-      new DCMotorSim(
-          LinearSystemId.createDCMotorSystem(kDrivekV, kDrivekA),
-          DCMotor.getKrakenX60Foc(1),
-          Module.kDriveRatio);
+      new DCMotorSim(DCMotor.getKrakenX60Foc(1), Module.kDriveRatio, 0.025);
   private final DCMotorSim m_steerSim =
       new DCMotorSim(DCMotor.getFalcon500Foc(1), Module.kSteerRatio, 0.004);
 
@@ -67,24 +62,32 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_steerMotor = new TalonFX(3, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(12, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = 0.37353515625;
+        kDrivekS = 0.092972;
+        kDrivekV = 0.82452;
         break;
       case 1: // FR
         m_driveMotor = new TalonFX(6, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(5, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(13, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = -0.090576171875;
+        kDrivekS = 0.047967;
+        kDrivekV = 0.83233;
         break;
       case 2: // BL
         m_driveMotor = new TalonFX(2, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(1, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(11, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = 0.275634765625;
+        kDrivekS = 0.22823;
+        kDrivekV = 0.82401;
         break;
       case 3: // BR
         m_driveMotor = new TalonFX(7, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(8, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(14, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = 0.314208984375;
+        kDrivekS = 0.226;
+        kDrivekV = 0.81814;
         break;
       default:
         throw new RuntimeException("Invalid module index");
@@ -102,6 +105,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     final TalonFXConfiguration driveMotorConfig = new TalonFXConfiguration();
     m_driveMotor.getConfigurator().apply(driveMotorConfig); // Factory Default
     driveMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    driveMotorConfig.Feedback.SensorToMechanismRatio = Module.kDriveRatio;
     driveMotorConfig.Slot0.kP = kDrivekP;
     driveMotorConfig.Slot0.kS = kDrivekS;
     driveMotorConfig.Slot0.kV = kDrivekV;
@@ -183,10 +187,9 @@ public class ModuleIOTalonFX implements ModuleIO {
                 m_steerCurrentSignal)
             .isOK();
 
-    inputs.drivePositionRad =
-        Units.rotationsToRadians(m_drivePositionSignal.getValueAsDouble()) / Module.kDriveRatio;
+    inputs.drivePositionRad = Units.rotationsToRadians(m_drivePositionSignal.getValueAsDouble());
     inputs.driveVelocityRadPerSec =
-        Units.rotationsToRadians(m_driveVelocitySignal.getValueAsDouble()) / Module.kDriveRatio;
+        Units.rotationsToRadians(m_driveVelocitySignal.getValueAsDouble());
     inputs.driveAppliedVolts = m_driveAppliedVoltsSignal.getValueAsDouble();
     inputs.driveCurrentAmps = m_driveCurrentSignal.getValueAsDouble();
 
@@ -202,7 +205,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.steerAppliedVolts = m_steerAppliedVoltsSignal.getValueAsDouble();
     inputs.steerCurrentAmps = m_steerCurrentSignal.getValueAsDouble();
 
-    inputs.odometryLoopTime = PhoenixOdometryThread.getInstance().averageLoopTimeSupplier.get();
+    inputs.totalOdometryLoopTime =
+        PhoenixOdometryThread.getInstance().averageLoopTimeSupplier.get();
     inputs.odometryDrivePositionsRad =
         m_drivePositionQueue.stream()
             .mapToDouble(value -> Units.rotationsToRadians(value))
