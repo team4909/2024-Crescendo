@@ -28,19 +28,20 @@ public class ShooterIOTalonFX implements ShooterIO {
     m_bottomRoller = new TalonFX(21, Constants.kSuperstructureCanBus);
 
     final MotionMagicConfigs motionMagicConfigs =
-        new MotionMagicConfigs().withMotionMagicAcceleration(6000 * (1 / 0.25));
+        new MotionMagicConfigs()
+            .withMotionMagicAcceleration(Shooter.kFarShotVelocityRpm * (1 / 0.25));
     final TalonFXConfiguration topRollerMotorConfig = new TalonFXConfiguration();
-    topRollerMotorConfig.Slot0.kS = 0.0;
-    topRollerMotorConfig.Slot0.kV = 0.0;
-    topRollerMotorConfig.Slot0.kA = 0.0;
-    topRollerMotorConfig.Slot0.kP = 0.0;
+    topRollerMotorConfig.Slot0.kS = Shooter.topRollerkS;
+    topRollerMotorConfig.Slot0.kV = Shooter.topRollerkV;
+    topRollerMotorConfig.Slot0.kA = Shooter.topRollerkA;
+    topRollerMotorConfig.Slot0.kP = Shooter.topRollerkP;
     topRollerMotorConfig.MotionMagic = motionMagicConfigs;
     m_topRoller.getConfigurator().apply(topRollerMotorConfig);
     final TalonFXConfiguration bottomRollerMotorConfig = new TalonFXConfiguration();
-    bottomRollerMotorConfig.Slot0.kS = 0.0;
-    bottomRollerMotorConfig.Slot0.kV = 0.0;
-    bottomRollerMotorConfig.Slot0.kA = 0.0;
-    bottomRollerMotorConfig.Slot0.kP = 0.0;
+    bottomRollerMotorConfig.Slot0.kS = Shooter.bottomRollerkS;
+    bottomRollerMotorConfig.Slot0.kV = Shooter.bottomRollerkV;
+    bottomRollerMotorConfig.Slot0.kA = Shooter.bottomRollerkA;
+    bottomRollerMotorConfig.Slot0.kP = Shooter.bottomRollerkP;
     bottomRollerMotorConfig.MotionMagic = motionMagicConfigs;
     m_bottomRoller.getConfigurator().apply(bottomRollerMotorConfig);
 

@@ -2,9 +2,8 @@ package frc.robot;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
-import com.pathplanner.lib.util.GeometryUtil;
+import com.choreo.lib.ChoreoTrajectory;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -97,13 +96,13 @@ public class Autos {
   }
 
   private Command resetPose(String trajectoryName) {
-    Pose2d startingPose = Choreo.getTrajectory(trajectoryName).getInitialPose();
+    ChoreoTrajectory trajectory = Choreo.getTrajectory(trajectoryName);
     return Commands.runOnce(
         () ->
             m_drivetrain.resetPose.accept(
                 Constants.onRedAllianceSupplier.getAsBoolean()
-                    ? GeometryUtil.flipFieldPose(startingPose)
-                    : startingPose));
+                    ? trajectory.getFlippedInitialPose()
+                    : trajectory.getInitialPose()));
   }
 
   private Command intake() {

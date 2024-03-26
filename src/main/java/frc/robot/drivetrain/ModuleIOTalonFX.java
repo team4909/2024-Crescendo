@@ -94,7 +94,6 @@ public class ModuleIOTalonFX implements ModuleIO {
     }
 
     final CANcoderConfiguration azimuthEncoderConfig = new CANcoderConfiguration();
-    m_azimuthEncoder.getConfigurator().apply(azimuthEncoderConfig); // Factory Default
     azimuthEncoderConfig.MagnetSensor.AbsoluteSensorRange =
         AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
     azimuthEncoderConfig.MagnetSensor.SensorDirection =
@@ -103,7 +102,6 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_azimuthEncoder.getConfigurator().apply(azimuthEncoderConfig);
 
     final TalonFXConfiguration driveMotorConfig = new TalonFXConfiguration();
-    m_driveMotor.getConfigurator().apply(driveMotorConfig); // Factory Default
     driveMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     driveMotorConfig.Feedback.SensorToMechanismRatio = Module.kDriveRatio;
     driveMotorConfig.Slot0.kP = kDrivekP;
@@ -116,7 +114,6 @@ public class ModuleIOTalonFX implements ModuleIO {
     m_driveMotor.setPosition(0.0);
 
     final TalonFXConfiguration steerMotorConfig = new TalonFXConfiguration();
-    m_steerMotor.getConfigurator().apply(steerMotorConfig); // Factory Default
     steerMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     steerMotorConfig.Feedback.FeedbackRemoteSensorID = m_azimuthEncoder.getDeviceID();
     steerMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;

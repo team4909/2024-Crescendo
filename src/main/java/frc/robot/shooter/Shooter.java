@@ -2,8 +2,7 @@ package frc.robot.shooter;
 
 import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -16,8 +15,9 @@ import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double kFarShotVelocityRpm = 5600.0;
-  private final double kAmpshot = 5000.0;
+  public static final double kFarShotVelocityRpm = 5600.0;
+  private final double kTrapShot = 400.0;
+  private final double kAmpShot = 5000.0;
   private final double kReadyToShootToleranceRps = 3.0;
 
   // Denominator for gains here are in rotations
@@ -28,30 +28,21 @@ public class Shooter extends SubsystemBase {
   public static final double bottomRollerkV = 0.12041;
   public static final double bottomRollerkA = 0.0071461;
 
-  private final double topRollerkP = 0.13085;
-  private final double bottomRollerkP = 0.11992;
+  public static final double topRollerkP = 0.13085;
+  public static final double bottomRollerkP = 0.11992;
 
-  private final PIDController m_topRollerController, m_bottomRollerController;
-  private final SimpleMotorFeedforward m_topRollerFeedforward, m_bottomRollerFeedforward;
   private final SysIdRoutine m_sysIdRoutine;
-
   private final ShooterIO m_io;
   private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
 
   public final Trigger readyToShoot =
-      new Trigger(() -> getRollersAtSetpoint()).debounce(0.1, DebounceType.kBoth);
+      new Trigger(this::getRollersAtSetpoint).debounce(0.1, DebounceType.kBoth);
+
+  private double m_lastSetpoint;
 
   public Shooter(ShooterIO io) {
     m_io = io;
 
-    m_topRollerFeedforward = new SimpleMotorFeedforward(topRollerkS, topRollerkV, topRollerkA);
-    m_topRollerController = new PIDController(topRollerkP, 0.0, 0.0);
-    m_bottomRollerFeedforward =
-        new SimpleMotorFeedforward(bottomRollerkS, bottomRollerkV, bottomRollerkA);
-    m_bottomRollerController = new PIDController(bottomRollerkP, 0.0, 0.0);
-
-    m_topRollerController.setTolerance(kReadyToShootToleranceRps);
-    m_bottomRollerController.setTolerance(kReadyToShootToleranceRps);
     m_sysIdRoutine =
         new SysIdRoutine(
             new SysIdRoutine.Config(
@@ -78,19 +69,17 @@ public class Shooter extends SubsystemBase {
   private void setRollersSetpointRpm(double velocityRpm) {
     double goalVelocityRps = velocityRpm / 60.0;
     Logger.recordOutput("Shooter/Goal Roller RPS", goalVelocityRps);
-    double topRollerFeedforwardOutput = m_topRollerFeedforward.calculate(goalVelocityRps);
-    double bottomRollerFeedforwardOutput = m_bottomRollerFeedforward.calculate(goalVelocityRps);
-    double topRollerFeedbackOutput =
-        m_topRollerController.calculate(m_inputs.topRollerVelocityRps, goalVelocityRps);
-    double bottomRollerFeedbackOutput =
-        m_bottomRollerController.calculate(m_inputs.bottomRollerVelocityRps, goalVelocityRps);
-    m_io.setTopRollerVoltage(topRollerFeedforwardOutput + topRollerFeedbackOutput);
-    m_io.setBottomRollerVoltage(bottomRollerFeedforwardOutput + bottomRollerFeedbackOutput);
+    m_lastSetpoint = goalVelocityRps;
+    m_io.setTopRollerVelocity(goalVelocityRps);
+    m_io.setBottomRollerVelocity(goalVelocityRps);
   }
 
   @AutoLogOutput(key = "Shooter/RollersAtSetpoint")
   private boolean getRollersAtSetpoint() {
-    return m_bottomRollerController.atSetpoint() && m_topRollerController.atSetpoint();
+    return MathUtil.isNear(
+            m_lastSetpoint, m_inputs.bottomRollerVelocityRps, kReadyToShootToleranceRps)
+        && MathUtil.isNear(
+            m_lastSetpoint, m_inputs.topRollerVelocityRps, kReadyToShootToleranceRps);
   }
 
   public Command sysId() {
@@ -118,35 +107,19 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command runShooter() {
-    return this.run(
-            () -> {
-              setRollersSetpointRpm(kFarShotVelocityRpm);
-            })
-        .finallyDo(
-            () -> {
-              Logger.recordOutput("Shooter/Goal Roller RPS", 0.0);
-              m_topRollerController.reset();
-              m_bottomRollerController.reset();
-            })
-        .withName("Spin Up (Shooter)");
+    return this.run(() -> setRollersSetpointRpm(kFarShotVelocityRpm))
+        .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
+        .withName("Run Shooter (Shooter)");
   }
 
-  public Command trap() {
-    return this.run(
-            () -> {
-              setRollersSetpointRpm(2800);
-            })
-        .finallyDo(
-            () -> {
-              Logger.recordOutput("Shooter/Goal Roller RPS", 0.0);
-              m_topRollerController.reset();
-              m_bottomRollerController.reset();
-            })
-        .withName("Spin Up (Shooter)");
+  public Command trapShot() {
+    return this.run(() -> setRollersSetpointRpm(kTrapShot))
+        .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
+        .withName("Trap Shot (Shooter)");
   }
 
   public Command ampShot() {
-    return this.run(() -> setRollersSetpointRpm(kAmpshot));
+    return this.run(() -> setRollersSetpointRpm(kAmpShot));
   }
 
   public Command catchNote() {
@@ -165,11 +138,5 @@ public class Shooter extends SubsystemBase {
               m_io.setBottomRollerVoltage(-6.0);
             })
         .withName("Spit (Shooter)");
-  }
-
-  public Command shootWithFeederDelay() {
-    return this.run(() -> setRollersSetpointRpm(kFarShotVelocityRpm))
-        .until(() -> getRollersAtSetpoint())
-        .andThen(runShooter());
   }
 }

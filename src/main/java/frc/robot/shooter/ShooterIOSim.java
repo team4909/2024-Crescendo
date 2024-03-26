@@ -1,6 +1,8 @@
 package frc.robot.shooter;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.LinearSystem;
@@ -20,13 +22,23 @@ public class ShooterIOSim implements ShooterIO {
   private final DCMotorSim m_bottomRollerSim =
       new DCMotorSim(m_bottomRollerPlant, m_rollerGearbox, 1.0);
 
+  private final SimpleMotorFeedforward m_topRollerFeedforward =
+      new SimpleMotorFeedforward(Shooter.topRollerkS, Shooter.topRollerkV, Shooter.topRollerkA);
+  private final PIDController m_topRollerController =
+      new PIDController(Shooter.topRollerkP, 0.0, 0.0);
+  private final SimpleMotorFeedforward m_bottomRollerFeedforward =
+      new SimpleMotorFeedforward(
+          Shooter.bottomRollerkS, Shooter.bottomRollerkV, Shooter.bottomRollerkA);
+  private final PIDController m_bottomRollerController =
+      new PIDController(Shooter.bottomRollerkP, 0.0, 0.0);
+
   private double m_topRollerAppliedVolts = 0.0;
   private double m_bottomRollerAppliedVolts = 0.0;
 
+  public ShooterIOSim() {}
+
   @Override
   public void updateInputs(ShooterIOInputs inputs) {
-    m_topRollerSim.setInputVoltage(m_topRollerAppliedVolts);
-    m_bottomRollerSim.setInputVoltage(m_bottomRollerAppliedVolts);
     m_topRollerSim.update(0.02);
     m_bottomRollerSim.update(0.02);
 
@@ -57,11 +69,29 @@ public class ShooterIOSim implements ShooterIO {
   @Override
   public void setTopRollerVoltage(double volts) {
     m_topRollerAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
+    m_topRollerSim.setInputVoltage(m_topRollerAppliedVolts);
   }
 
   @Override
   public void setBottomRollerVoltage(double volts) {
     m_bottomRollerAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
+    m_bottomRollerSim.setInputVoltage(m_bottomRollerAppliedVolts);
+  }
+
+  @Override
+  public void setTopRollerVelocity(double velocityRps) {
+    setTopRollerVoltage(
+        m_topRollerFeedforward.calculate(velocityRps)
+            + m_topRollerController.calculate(
+                m_topRollerSim.getAngularVelocityRadPerSec(), velocityRps));
+  }
+
+  @Override
+  public void setBottomRollerVelocity(double velocityRps) {
+    setBottomRollerVoltage(
+        m_bottomRollerFeedforward.calculate(velocityRps)
+            + m_bottomRollerController.calculate(
+                m_bottomRollerSim.getAngularVelocityRadPerSec(), velocityRps));
   }
 
   @Override

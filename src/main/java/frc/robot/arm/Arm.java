@@ -46,8 +46,9 @@ public class Arm extends SubsystemBase {
       new LoggedTunableNumber("Arm/Wrist/MaxAcceleration");
 
   private Vector<N2> m_initialAngles;
-  private boolean m_atGoal = false;
-  public Trigger atGoal = new Trigger(this::getJointsAtGoal).debounce(0.1, DebounceType.kBoth);
+  private Rotation2d m_lastElbowSetpoint;
+  private Rotation2d m_lastWristSetpoint;
+  public Trigger atGoal = new Trigger(this::jointsAtGoal).debounce(0.1, DebounceType.kBoth);
   public Supplier<Pose3d> wristPoseSupplier;
   private final SysIdRoutine m_sysIdRoutineElbow, m_sysIdRoutineWrist;
 
@@ -135,6 +136,8 @@ public class Arm extends SubsystemBase {
       throw new IllegalArgumentException("Only one joint can be delayed at a time.");
     if (elbowDelay < 0.0 || wristDelay < 0.0)
       throw new IllegalArgumentException("Percent delay can't be negative.");
+    m_lastElbowSetpoint = new Rotation2d(elbowAngleRad);
+    m_lastWristSetpoint = new Rotation2d(wristAngleRad);
     Logger.recordOutput("Arm/Goal Elbow Angle", Units.radiansToDegrees(elbowAngleRad));
     Logger.recordOutput("Arm/Goal Wrist Angle", Units.radiansToDegrees(wristAngleRad));
     m_goalVisualizer.update(elbowAngleRad, wristAngleRad);
@@ -146,7 +149,6 @@ public class Arm extends SubsystemBase {
             / Math.abs(Units.degreesToRotations(wristAngleRad) - m_initialAngles.get(1, 0));
     Logger.recordOutput("Arm/Elbow Progress", elbowProgress);
     Logger.recordOutput("Arm/Wrist Progress", wristProgress);
-    m_atGoal = anglesAtGoal(new Rotation2d(elbowAngleRad), new Rotation2d(wristAngleRad));
 
     if (wristProgress < elbowDelay) m_io.setElbowRotations(m_inputs.elbowPositionRot);
     else m_io.setElbowRotations(Units.radiansToRotations(elbowAngleRad));
@@ -154,20 +156,20 @@ public class Arm extends SubsystemBase {
     else m_io.setWristRotations(Units.radiansToRotations(wristAngleRad));
   }
 
-  private boolean anglesAtGoal(Rotation2d elbowGoal, Rotation2d wristGoal) {
+  @AutoLogOutput(key = "Arm/JointsAtGoal")
+  private boolean jointsAtGoal() {
     return (MathUtil.isNear(
             0.0,
-            elbowGoal.minus(Rotation2d.fromRotations(m_inputs.elbowPositionRot)).getDegrees(),
+            m_lastElbowSetpoint
+                .minus(Rotation2d.fromRotations(m_inputs.elbowPositionRot))
+                .getDegrees(),
             kJointTolerenceDegrees)
         && MathUtil.isNear(
             0.0,
-            wristGoal.minus(Rotation2d.fromRotations(m_inputs.wristPositionRot)).getDegrees(),
+            m_lastWristSetpoint
+                .minus(Rotation2d.fromRotations(m_inputs.wristPositionRot))
+                .getDegrees(),
             kJointTolerenceDegrees));
-  }
-
-  @AutoLogOutput(key = "Arm/JointsAtGoal")
-  private boolean getJointsAtGoal() {
-    return m_atGoal;
   }
 
   public Command storeInitialAngles() {
@@ -191,7 +193,6 @@ public class Arm extends SubsystemBase {
                         ArmSetpoints.kStowed.elbowAngle, angleSupplier.getAsDouble(), 0.0, 0.0);
                   else throw new IllegalArgumentException("Invalid joint index.");
                 }))
-        .finallyDo(() -> m_atGoal = false)
         .withName("Aim (Arm)");
   }
 

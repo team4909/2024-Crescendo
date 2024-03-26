@@ -232,7 +232,7 @@ public class Robot extends LoggedRobot {
     // m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
     m_driverController.y().whileTrue(Commands.parallel(m_climber.windWinch()));
 
-    m_driverController.povRight().onTrue(m_shooter.trap());
+    m_driverController.povRight().onTrue(m_shooter.trapShot());
 
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
     m_operatorController

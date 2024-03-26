@@ -52,7 +52,6 @@ public class ArmIOTalonFX implements ArmIO {
     currentLimitsConfig.StatorCurrentLimit = 60.0;
     currentLimitsConfig.StatorCurrentLimitEnable = true;
     final TalonFXConfiguration elbowLeftMotorConfig = new TalonFXConfiguration();
-    m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig);
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -72,7 +71,6 @@ public class ArmIOTalonFX implements ArmIO {
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig, 1.0);
 
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
-    m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig);
     wristLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     wristLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     wristLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -93,14 +91,12 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig, 1.0);
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
-    m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig);
     elbowRightMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig, 1.0);
     m_elbowRightFollowerMotor.setControl(new Follower(m_elbowLeftMotor.getDeviceID(), true));
 
     final TalonFXConfiguration wristRightMotorConfig = new TalonFXConfiguration();
-    m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig);
     wristRightMotorConfig.CurrentLimits = currentLimitsConfig;
     wristRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig, 1.0);
