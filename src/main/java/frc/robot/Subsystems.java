@@ -24,6 +24,7 @@ import frc.robot.intake.Intake;
 import frc.robot.intake.IntakeIO;
 import frc.robot.intake.IntakeIOSim;
 import frc.robot.intake.IntakeIOSparkMAX;
+import frc.robot.intake.IntakeIOTalonFX;
 import frc.robot.shooter.Shooter;
 import frc.robot.shooter.ShooterIO;
 import frc.robot.shooter.ShooterIOSim;
@@ -87,6 +88,10 @@ public class Subsystems {
 
   public static Vision createBlankVision() {
     return new Vision();
+  }
+
+  public static Intake createTalonFXIntake() {
+    return new Intake(new IntakeIOTalonFX());
   }
 
   public static Intake createSparkMAXIntake() {

@@ -14,6 +14,7 @@ import java.util.function.BooleanSupplier;
 public final class Constants {
   public static final Mode kCurrentMode = Mode.kReal;
   public static final RobotName kRobot = RobotName.kViper;
+  public static final boolean kIsViper = kRobot.equals(RobotName.kViper);
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
   public static final String kSuperstructureCanBus = "CANivore2";
