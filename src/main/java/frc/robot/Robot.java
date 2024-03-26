@@ -218,9 +218,16 @@ public class Robot extends LoggedRobot {
         .whileTrue(m_arm.aimWristForTuning(() -> -m_operatorController.getLeftY()))
         .onFalse(m_arm.holdSetpoint());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
-    m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
+    // m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
+    m_driverController.a().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
     m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));
+
+    // m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
+    m_driverController.y().whileTrue(Commands.parallel(m_climber.windWinch()));
+
+    m_driverController.povRight().onTrue(m_shooter.trap());
+
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
     m_operatorController
         .leftTrigger()

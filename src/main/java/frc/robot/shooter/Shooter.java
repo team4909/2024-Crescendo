@@ -131,6 +131,20 @@ public class Shooter extends SubsystemBase {
         .withName("Spin Up (Shooter)");
   }
 
+  public Command trap() {
+    return this.run(
+            () -> {
+              setRollersSetpointRpm(2800);
+            })
+        .finallyDo(
+            () -> {
+              Logger.recordOutput("Shooter/Goal Roller RPS", 0.0);
+              m_topRollerController.reset();
+              m_bottomRollerController.reset();
+            })
+        .withName("Spin Up (Shooter)");
+  }
+
   public Command ampShot() {
     return this.run(() -> setRollersSetpointRpm(kAmpshot));
   }
