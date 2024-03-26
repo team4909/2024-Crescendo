@@ -1,6 +1,7 @@
 package frc.robot.intake;
 
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -33,6 +34,8 @@ public class IntakeIOTalonFX implements IntakeIO {
 
     centeringMotors.configSupplyCurrentLimit(
         new SupplyCurrentLimitConfiguration(true, 40.0, 0.0, 1.0));
+    centeringMotors.configVoltageCompSaturation(12.0);
+    centeringMotors.enableVoltageCompensation(true);
 
     m_topRollerVelocitySignal = topRollerMotor.getVelocity();
     m_topRollerAppliedVoltageSignal = topRollerMotor.getMotorVoltage();
@@ -55,5 +58,27 @@ public class IntakeIOTalonFX implements IntakeIO {
 
     inputs.centeringBagMotorsAppliedVolts = centeringMotors.getMotorOutputVoltage();
     inputs.centeringBagMotorsCurrentAmps = centeringMotors.getSupplyCurrent();
+  }
+
+  @Override
+  public void setTopRollerVoltage(double volts) {
+    topRollerMotor.setVoltage(volts);
+  }
+
+  @Override
+  public void setBottomRollerVoltage(double volts) {
+    bottomRollerMotor.setVoltage(volts);
+  }
+
+  @Override
+  public void setCenteringMotorsVoltage(double volts) {
+    centeringMotors.set(TalonSRXControlMode.PercentOutput, (volts / 12.0) * 100.0);
+  }
+
+  @Override
+  public void stopRollers() {
+    topRollerMotor.stopMotor();
+    bottomRollerMotor.stopMotor();
+    centeringMotors.set(TalonSRXControlMode.PercentOutput, 0.0);
   }
 }
