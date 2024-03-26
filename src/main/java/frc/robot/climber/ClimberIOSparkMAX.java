@@ -3,11 +3,9 @@ package frc.robot.climber;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import edu.wpi.first.math.util.Units;
 
 public class ClimberIOSparkMAX implements ClimberIO {
 
-  private final double kWinchReduction = 1.0;
   private final CANSparkMax m_leftWinchMotor, m_rightWinchMotor;
   private final RelativeEncoder m_leftWinchEncoder, m_rightWinchEncoder;
 
@@ -28,32 +26,26 @@ public class ClimberIOSparkMAX implements ClimberIO {
 
   @Override
   public void updateInputs(ClimberIOInputs inputs) {
-    inputs.leftWinchPositionRad =
-        Units.rotationsToRadians(m_leftWinchEncoder.getPosition() / kWinchReduction);
-    inputs.leftWinchVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(
-            m_leftWinchEncoder.getVelocity() / kWinchReduction);
+    inputs.leftWinchPositionRot = m_leftWinchEncoder.getPosition() / Climber.kWinchReduction;
+    inputs.leftWinchVelocityRpm = m_leftWinchEncoder.getVelocity() / Climber.kWinchReduction;
     inputs.leftWinchAppliedVolts =
         m_leftWinchMotor.getAppliedOutput() * m_leftWinchMotor.getBusVoltage();
     inputs.leftWinchCurrentAmps = m_leftWinchMotor.getOutputCurrent();
 
-    inputs.rightWinchPositionRad =
-        Units.rotationsToRadians(m_rightWinchEncoder.getPosition() / kWinchReduction);
-    inputs.rightWinchVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(
-            m_rightWinchEncoder.getVelocity() / kWinchReduction);
+    inputs.rightWinchPositionRot = m_rightWinchEncoder.getPosition() / Climber.kWinchReduction;
+    inputs.rightWinchVelocityRpm = m_rightWinchEncoder.getVelocity() / Climber.kWinchReduction;
     inputs.rightWinchAppliedVolts =
         m_rightWinchMotor.getAppliedOutput() * m_rightWinchMotor.getBusVoltage();
     inputs.rightWinchCurrentAmps = m_rightWinchMotor.getOutputCurrent();
   }
 
   @Override
-  public void setLeftDutyCycle(double outputDutyCycle) {
+  public void setLeftVoltage(double outputDutyCycle) {
     m_leftWinchMotor.set(outputDutyCycle);
   }
 
   @Override
-  public void setRightDutyCycle(double outputDutyCycle) {
+  public void setRightVoltage(double outputDutyCycle) {
     m_rightWinchMotor.set(outputDutyCycle);
   }
 }
