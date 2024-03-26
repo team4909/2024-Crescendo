@@ -87,9 +87,15 @@ public class Robot extends LoggedRobot {
       case kReal:
         m_drivetrain = Subsystems.createTalonFXDrivetrain();
         m_vision = Subsystems.createFourCameraVision();
-        m_intake = Subsystems.createSparkMAXIntake();
+        m_intake =
+            Constants.kIsViper
+                ? Subsystems.createSparkMAXIntake()
+                : Subsystems.createTalonFXIntake();
         m_arm = Subsystems.createTalonFXArm();
-        m_climber = Subsystems.createSparkMAXClimber();
+        m_climber =
+            Constants.kIsViper
+                ? Subsystems.createSparkMAXClimber()
+                : Subsystems.createTalonFXClimber();
         m_shooter = Subsystems.createTalonFXShooter();
         m_feeder = Subsystems.createTalonFXFeeder();
         m_gamePieceDetection = Subsystems.createBlankGamePieceDetection();

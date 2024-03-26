@@ -11,6 +11,7 @@ import frc.robot.arm.ArmIOTalonFX;
 import frc.robot.climber.Climber;
 import frc.robot.climber.ClimberIO;
 import frc.robot.climber.ClimberIOSparkMAX;
+import frc.robot.climber.ClimberIOTalonFX;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
@@ -24,6 +25,7 @@ import frc.robot.intake.Intake;
 import frc.robot.intake.IntakeIO;
 import frc.robot.intake.IntakeIOSim;
 import frc.robot.intake.IntakeIOSparkMAX;
+import frc.robot.intake.IntakeIOTalonFX;
 import frc.robot.shooter.Shooter;
 import frc.robot.shooter.ShooterIO;
 import frc.robot.shooter.ShooterIOSim;
@@ -89,6 +91,10 @@ public class Subsystems {
     return new Vision();
   }
 
+  public static Intake createTalonFXIntake() {
+    return new Intake(new IntakeIOTalonFX());
+  }
+
   public static Intake createSparkMAXIntake() {
     return new Intake(new IntakeIOSparkMAX());
   }
@@ -115,6 +121,10 @@ public class Subsystems {
 
   public static Climber createSparkMAXClimber() {
     return new Climber(new ClimberIOSparkMAX());
+  }
+
+  public static Climber createTalonFXClimber() {
+    return new Climber(new ClimberIOTalonFX());
   }
 
   public static Climber createBlankClimber() {

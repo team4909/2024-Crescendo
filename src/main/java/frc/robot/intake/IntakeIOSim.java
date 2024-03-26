@@ -2,15 +2,16 @@ package frc.robot.intake;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 public class IntakeIOSim implements IntakeIO {
 
   private double m_topRollerAppliedVolts, m_bottomRollerAppliedVolts, m_centeringRollerAppliedVolts;
 
-  private final DCMotorSim m_topRollerSim = new DCMotorSim(DCMotor.getKrakenX60Foc(1), 1.0, 0.01);
+  private final DCMotorSim m_topRollerSim = new DCMotorSim(DCMotor.getFalcon500Foc(1), 1.0, 0.01);
   private final DCMotorSim m_bottomRollerSim =
-      new DCMotorSim(DCMotor.getKrakenX60Foc(1), 1.0, 0.01);
+      new DCMotorSim(DCMotor.getFalcon500Foc(1), 1.0, 0.01);
   private final DCMotorSim m_centeringRollersSim = new DCMotorSim(DCMotor.getBag(2), 1.0, 0.01);
 
   @Override
@@ -23,11 +24,13 @@ public class IntakeIOSim implements IntakeIO {
     m_bottomRollerSim.update(0.02);
     m_centeringRollersSim.update(0.02);
 
-    inputs.topRollerVelocityRadPerSec = m_topRollerSim.getAngularVelocityRadPerSec();
+    inputs.topRollerVelocityRpm =
+        Units.radiansPerSecondToRotationsPerMinute(m_topRollerSim.getAngularVelocityRadPerSec());
     inputs.topRollerAppliedVolts = m_topRollerAppliedVolts;
     inputs.topRollerCurrentAmps = m_topRollerSim.getCurrentDrawAmps();
 
-    inputs.bottomRollerVelocityRadPerSec = m_bottomRollerSim.getAngularVelocityRadPerSec();
+    inputs.bottomRollerVelocityRpm =
+        Units.radiansPerSecondToRotationsPerMinute(m_bottomRollerSim.getAngularVelocityRadPerSec());
     inputs.bottomRollerAppliedVolts = m_bottomRollerAppliedVolts;
     inputs.bottomRollerCurrentAmps = m_bottomRollerSim.getCurrentDrawAmps();
 
