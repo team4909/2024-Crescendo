@@ -36,6 +36,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     topRollerMotorConfig.Slot0.kA = Shooter.topRollerkA;
     topRollerMotorConfig.Slot0.kP = Shooter.topRollerkP;
     topRollerMotorConfig.MotionMagic = motionMagicConfigs;
+    topRollerMotorConfig.Feedback.SensorToMechanismRatio = Shooter.kShooterStepUp;
     m_topRoller.getConfigurator().apply(topRollerMotorConfig);
     final TalonFXConfiguration bottomRollerMotorConfig = new TalonFXConfiguration();
     bottomRollerMotorConfig.Slot0.kS = Shooter.bottomRollerkS;
@@ -43,6 +44,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     bottomRollerMotorConfig.Slot0.kA = Shooter.bottomRollerkA;
     bottomRollerMotorConfig.Slot0.kP = Shooter.bottomRollerkP;
     bottomRollerMotorConfig.MotionMagic = motionMagicConfigs;
+    bottomRollerMotorConfig.Feedback.SensorToMechanismRatio = Shooter.kShooterStepUp;
     m_bottomRoller.getConfigurator().apply(bottomRollerMotorConfig);
 
     m_topRollerPositionSignal = m_topRoller.getPosition();
@@ -55,7 +57,7 @@ public class ShooterIOTalonFX implements ShooterIO {
     m_bottomRollerCurrentSignal = m_bottomRoller.getStatorCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
-        50.0,
+        100.0,
         m_topRollerVelocitySignal,
         m_topRollerAppliedVoltageSignal,
         m_topRollerCurrentSignal,

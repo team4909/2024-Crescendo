@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import frc.robot.Constants;
 
 public class ClimberIOTalonFX implements ClimberIO {
 
@@ -23,8 +24,8 @@ public class ClimberIOTalonFX implements ClimberIO {
 
   public ClimberIOTalonFX() {
 
-    m_leftWinchMotor = new TalonFX(9);
-    m_rightWinchMotor = new TalonFX(10);
+    m_leftWinchMotor = new TalonFX(25, Constants.kSuperstructureCanBus);
+    m_rightWinchMotor = new TalonFX(26, Constants.kSuperstructureCanBus);
 
     final FeedbackConfigs feedbackConfigs =
         new FeedbackConfigs().withSensorToMechanismRatio(Climber.kWinchReduction);

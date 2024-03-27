@@ -20,6 +20,14 @@ public class ClimberIOSparkMAX implements ClimberIO {
     m_leftWinchEncoder = m_leftWinchMotor.getEncoder();
     m_rightWinchEncoder = m_rightWinchMotor.getEncoder();
 
+    m_leftWinchEncoder.setPositionConversionFactor(1.0 / Climber.kWinchReduction);
+    m_leftWinchEncoder.setVelocityConversionFactor(1.0 / Climber.kWinchReduction);
+    m_rightWinchEncoder.setPositionConversionFactor(1.0 / Climber.kWinchReduction);
+    m_rightWinchEncoder.setVelocityConversionFactor(1.0 / Climber.kWinchReduction);
+
+    m_leftWinchEncoder.setPosition(0.0);
+    m_rightWinchEncoder.setPosition(0.0);
+
     m_leftWinchMotor.setIdleMode(IdleMode.kBrake);
     m_rightWinchMotor.setIdleMode(IdleMode.kBrake);
   }

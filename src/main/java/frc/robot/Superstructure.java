@@ -4,8 +4,10 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
+import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
@@ -62,5 +64,12 @@ public class Superstructure {
                     .and(drivetrain.atHeadingGoal)
                     .and(arm.atGoal)))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+  }
+
+  public static Command trapRoutine(Arm arm, Climber climber, Shooter shooter, Feeder feeder) {
+    return Commands.sequence(
+        new ScheduleCommand(arm.goToSetpoint(ArmSetpoints.kTrap)),
+        climber.goToTrapLimit(),
+        shooter.trapShot().alongWith(feeder.feed()));
   }
 }

@@ -46,9 +46,9 @@ public class NoteVisualizer {
 
   public static void showHeldNotes() {
     if (m_hasNote) {
-      Logger.recordOutput("NoteVisualizer/HeldNotes", new Pose3d[] {getNotePose()});
+      Logger.recordOutput("NoteVisualizer/HeldNote", getNotePose());
     } else {
-      Logger.recordOutput("NoteVisualizer/HeldNotes", new Pose3d());
+      Logger.recordOutput("NoteVisualizer/HeldNote", new Pose3d());
     }
   }
 

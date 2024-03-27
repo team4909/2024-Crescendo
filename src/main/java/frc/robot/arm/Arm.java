@@ -9,7 +9,6 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -30,6 +29,7 @@ public class Arm extends SubsystemBase {
 
   public static final double kCatchWristAngleRad = 2.264 - Units.degreesToRadians(5.0);
   public static final double kSubwooferWristAngleRad = 2.083;
+  public static final double kDeployGizmoAngleRad = Units.degreesToRadians(80.0);
   private final double kJointTolerenceDegrees = 1.0;
 
   private final ArmIO m_io;
@@ -46,8 +46,8 @@ public class Arm extends SubsystemBase {
       new LoggedTunableNumber("Arm/Wrist/MaxAcceleration");
 
   private Vector<N2> m_initialAngles;
-  private Rotation2d m_lastElbowSetpoint;
-  private Rotation2d m_lastWristSetpoint;
+  private double m_lastElbowSetpoint;
+  private double m_lastWristSetpoint;
   public Trigger atGoal = new Trigger(this::jointsAtGoal).debounce(0.1, DebounceType.kBoth);
   public Supplier<Pose3d> wristPoseSupplier;
   private final SysIdRoutine m_sysIdRoutineElbow, m_sysIdRoutineWrist;
@@ -136,8 +136,8 @@ public class Arm extends SubsystemBase {
       throw new IllegalArgumentException("Only one joint can be delayed at a time.");
     if (elbowDelay < 0.0 || wristDelay < 0.0)
       throw new IllegalArgumentException("Percent delay can't be negative.");
-    m_lastElbowSetpoint = new Rotation2d(elbowAngleRad);
-    m_lastWristSetpoint = new Rotation2d(wristAngleRad);
+    m_lastElbowSetpoint = elbowAngleRad;
+    m_lastWristSetpoint = wristAngleRad;
     Logger.recordOutput("Arm/Goal Elbow Angle", Units.radiansToDegrees(elbowAngleRad));
     Logger.recordOutput("Arm/Goal Wrist Angle", Units.radiansToDegrees(wristAngleRad));
     m_goalVisualizer.update(elbowAngleRad, wristAngleRad);
@@ -159,17 +159,13 @@ public class Arm extends SubsystemBase {
   @AutoLogOutput(key = "Arm/JointsAtGoal")
   private boolean jointsAtGoal() {
     return (MathUtil.isNear(
-            0.0,
-            m_lastElbowSetpoint
-                .minus(Rotation2d.fromRotations(m_inputs.elbowPositionRot))
-                .getDegrees(),
-            kJointTolerenceDegrees)
+            m_lastElbowSetpoint,
+            Units.rotationsToRadians(m_inputs.elbowPositionRot),
+            Units.degreesToRadians(kJointTolerenceDegrees))
         && MathUtil.isNear(
-            0.0,
-            m_lastWristSetpoint
-                .minus(Rotation2d.fromRotations(m_inputs.wristPositionRot))
-                .getDegrees(),
-            kJointTolerenceDegrees));
+            m_lastWristSetpoint,
+            Units.rotationsToRadians(m_inputs.wristPositionRot),
+            Units.degreesToRadians(kJointTolerenceDegrees)));
   }
 
   public Command storeInitialAngles() {
@@ -221,10 +217,11 @@ public class Arm extends SubsystemBase {
 
   public Command aimWristForTuning(DoubleSupplier driveEffort) {
     return this.run(
-        () -> {
-          m_io.setElbowRotations(Units.radiansToRotations(ArmSetpoints.kStowed.elbowAngle));
-          m_io.setWristVoltage(MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 1.0);
-        });
+            () -> {
+              m_io.setElbowRotations(Units.radiansToRotations(ArmSetpoints.kStowed.elbowAngle));
+              m_io.setWristVoltage(MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 1.0);
+            })
+        .finallyDo(() -> holdSetpoint().schedule());
   }
 
   public Command holdSetpoint() {
@@ -237,7 +234,7 @@ public class Arm extends SubsystemBase {
                         Units.rotationsToRadians(m_initialAngles.get(1)),
                         0.0,
                         0.0)))
-        .withName("Hold Setpoint");
+        .withName("Hold Setpoint (Arm)");
   }
 
   public Command goToSetpoint(ArmSetpoints setpoint) {
@@ -250,7 +247,7 @@ public class Arm extends SubsystemBase {
                         setpoint.wristAngle,
                         setpoint.elbowDelay,
                         setpoint.wristDelay)))
-        .withName("Set Inverse Setpoint");
+        .withName("Go To Setpoint (Arm)");
   }
 
   public Command idle() {
@@ -285,8 +282,7 @@ public class Arm extends SubsystemBase {
     kStowed(-0.548, 2.485, 0.15, 0.0),
     kAmp(1.49 + 0.0873, Units.degreesToRadians(230), 0.0, 0.0),
     kClimb(1.633, -2.371, 0.0, 0.0),
-    kTrap(Units.degreesToRadians(63), Units.degreesToRadians(97), 0.0, 0.0),
-    kBalance(Units.degreesToRadians(18), Units.degreesToRadians(84), 0.0, 0.0);
+    kTrap(Units.degreesToRadians(53.0), Units.degreesToRadians(80.0), 0.0, 0.0);
 
     public final double elbowAngle;
     public final double wristAngle;

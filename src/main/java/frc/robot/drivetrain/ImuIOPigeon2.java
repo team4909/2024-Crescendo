@@ -24,7 +24,7 @@ public class ImuIOPigeon2 implements ImuIO {
     m_imu.optimizeBusUtilization();
     m_yawPositionQueue =
         PhoenixOdometryThread.getInstance()
-            .registerSignals(m_imu, m_yawSignal, m_yawVelocitySignal);
+            .registerSignals(m_imu, m_yawSignal.clone(), m_yawVelocitySignal.clone());
     m_yawTimestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
   }
 

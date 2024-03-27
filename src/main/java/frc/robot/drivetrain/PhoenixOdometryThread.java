@@ -26,8 +26,7 @@ public class PhoenixOdometryThread extends Thread {
       new ArrayList<>();
   private final List<Queue<Double>> m_positionQueues = new ArrayList<>();
   private final List<Queue<Double>> m_timestampQueues = new ArrayList<>();
-  private final MedianFilter m_peakRemover = new MedianFilter(3);
-  private final LinearFilter m_lowPassFilter = LinearFilter.movingAverage(50);
+
   private double m_averageLoopTimeMs = 0.0;
   public final Supplier<Double> averageLoopTimeSupplier = () -> m_averageLoopTimeMs;
 
@@ -83,6 +82,8 @@ public class PhoenixOdometryThread extends Thread {
 
   @Override
   public void run() {
+    final MedianFilter peakRemover = new MedianFilter(3);
+    final LinearFilter lowPassFilter = LinearFilter.movingAverage(50);
     double lastTime = 0.0;
     double currentTime = 0.0;
     while (true) {
@@ -97,7 +98,7 @@ public class PhoenixOdometryThread extends Thread {
         lastTime = currentTime;
         currentTime = Utils.getCurrentTimeSeconds();
         m_averageLoopTimeMs =
-            m_lowPassFilter.calculate(m_peakRemover.calculate(currentTime - lastTime)) * 1e3;
+            lowPassFilter.calculate(peakRemover.calculate(currentTime - lastTime)) * 1e3;
 
         double timestamp = Logger.getRealTimestamp() / 1e6;
         double totalLatency = 0.0;

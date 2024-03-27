@@ -2,6 +2,7 @@ package frc.robot.shooter;
 
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -10,26 +11,28 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
+  public static final double kShooterStepUp = Constants.kIsViper ? 0.0 : 0.5;
   public static final double kFarShotVelocityRpm = 5600.0;
   private final double kTrapShot = 400.0;
   private final double kAmpShot = 5000.0;
   private final double kReadyToShootToleranceRps = 3.0;
 
   // Denominator for gains here are in rotations
-  public static final double topRollerkS = 0.18039;
-  public static final double topRollerkV = 0.11968;
-  public static final double topRollerkA = 0.0089044;
-  public static final double bottomRollerkS = 0.19936;
-  public static final double bottomRollerkV = 0.12041;
-  public static final double bottomRollerkA = 0.0071461;
+  public static final double topRollerkS = 0.081727;
+  public static final double topRollerkV = 0.11753;
+  public static final double topRollerkA = 0.015313;
+  public static final double bottomRollerkS = 0.11496;
+  public static final double bottomRollerkV = 0.11868;
+  public static final double bottomRollerkA = 0.0141;
 
-  public static final double topRollerkP = 0.13085;
-  public static final double bottomRollerkP = 0.11992;
+  public static final double topRollerkP = 0.17726;
+  public static final double bottomRollerkP = 0.17918;
 
   private final SysIdRoutine m_sysIdRoutine;
   private final ShooterIO m_io;
@@ -49,7 +52,7 @@ public class Shooter extends SubsystemBase {
                 null,
                 null,
                 null,
-                state -> Logger.recordOutput("Shooter/SysIdState", state.toString())),
+                state -> SignalLogger.writeString("Shooter/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 voltage -> {
                   m_io.setTopRollerVoltage(voltage.in(Volts));

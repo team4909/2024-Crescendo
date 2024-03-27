@@ -141,10 +141,12 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     m_drivePositionQueue =
         PhoenixOdometryThread.getInstance()
-            .registerSignals(m_driveMotor, m_drivePositionSignal, m_driveVelocitySignal);
+            .registerSignals(
+                m_driveMotor, m_drivePositionSignal.clone(), m_driveVelocitySignal.clone());
     m_steerPositionQueue =
         PhoenixOdometryThread.getInstance()
-            .registerSignals(m_steerMotor, m_steerPositionSignal, m_steerVelocitySignal);
+            .registerSignals(
+                m_steerMotor, m_steerPositionSignal.clone(), m_steerVelocitySignal.clone());
     m_timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
