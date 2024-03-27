@@ -40,7 +40,7 @@ public class ImuIOPigeon2 implements ImuIO {
             .map(value -> Rotation2d.fromDegrees(value))
             .toArray(Rotation2d[]::new);
     inputs.odometryYawTimestamps =
-        m_yawTimestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
+        m_yawTimestampQueue.stream().mapToDouble(Double::valueOf).toArray();
     m_yawPositionQueue.clear();
     m_yawTimestampQueue.clear();
   }

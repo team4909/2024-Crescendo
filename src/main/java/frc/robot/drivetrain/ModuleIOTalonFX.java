@@ -214,8 +214,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_steerPositionQueue.stream()
             .map((Double value) -> Rotation2d.fromRotations(value))
             .toArray(Rotation2d[]::new);
-    inputs.odometryTimestamps =
-        m_timestampQueue.stream().mapToDouble(Double::doubleValue).toArray();
+    inputs.odometryTimestamps = m_timestampQueue.stream().mapToDouble(Double::valueOf).toArray();
     m_drivePositionQueue.clear();
     m_steerPositionQueue.clear();
     m_timestampQueue.clear();
