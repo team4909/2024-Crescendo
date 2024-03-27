@@ -21,9 +21,9 @@ public interface IntakeIO {
 
   public default void updateInputs(IntakeIOInputs inputs) {}
 
-  public default void setTopRollerVoltage(double volts) {}
+  public default void setFrontRollersVoltage(double volts) {}
 
-  public default void setBottomRollerVoltage(double volts) {}
+  public default void setBackRollersVoltage(double volts) {}
 
   public default void setCenteringMotorsVoltage(double volts) {}
 

@@ -39,12 +39,12 @@ public class IntakeIOSim implements IntakeIO {
   }
 
   @Override
-  public void setTopRollerVoltage(double voltage) {
+  public void setFrontRollersVoltage(double voltage) {
     m_topRollerAppliedVolts = MathUtil.clamp(voltage, -12.0, 12.0);
   }
 
   @Override
-  public void setBottomRollerVoltage(double voltage) {
+  public void setBackRollersVoltage(double voltage) {
     m_bottomRollerAppliedVolts = MathUtil.clamp(voltage, -12.0, 12.0);
   }
 

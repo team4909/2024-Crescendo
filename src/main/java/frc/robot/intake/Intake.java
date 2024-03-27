@@ -42,8 +42,8 @@ public class Intake extends SubsystemBase {
   public Command idle() {
     return this.run(
             () -> {
-              m_io.setTopRollerVoltage(0.0);
-              m_io.setBottomRollerVoltage(0.0);
+              m_io.setFrontRollersVoltage(0.0);
+              m_io.setBackRollersVoltage(0.0);
               m_io.setCenteringMotorsVoltage(0.0);
             })
         .withName("Idle (Intake)");
@@ -56,8 +56,8 @@ public class Intake extends SubsystemBase {
   public Command spit() {
     return this.run(
             () -> {
-              m_io.setTopRollerVoltage(-9.6);
-              m_io.setBottomRollerVoltage(-9.6);
+              m_io.setFrontRollersVoltage(-9.6);
+              m_io.setBackRollersVoltage(-9.6);
               m_io.setCenteringMotorsVoltage(-10.2);
             })
         .withName("Spit (Intake)");
@@ -66,8 +66,8 @@ public class Intake extends SubsystemBase {
   public Command intake() {
     return this.run(
             () -> {
-              m_io.setTopRollerVoltage(9.6);
-              m_io.setBottomRollerVoltage(9.6);
+              m_io.setFrontRollersVoltage(9.6);
+              m_io.setBackRollersVoltage(9.6);
               m_io.setCenteringMotorsVoltage(10.2);
             })
         .alongWith(
@@ -112,8 +112,8 @@ public class Intake extends SubsystemBase {
   public Command feed() {
     return this.run(
         () -> {
-          m_io.setTopRollerVoltage(4.8);
-          m_io.setBottomRollerVoltage(4.8);
+          m_io.setFrontRollersVoltage(4.8);
+          m_io.setBackRollersVoltage(4.8);
           m_io.setCenteringMotorsVoltage(6.0);
         });
   }

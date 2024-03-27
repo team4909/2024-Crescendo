@@ -17,7 +17,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class Lights extends SubsystemBase {
 
-  private final int kLedCount = 8;
+  private final int kLedCount = Constants.kIsViper ? 8 : 32;
   private final CANdle m_ledController;
 
   public Lights() {

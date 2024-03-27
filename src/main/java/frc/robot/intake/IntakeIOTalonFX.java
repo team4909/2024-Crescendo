@@ -13,7 +13,7 @@ import frc.robot.Constants;
 
 public class IntakeIOTalonFX implements IntakeIO {
 
-  private final TalonFX m_topRollerMotor, m_bottomRollerMotor;
+  private final TalonFX m_frontRollersMotor, m_backRollersMotor;
   private final BaseTalon m_centeringMotors;
 
   private final StatusSignal<Double> m_topRollerVelocitySignal,
@@ -24,28 +24,28 @@ public class IntakeIOTalonFX implements IntakeIO {
       m_bottomRollerCurrentSignal;
 
   public IntakeIOTalonFX() {
-    m_topRollerMotor = new TalonFX(22, Constants.kSuperstructureCanBus);
-    m_bottomRollerMotor = new TalonFX(23, Constants.kSuperstructureCanBus);
+    m_frontRollersMotor = new TalonFX(22, Constants.kSuperstructureCanBus);
+    m_backRollersMotor = new TalonFX(23, Constants.kSuperstructureCanBus);
     m_centeringMotors = new BaseTalon(24, "Talon SRX", "rio");
-    m_topRollerMotor.getConfigurator().apply(new TalonFXConfiguration());
-    m_bottomRollerMotor.getConfigurator().apply(new TalonFXConfiguration());
+    m_frontRollersMotor.getConfigurator().apply(new TalonFXConfiguration());
+    m_backRollersMotor.getConfigurator().apply(new TalonFXConfiguration());
     final CurrentLimitsConfigs currentLimits =
         new CurrentLimitsConfigs().withSupplyCurrentLimit(40.0).withSupplyCurrentLimitEnable(true);
-    m_topRollerMotor.getConfigurator().apply(currentLimits);
-    m_bottomRollerMotor.getConfigurator().apply(currentLimits);
+    m_frontRollersMotor.getConfigurator().apply(currentLimits);
+    m_backRollersMotor.getConfigurator().apply(currentLimits);
 
     m_centeringMotors.configSupplyCurrentLimit(
         new SupplyCurrentLimitConfiguration(true, 40.0, 0.0, 1.0), 1000);
     m_centeringMotors.configVoltageCompSaturation(12.0);
     m_centeringMotors.enableVoltageCompensation(true);
 
-    m_topRollerVelocitySignal = m_topRollerMotor.getVelocity();
-    m_topRollerAppliedVoltageSignal = m_topRollerMotor.getMotorVoltage();
-    m_topRollerCurrentSignal = m_topRollerMotor.getSupplyCurrent();
+    m_topRollerVelocitySignal = m_frontRollersMotor.getVelocity();
+    m_topRollerAppliedVoltageSignal = m_frontRollersMotor.getMotorVoltage();
+    m_topRollerCurrentSignal = m_frontRollersMotor.getSupplyCurrent();
 
-    m_bottomRollerVelocitySignal = m_bottomRollerMotor.getVelocity();
-    m_bottomRollerAppliedVoltageSignal = m_bottomRollerMotor.getMotorVoltage();
-    m_bottomRollerCurrentSignal = m_bottomRollerMotor.getSupplyCurrent();
+    m_bottomRollerVelocitySignal = m_backRollersMotor.getVelocity();
+    m_bottomRollerAppliedVoltageSignal = m_backRollersMotor.getMotorVoltage();
+    m_bottomRollerCurrentSignal = m_backRollersMotor.getSupplyCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
@@ -55,7 +55,7 @@ public class IntakeIOTalonFX implements IntakeIO {
         m_bottomRollerVelocitySignal,
         m_bottomRollerAppliedVoltageSignal,
         m_bottomRollerCurrentSignal);
-    ParentDevice.optimizeBusUtilizationForAll(m_topRollerMotor, m_bottomRollerMotor);
+    ParentDevice.optimizeBusUtilizationForAll(m_frontRollersMotor, m_backRollersMotor);
   }
 
   @Override
@@ -83,13 +83,13 @@ public class IntakeIOTalonFX implements IntakeIO {
   }
 
   @Override
-  public void setTopRollerVoltage(double volts) {
-    m_topRollerMotor.setVoltage(volts);
+  public void setFrontRollersVoltage(double volts) {
+    m_frontRollersMotor.setVoltage(volts);
   }
 
   @Override
-  public void setBottomRollerVoltage(double volts) {
-    m_bottomRollerMotor.setVoltage(volts);
+  public void setBackRollersVoltage(double volts) {
+    m_backRollersMotor.setVoltage(volts);
   }
 
   @Override
@@ -99,8 +99,8 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   @Override
   public void stopRollers() {
-    m_topRollerMotor.stopMotor();
-    m_bottomRollerMotor.stopMotor();
+    m_frontRollersMotor.stopMotor();
+    m_backRollersMotor.stopMotor();
     m_centeringMotors.set(ControlMode.PercentOutput, 0.0);
   }
 }

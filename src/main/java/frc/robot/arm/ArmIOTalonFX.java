@@ -78,7 +78,7 @@ public class ArmIOTalonFX implements ArmIO {
     wristLeftMotorConfig.ClosedLoopGeneral.ContinuousWrap = true;
     wristLeftMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.kWristReduction;
     wristLeftMotorConfig.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-    wristLeftMotorConfig.Slot0.kP = 30.612;
+    wristLeftMotorConfig.Slot0.kP = 22.742;
     wristLeftMotorConfig.Slot0.kD = 5.5071;
     wristLeftMotorConfig.Slot0.kS = 0.57211;
     wristLeftMotorConfig.Slot0.kV = 2.5239;
