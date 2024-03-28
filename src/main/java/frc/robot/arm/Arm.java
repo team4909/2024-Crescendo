@@ -150,10 +150,10 @@ public class Arm extends SubsystemBase {
     Logger.recordOutput("Arm/Elbow Progress", elbowProgress);
     Logger.recordOutput("Arm/Wrist Progress", wristProgress);
 
-    if (wristProgress < elbowDelay) m_io.setElbowRotations(m_inputs.elbowPositionRot);
-    else m_io.setElbowRotations(Units.radiansToRotations(elbowAngleRad));
-    if (elbowProgress < wristDelay) m_io.setWristRotations(m_inputs.wristPositionRot);
-    else m_io.setWristRotations(Units.radiansToRotations(wristAngleRad));
+    // if (wristProgress < elbowDelay) m_io.setElbowRotations(m_inputs.elbowPositionRot);
+    m_io.setElbowRotations(Units.radiansToRotations(elbowAngleRad));
+    // if (elbowProgress < wristDelay) m_io.setWristRotations(m_inputs.wristPositionRot);
+    m_io.setWristRotations(Units.radiansToRotations(wristAngleRad));
   }
 
   @AutoLogOutput(key = "Arm/JointsAtGoal")
@@ -282,6 +282,16 @@ public class Arm extends SubsystemBase {
 
   public Command sysIdWristDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutineWrist.dynamic(direction);
+  }
+
+  public Command elbowStaticCharacterization() {
+    return new ArmStaticCharacterization(
+        this, m_io::setElbowCurrent, () -> Units.rotationsToRadians(m_inputs.elbowVelocityRps));
+  }
+
+  public Command wristStaticCharacterization() {
+    return new ArmStaticCharacterization(
+        this, m_io::setWristCurrent, () -> Units.rotationsToRadians(m_inputs.wristVelocityRps));
   }
 
   public static enum ArmSetpoints {

@@ -190,6 +190,9 @@ public class Robot extends LoggedRobot {
         "Wrist SysId (Dynamic Forward)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Wrist SysId (Dynamic Reverse)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kReverse));
+    m_autoChooser.addOption("elbow static characterization", m_arm.elbowStaticCharacterization());
+    m_autoChooser.addOption("wrist static characterization", m_arm.wristStaticCharacterization());
+
     m_autoChooser.addOption("Start Signal Logger", Commands.runOnce(SignalLogger::start));
     m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));
     m_autoChooser.addOption("6 Piece", autos.sixPiece());
@@ -203,8 +206,8 @@ public class Robot extends LoggedRobot {
         .hasIntookPieceSim
         .or(m_feeder.hasNote)
         .onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
-    m_feeder.hasNote.whileTrue(m_lights.setBlink(Color.kOrangeRed));
-    m_drivetrain.inRangeOfGoal.whileTrue(m_lights.setBlink(Color.kBlue));
+    m_feeder.hasNote.whileTrue(m_lights.startBlink(Color.kOrangeRed));
+    m_drivetrain.inRangeOfGoal.whileTrue(m_lights.startBlink(Color.kBlue));
 
     m_driverController
         .rightTrigger()
@@ -300,7 +303,9 @@ public class Robot extends LoggedRobot {
   public void teleopPeriodic() {}
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    m_lights.startGreenFlow().until(DriverStation::isEnabled).schedule();
+  }
 
   @Override
   public void disabledPeriodic() {}

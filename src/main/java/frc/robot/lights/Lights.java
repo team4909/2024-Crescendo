@@ -3,6 +3,8 @@ package frc.robot.lights;
 import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
 import com.ctre.phoenix.led.CANdleConfiguration;
+import com.ctre.phoenix.led.ColorFlowAnimation;
+import com.ctre.phoenix.led.ColorFlowAnimation.Direction;
 import com.ctre.phoenix.led.RainbowAnimation;
 import com.ctre.phoenix.led.StrobeAnimation;
 import edu.wpi.first.wpilibj.util.Color;
@@ -18,6 +20,7 @@ import org.littletonrobotics.junction.Logger;
 public class Lights extends SubsystemBase {
 
   private final int kLedCount = Constants.kIsViper ? 8 : 32;
+  private final int kCandleLedOffset = Constants.kIsViper ? 0 : 8;
   private final CANdle m_ledController;
 
   public Lights() {
@@ -27,7 +30,7 @@ public class Lights extends SubsystemBase {
     config.disableWhenLOS = true;
     config.brightnessScalar = 1;
     m_ledController.configAllSettings(config);
-    setDefaultCommand(setRainbow());
+    setDefaultCommand(startRainbow());
   }
 
   @Override
@@ -38,61 +41,65 @@ public class Lights extends SubsystemBase {
     Logger.recordOutput("CANdle/Temperature", m_ledController.getTemperature());
   }
 
-  public Command setRainbow() {
+  public Command startRainbow() {
     return this.runOnce(() -> m_ledController.animate(new RainbowAnimation(1.0, 0.1, kLedCount)))
         .andThen(this.run(() -> {}))
         .ignoringDisable(true);
   }
 
-  public Command setBlink(Color color) {
-    final int[] blinkColor = colorToRGB(color);
-    return Commands.sequence(
-            this.runOnce(
-                () ->
-                    m_ledController.animate(
-                        new StrobeAnimation(
-                            blinkColor[0], blinkColor[1], blinkColor[2], 0, 0.4, kLedCount))),
-            this.run(() -> {}))
+  public Command startGreenFlow() {
+    final ColorRGB color = colorToRGB(Color.kGreen);
+    return this.runOnce(
+            () ->
+                m_ledController.animate(
+                    new ColorFlowAnimation(
+                        color.red,
+                        color.green,
+                        color.blue,
+                        0,
+                        0.5,
+                        kLedCount,
+                        Direction.Forward,
+                        kCandleLedOffset)))
+        .andThen(this.run(() -> {}))
         .ignoringDisable(true);
   }
 
-  public void setBlinkMethod(Color color) {
-    final int[] blinkColor = colorToRGB(color);
-
-    m_ledController.animate(
-        new StrobeAnimation(blinkColor[0], blinkColor[1], blinkColor[2], 0, 0.4, kLedCount));
+  public Command startBlink(Color color) {
+    return Commands.sequence(this.runOnce(() -> setBlink(color)), this.run(() -> {}))
+        .ignoringDisable(true);
   }
 
-  /**
-   * @param color
-   * @return an array of integers representing the RGB values of the given color: [0] is red, [1] is
-   *     green, [2] is blue
-   */
-  private int[] colorToRGB(Color color) {
+  public void setBlink(Color color) {
+    final ColorRGB blinkColor = colorToRGB(color);
+    m_ledController.animate(
+        new StrobeAnimation(blinkColor.red, blinkColor.green, blinkColor.blue, 0, 0.4, kLedCount));
+  }
+
+  private ColorRGB colorToRGB(Color color) {
     final Function<Double, Integer> mapValue = value -> (int) (value * 255.0);
-    return new int[] {
-      mapValue.apply(color.red), mapValue.apply(color.green), mapValue.apply(color.blue)
-    };
+    return new ColorRGB(
+        mapValue.apply(color.red), mapValue.apply(color.green), mapValue.apply(color.blue));
   }
 
   public Command showReadyToShootStatus(Trigger readyToShoot) {
-    var lastState =
+    var state =
         new Object() {
-          boolean value = false;
+          boolean lastTriggerState = false;
         };
     return new FunctionalCommand(
-        () -> setBlinkMethod(Color.kRed),
+        () -> setBlink(Color.kRed),
         () -> {
-          boolean currentTriggerState = readyToShoot.getAsBoolean();
-          if (lastState.value == currentTriggerState) return;
-          if (readyToShoot.getAsBoolean()) setBlinkMethod(Color.kGreen);
-          else setBlinkMethod(Color.kRed);
-          lastState.value = readyToShoot.getAsBoolean();
+          final boolean currentTriggerState = readyToShoot.getAsBoolean();
+          if (state.lastTriggerState == currentTriggerState) return;
+          if (readyToShoot.getAsBoolean()) setBlink(Color.kGreen);
+          else setBlink(Color.kRed);
+          state.lastTriggerState = readyToShoot.getAsBoolean();
         },
-        (interrupted) -> {
-          setRainbow();
-        },
+        (interrupted) -> startRainbow().schedule(),
         () -> false,
         this);
   }
+
+  private record ColorRGB(int red, int green, int blue) {}
 }
