@@ -61,7 +61,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(4, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(3, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(12, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.37353515625 : 0.01806640625;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.37353515625 : 0.047607421875;
         kDrivekS = 0.092972;
         kDrivekV = 0.82452;
         break;
@@ -69,7 +69,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(6, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(5, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(13, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? -0.090576171875 : -0.438720703125;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? -0.090576171875 : -0.439697265625;
         kDrivekS = 0.047967;
         kDrivekV = 0.83233;
         break;
@@ -77,7 +77,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(2, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(1, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(11, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.275634765625 : 0.087890625;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.275634765625 : 0.08740234375;
         kDrivekS = 0.22823;
         kDrivekV = 0.82401;
         break;
@@ -85,7 +85,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(7, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(8, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(14, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.314208984375 : -0.43505859375;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.314208984375 : -0.436767578125;
         kDrivekS = 0.226;
         kDrivekV = 0.81814;
         break;

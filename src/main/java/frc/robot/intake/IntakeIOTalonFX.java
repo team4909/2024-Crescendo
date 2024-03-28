@@ -6,9 +6,11 @@ import com.ctre.phoenix.motorcontrol.can.BaseTalon;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 
 public class IntakeIOTalonFX implements IntakeIO {
 
@@ -26,12 +28,16 @@ public class IntakeIOTalonFX implements IntakeIO {
     m_frontRollersMotor = new TalonFX(22, "rio");
     m_backRollersMotor = new TalonFX(23, "rio");
     m_centeringMotors = new BaseTalon(24, "Talon SRX", "rio");
-    m_frontRollersMotor.getConfigurator().apply(new TalonFXConfiguration());
-    m_backRollersMotor.getConfigurator().apply(new TalonFXConfiguration());
-    final CurrentLimitsConfigs currentLimits =
+    final CurrentLimitsConfigs currentLimitsConfigs =
         new CurrentLimitsConfigs().withSupplyCurrentLimit(40.0).withSupplyCurrentLimitEnable(true);
-    m_frontRollersMotor.getConfigurator().apply(currentLimits);
-    m_backRollersMotor.getConfigurator().apply(currentLimits);
+    final MotorOutputConfigs motorOutputConfigs =
+        new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive);
+    final TalonFXConfiguration rollerConfigs =
+        new TalonFXConfiguration()
+            .withCurrentLimits(currentLimitsConfigs)
+            .withMotorOutput(motorOutputConfigs);
+    m_frontRollersMotor.getConfigurator().apply(rollerConfigs);
+    m_backRollersMotor.getConfigurator().apply(rollerConfigs);
 
     m_centeringMotors.configSupplyCurrentLimit(
         new SupplyCurrentLimitConfiguration(true, 40.0, 0.0, 1.0), 1000);
