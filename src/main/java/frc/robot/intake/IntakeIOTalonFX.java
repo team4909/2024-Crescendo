@@ -9,7 +9,6 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
-import frc.robot.Constants;
 
 public class IntakeIOTalonFX implements IntakeIO {
 
@@ -24,8 +23,8 @@ public class IntakeIOTalonFX implements IntakeIO {
       m_bottomRollerCurrentSignal;
 
   public IntakeIOTalonFX() {
-    m_frontRollersMotor = new TalonFX(22, Constants.kSuperstructureCanBus);
-    m_backRollersMotor = new TalonFX(23, Constants.kSuperstructureCanBus);
+    m_frontRollersMotor = new TalonFX(22, "rio");
+    m_backRollersMotor = new TalonFX(23, "rio");
     m_centeringMotors = new BaseTalon(24, "Talon SRX", "rio");
     m_frontRollersMotor.getConfigurator().apply(new TalonFXConfiguration());
     m_backRollersMotor.getConfigurator().apply(new TalonFXConfiguration());
