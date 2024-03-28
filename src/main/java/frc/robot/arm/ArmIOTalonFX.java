@@ -65,8 +65,6 @@ public class ArmIOTalonFX implements ArmIO {
     elbowLeftMotorConfig.Slot0.kG = 0.37766;
     elbowLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 0.5;
     elbowLeftMotorConfig.MotionMagic.MotionMagicAcceleration = 2.0;
-    elbowLeftMotorConfig.MotionMagic.MotionMagicExpo_kV = 16.0;
-    elbowLeftMotorConfig.MotionMagic.MotionMagicExpo_kA = 6.0;
     elbowLeftMotorConfig.Voltage.PeakForwardVoltage = 6.0;
     elbowLeftMotorConfig.Voltage.PeakReverseVoltage = -6.0;
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig, 1.0);

@@ -210,7 +210,10 @@ public class Arm extends SubsystemBase {
     return this.run(
             () -> {
               m_io.setWristRotations(Units.radiansToRotations(ArmSetpoints.kStowed.wristAngle));
-              m_io.setElbowVoltage(MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 3.0);
+              final double driveVoltage =
+                  MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 3.0;
+              if (driveVoltage == 0.0) m_io.setElbowRotations(m_inputs.elbowPositionRot);
+              else m_io.setElbowVoltage(driveVoltage);
             })
         .finallyDo(() -> holdSetpoint().schedule());
   }
@@ -219,7 +222,10 @@ public class Arm extends SubsystemBase {
     return this.run(
             () -> {
               m_io.setElbowRotations(Units.radiansToRotations(ArmSetpoints.kStowed.elbowAngle));
-              m_io.setWristVoltage(MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 1.0);
+              final double driveVoltage =
+                  MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 1.0;
+              if (driveVoltage == 0.0) m_io.setWristRotations(m_inputs.wristPositionRot);
+              else m_io.setWristVoltage(driveVoltage);
             })
         .finallyDo(() -> holdSetpoint().schedule());
   }
