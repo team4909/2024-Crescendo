@@ -24,8 +24,8 @@ public class ClimberIOTalonFX implements ClimberIO {
 
   public ClimberIOTalonFX() {
 
-    m_leftWinchMotor = new TalonFX(25, Constants.kSuperstructureCanBus);
-    m_rightWinchMotor = new TalonFX(26, Constants.kSuperstructureCanBus);
+    m_leftWinchMotor = new TalonFX(25, Constants.kDrivetrainCanBus);
+    m_rightWinchMotor = new TalonFX(26, Constants.kDrivetrainCanBus);
 
     final FeedbackConfigs feedbackConfigs =
         new FeedbackConfigs().withSensorToMechanismRatio(Climber.kWinchReduction);
