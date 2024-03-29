@@ -18,8 +18,8 @@ public final class Constants {
 
   static {
     final String rioSerialNumber = RobotController.getSerialNumber();
-    if (rioSerialNumber.equals(RobotName.kViper.serialNumber)) kRobot = RobotName.kViper;
-    else if (rioSerialNumber.equals(RobotName.kBlackMamba.serialNumber))
+    if (rioSerialNumber.equals(RobotName.kViper.rioSerialNumber)) kRobot = RobotName.kViper;
+    else if (rioSerialNumber.equals(RobotName.kBlackMamba.rioSerialNumber))
       kRobot = RobotName.kBlackMamba;
     else kRobot = RobotName.kBlackMamba;
   }
@@ -63,10 +63,10 @@ public final class Constants {
     kViper("032380FD"),
     kBlackMamba("032243C9");
 
-    public String serialNumber;
+    public String rioSerialNumber;
 
-    private RobotName(String serialNumber) {
-      this.serialNumber = serialNumber;
+    private RobotName(String rioSerialNumber) {
+      this.rioSerialNumber = rioSerialNumber;
     }
   }
 }
