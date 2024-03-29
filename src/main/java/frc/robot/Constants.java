@@ -7,14 +7,24 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.RobotController;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.BooleanSupplier;
 
 public final class Constants {
   public static final Mode kCurrentMode = Mode.kReal;
-  public static final RobotName kRobot = RobotName.kViper;
-  public static final boolean kIsViper = kRobot.equals(RobotName.kViper);
+  public static final RobotName kRobot;
+
+  static {
+    final String rioSerialNumber = RobotController.getSerialNumber();
+    if (rioSerialNumber.equals(RobotName.kViper.serialNumber)) kRobot = RobotName.kViper;
+    else if (rioSerialNumber.equals(RobotName.kBlackMamba.serialNumber))
+      kRobot = RobotName.kBlackMamba;
+    else kRobot = RobotName.kBlackMamba;
+  }
+
+  public static final boolean kIsViper = kRobot.equals(RobotName.kBlackMamba);
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
   public static final String kSuperstructureCanBus = "CANivore2";
@@ -50,7 +60,13 @@ public final class Constants {
   }
 
   public static enum RobotName {
-    kViper,
-    kBlackMamba
+    kViper("032380FD"),
+    kBlackMamba("032243C9");
+
+    public String serialNumber;
+
+    private RobotName(String serialNumber) {
+      this.serialNumber = serialNumber;
+    }
   }
 }

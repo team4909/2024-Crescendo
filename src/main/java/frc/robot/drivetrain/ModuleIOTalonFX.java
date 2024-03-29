@@ -127,6 +127,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     steerMotorConfig.MotionMagic.MotionMagicExpo_kA = 0.1;
     steerMotorConfig.Slot0.kP = kSteerkP;
     steerMotorConfig.Slot0.kD = kSteerkD;
+    steerMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_steerMotor.getConfigurator().apply(steerMotorConfig);
 
     m_drivePositionSignal = m_driveMotor.getPosition();

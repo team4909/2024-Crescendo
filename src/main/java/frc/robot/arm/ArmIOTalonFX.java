@@ -55,7 +55,7 @@ public class ArmIOTalonFX implements ArmIO {
     final TalonFXConfiguration elbowLeftMotorConfig = new TalonFXConfiguration();
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     elbowLeftMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.kElbowReduction;
     elbowLeftMotorConfig.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
     elbowLeftMotorConfig.Slot0.kP = 62.122;
@@ -66,6 +66,8 @@ public class ArmIOTalonFX implements ArmIO {
     elbowLeftMotorConfig.Slot0.kG = 0.37766;
     elbowLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 0.5;
     elbowLeftMotorConfig.MotionMagic.MotionMagicAcceleration = 2.0;
+    elbowLeftMotorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40.0;
+    elbowLeftMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40.0;
     elbowLeftMotorConfig.Voltage.PeakForwardVoltage = 6.0;
     elbowLeftMotorConfig.Voltage.PeakReverseVoltage = -6.0;
     m_elbowLeftMotor.getConfigurator().apply(elbowLeftMotorConfig, 1.0);
@@ -73,7 +75,7 @@ public class ArmIOTalonFX implements ArmIO {
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
     wristLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     wristLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    wristLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    wristLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     wristLeftMotorConfig.ClosedLoopGeneral.ContinuousWrap = true;
     wristLeftMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.kWristReduction;
     wristLeftMotorConfig.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
@@ -87,17 +89,20 @@ public class ArmIOTalonFX implements ArmIO {
     wristLeftMotorConfig.MotionMagic.MotionMagicAcceleration = 2.0;
     wristLeftMotorConfig.Voltage.PeakForwardVoltage = 3.0;
     wristLeftMotorConfig.Voltage.PeakReverseVoltage = -3.0;
+    wristLeftMotorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40.0;
+    wristLeftMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40.0;
+
     m_wristLeftMotor.getConfigurator().apply(wristLeftMotorConfig, 1.0);
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
     elbowRightMotorConfig.CurrentLimits = currentLimitsConfig;
-    elbowRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    elbowRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig, 1.0);
     m_elbowRightFollowerMotor.setControl(new Follower(m_elbowLeftMotor.getDeviceID(), true));
 
     final TalonFXConfiguration wristRightMotorConfig = new TalonFXConfiguration();
     wristRightMotorConfig.CurrentLimits = currentLimitsConfig;
-    wristRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    wristRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig, 1.0);
     m_wristRightFollowerMotor.setControl(new Follower(m_wristLeftMotor.getDeviceID(), true));
 
