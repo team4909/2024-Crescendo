@@ -27,9 +27,9 @@ import java.util.Queue;
 
 public class ModuleIOTalonFX implements ModuleIO {
 
-  private final double kDrivekP = 0.15;
+  private final double kDrivekP = 0.4;
   private final double kDrivekS;
-  private final double kDrivekV;
+  private final double kDrivekV = 0.72;
   private final double kSteerkP = 100.0;
   private final double kSteerkD = 0.2;
   private final double kSlipCurrent = Constants.kIsSim ? 400.0 : 58.0;
@@ -62,32 +62,28 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_steerMotor = new TalonFX(3, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(12, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.37353515625 : 0.066162109375;
-        kDrivekS = 0.092972;
-        kDrivekV = 0.82452;
+        kDrivekS = 0.133;
         break;
       case 1: // FR
         m_driveMotor = new TalonFX(6, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(5, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(13, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = Constants.kIsViper ? -0.090576171875 : -0.439697265625;
-        kDrivekS = 0.047967;
-        kDrivekV = 0.83233;
+        kDrivekS = 0.129;
         break;
       case 2: // BL
         m_driveMotor = new TalonFX(2, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(1, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(11, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.275634765625 : 0.08740234375;
-        kDrivekS = 0.22823;
-        kDrivekV = 0.82401;
+        kDrivekS = 0.057;
         break;
       case 3: // BR
         m_driveMotor = new TalonFX(7, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(8, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(14, Constants.kDrivetrainCanBus);
         m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.314208984375 : -0.436767578125;
-        kDrivekS = 0.226;
-        kDrivekV = 0.81814;
+        kDrivekS = 0.088;
         break;
       default:
         throw new RuntimeException("Invalid module index");

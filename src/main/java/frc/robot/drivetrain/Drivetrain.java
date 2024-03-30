@@ -301,8 +301,8 @@ public class Drivetrain extends SubsystemBase {
         () -> swerveKinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
         new HolonomicPathFollowerConfig(
-            new PIDConstants(5.0, 0.0, 0.0),
-            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(3.0, 0.0, 0.0),
+            new PIDConstants(3.0, 0.0, 0.0),
             kMaxLinearSpeedMetersPerSecond,
             kDriveBaseRadius,
             new ReplanningConfig()),

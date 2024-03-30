@@ -90,9 +90,9 @@ public class Autos {
     return getPathFollowingCommand(
         trajectoryName,
         Choreo.choreoSwerveController(
-            new PIDController(5.0, 0.0, 0.0),
-            new PIDController(5.0, 0.0, 0.0),
-            new PIDController(5.0, 0.0, 0.0)));
+            new PIDController(3.0, 0.0, 0.0),
+            new PIDController(3.0, 0.0, 0.0),
+            new PIDController(3.0, 0.0, 0.0)));
   }
 
   private Command resetPose(String trajectoryName) {

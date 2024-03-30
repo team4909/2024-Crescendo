@@ -18,7 +18,7 @@ import org.littletonrobotics.junction.Logger;
 public class Shooter extends SubsystemBase {
 
   public static final double kShooterStepUp = Constants.kIsViper ? 0.0 : 0.0;
-  public static final double kFarShotVelocityRpm = 5600.0;
+  public static final double kFarShotVelocityRpm = 5800.0;
   private final double kTrapShot = 400.0;
   private final double kAmpShot = 5000.0;
   private final double kReadyToShootToleranceRps = 3.0;

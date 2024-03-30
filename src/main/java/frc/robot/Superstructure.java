@@ -54,9 +54,10 @@ public class Superstructure {
                         () -> PoseEstimation.getInstance().getAimingParameters().driveHeading()),
                 drivetrain::clearHeadingGoal),
             shooter.runShooter(),
-            arm.aim(
-                () -> PoseEstimation.getInstance().getAimingParameters().aimingJointIndex(),
-                () -> PoseEstimation.getInstance().getAimingParameters().armAngle().getRadians()),
+            // arm.aim(
+            //     () -> PoseEstimation.getInstance().getAimingParameters().aimingJointIndex(),
+            //     () ->
+            // PoseEstimation.getInstance().getAimingParameters().armAngle().getRadians()),
             lights.showReadyToShootStatus(
                 drivetrain
                     .atHeadingGoal
