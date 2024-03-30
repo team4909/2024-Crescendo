@@ -7,24 +7,23 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.RobotController;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.BooleanSupplier;
 
 public final class Constants {
   public static final Mode kCurrentMode = Mode.kReal;
-  public static final RobotName kRobot;
+  public static final RobotName kRobot = RobotName.kBlackMamba;
 
-  static {
-    final String rioSerialNumber = RobotController.getSerialNumber();
-    if (rioSerialNumber.equals(RobotName.kViper.rioSerialNumber)) kRobot = RobotName.kViper;
-    else if (rioSerialNumber.equals(RobotName.kBlackMamba.rioSerialNumber))
-      kRobot = RobotName.kBlackMamba;
-    else kRobot = RobotName.kBlackMamba;
-  }
+  // static {
+  //   final String rioSerialNumber = RobotController.getSerialNumber();
+  //   if (rioSerialNumber.equals(RobotName.kViper.rioSerialNumber)) kRobot = RobotName.kViper;
+  //   else if (rioSerialNumber.equals(RobotName.kBlackMamba.rioSerialNumber))
+  //     kRobot = RobotName.kBlackMamba;
+  //   else kRobot = RobotName.kBlackMamba;
+  // }
 
-  public static final boolean kIsViper = kRobot.equals(RobotName.kBlackMamba);
+  public static final boolean kIsViper = false;
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
   public static final String kSuperstructureCanBus = "CANivore2";

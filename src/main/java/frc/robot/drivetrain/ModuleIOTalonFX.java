@@ -61,7 +61,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(4, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(3, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(12, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.37353515625 : 0.01806640625;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.37353515625 : 0.066162109375;
         kDrivekS = 0.092972;
         kDrivekV = 0.82452;
         break;
