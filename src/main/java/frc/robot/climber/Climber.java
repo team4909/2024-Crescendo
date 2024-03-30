@@ -6,10 +6,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
 public class Climber extends SubsystemBase {
-  public static final double kWinchReduction = 1.0;
+  public static final double kWinchReduction = 20.0;
   private final ClimberIO m_io;
   private final ClimberIOInputsAutoLogged m_inputs = new ClimberIOInputsAutoLogged();
-  private final double kTrapLimit = 200.0;
+  private final double kTrapLimit = 10.0;
 
   public Climber(ClimberIO climberIO) {
     m_io = climberIO;

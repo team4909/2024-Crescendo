@@ -57,7 +57,7 @@ public class Lights extends SubsystemBase {
                         color.green,
                         color.blue,
                         0,
-                        0.5,
+                        0.1,
                         kLedCount,
                         Direction.Forward,
                         kCandleLedOffset)))

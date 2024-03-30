@@ -5,12 +5,15 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.DigitalGlitchFilter;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
+import java.time.Duration;
 
 public class FeederIOTalonFX implements FeederIO {
   private final TalonFX m_feederMotor;
   private final DigitalInput m_topNoteSensor;
+  private final DigitalGlitchFilter m_glitchFilter;
 
   private final StatusSignal<Double> m_rollerPositionSignal,
       m_rollerVelocitySignal,
@@ -20,6 +23,9 @@ public class FeederIOTalonFX implements FeederIO {
   public FeederIOTalonFX() {
     m_feederMotor = new TalonFX(19, Constants.kSuperstructureCanBus);
     m_topNoteSensor = new DigitalInput(0);
+    m_glitchFilter = new DigitalGlitchFilter();
+    m_glitchFilter.setPeriodNanoSeconds(Duration.ofMillis(1).toNanos());
+    m_glitchFilter.add(m_topNoteSensor);
 
     final TalonFXConfiguration feederMotorConfig = new TalonFXConfiguration();
     m_feederMotor.getConfigurator().apply(feederMotorConfig);

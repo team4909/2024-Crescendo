@@ -14,7 +14,16 @@ import java.util.function.BooleanSupplier;
 public final class Constants {
   public static final Mode kCurrentMode = Mode.kReal;
   public static final RobotName kRobot = RobotName.kBlackMamba;
-  public static final boolean kIsViper = kRobot.equals(RobotName.kViper);
+
+  // static {
+  //   final String rioSerialNumber = RobotController.getSerialNumber();
+  //   if (rioSerialNumber.equals(RobotName.kViper.rioSerialNumber)) kRobot = RobotName.kViper;
+  //   else if (rioSerialNumber.equals(RobotName.kBlackMamba.rioSerialNumber))
+  //     kRobot = RobotName.kBlackMamba;
+  //   else kRobot = RobotName.kBlackMamba;
+  // }
+
+  public static final boolean kIsViper = false;
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
   public static final String kSuperstructureCanBus = "CANivore2";
@@ -50,7 +59,13 @@ public final class Constants {
   }
 
   public static enum RobotName {
-    kViper,
-    kBlackMamba
+    kViper("032380FD"),
+    kBlackMamba("032243C9");
+
+    public String rioSerialNumber;
+
+    private RobotName(String rioSerialNumber) {
+      this.rioSerialNumber = rioSerialNumber;
+    }
   }
 }
