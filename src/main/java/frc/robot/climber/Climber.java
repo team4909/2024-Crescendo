@@ -48,9 +48,16 @@ public class Climber extends SubsystemBase {
 
   public Command goToTrapLimit() {
     return Commands.parallel(
-        this.run(() -> m_io.setLeftVoltage(12.0))
-            .until(() -> m_inputs.leftWinchPositionRot > kTrapLimit),
-        this.run(() -> m_io.setRightVoltage(12.0))
-            .until(() -> m_inputs.leftWinchPositionRot > kTrapLimit));
+            this.run(
+                () -> {
+                  if (m_inputs.leftWinchPositionRot <= kTrapLimit) m_io.setLeftVoltage(12.0);
+                  else m_io.setLeftVoltage(0.0);
+                  if (m_inputs.leftWinchPositionRot <= kTrapLimit) m_io.setRightVoltage(12.0);
+                  else m_io.setRightVoltage(0.0);
+                }))
+        .until(
+            () ->
+                m_inputs.leftWinchPositionRot > kTrapLimit
+                    && m_inputs.leftWinchPositionRot > kTrapLimit);
   }
 }

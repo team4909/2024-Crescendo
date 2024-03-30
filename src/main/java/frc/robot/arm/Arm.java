@@ -14,6 +14,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -207,26 +208,24 @@ public class Arm extends SubsystemBase {
   }
 
   public Command aimElbowForTuning(DoubleSupplier driveEffort) {
-    return this.run(
-            () -> {
-              m_io.setWristRotations(Units.radiansToRotations(ArmSetpoints.kStowed.wristAngle));
-              final double driveVoltage =
-                  MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 3.0;
-              if (driveVoltage == 0.0) m_io.setElbowRotations(m_inputs.elbowPositionRot);
-              else m_io.setElbowVoltage(driveVoltage);
-            })
+    var state =
+        new Object() {
+          double currentPos = ArmSetpoints.kStowed.elbowAngle;
+        };
+    return Commands.run(
+            () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
+        .alongWith(aim(() -> 0, () -> state.currentPos))
         .finallyDo(() -> holdSetpoint().schedule());
   }
 
   public Command aimWristForTuning(DoubleSupplier driveEffort) {
-    return this.run(
-            () -> {
-              m_io.setElbowRotations(Units.radiansToRotations(ArmSetpoints.kStowed.elbowAngle));
-              final double driveVoltage =
-                  MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 1.0;
-              if (driveVoltage == 0.0) m_io.setWristRotations(m_inputs.wristPositionRot);
-              else m_io.setWristVoltage(driveVoltage);
-            })
+    var state =
+        new Object() {
+          double currentPos = ArmSetpoints.kStowed.wristAngle;
+        };
+    return Commands.run(
+            () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
+        .alongWith(aim(() -> 1, () -> state.currentPos))
         .finallyDo(() -> holdSetpoint().schedule());
   }
 

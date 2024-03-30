@@ -6,6 +6,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -24,7 +25,8 @@ public class ArmIOTalonFX implements ArmIO {
       m_elbowRightFollowerMotor,
       m_wristLeftMotor,
       m_wristRightFollowerMotor;
-  private final MotionMagicVoltage m_elbowControl, m_wristControl;
+  private final PositionVoltage m_elbowControl;
+  private final MotionMagicVoltage m_wristControl;
   private final StatusSignal<Double> m_elbowPositionSignal,
       m_elbowPositionSetpointSignal,
       m_elbowVelocitySignal,
@@ -55,7 +57,7 @@ public class ArmIOTalonFX implements ArmIO {
     final TalonFXConfiguration elbowLeftMotorConfig = new TalonFXConfiguration();
     elbowLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     elbowLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    elbowLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     elbowLeftMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.kElbowReduction;
     elbowLeftMotorConfig.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
     elbowLeftMotorConfig.Slot0.kP = 62.122;
@@ -66,6 +68,7 @@ public class ArmIOTalonFX implements ArmIO {
     elbowLeftMotorConfig.Slot0.kG = 0.37766;
     elbowLeftMotorConfig.MotionMagic.MotionMagicCruiseVelocity = 0.5;
     elbowLeftMotorConfig.MotionMagic.MotionMagicAcceleration = 2.0;
+    elbowLeftMotorConfig.MotorOutput.DutyCycleNeutralDeadband = 0.01;
     elbowLeftMotorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40.0;
     elbowLeftMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40.0;
     elbowLeftMotorConfig.Voltage.PeakForwardVoltage = 6.0;
@@ -75,7 +78,7 @@ public class ArmIOTalonFX implements ArmIO {
     final TalonFXConfiguration wristLeftMotorConfig = new TalonFXConfiguration();
     wristLeftMotorConfig.CurrentLimits = currentLimitsConfig;
     wristLeftMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    wristLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    wristLeftMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     wristLeftMotorConfig.ClosedLoopGeneral.ContinuousWrap = true;
     wristLeftMotorConfig.Feedback.SensorToMechanismRatio = ArmConstants.kWristReduction;
     wristLeftMotorConfig.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
@@ -89,6 +92,7 @@ public class ArmIOTalonFX implements ArmIO {
     wristLeftMotorConfig.MotionMagic.MotionMagicAcceleration = 2.0;
     wristLeftMotorConfig.Voltage.PeakForwardVoltage = 3.0;
     wristLeftMotorConfig.Voltage.PeakReverseVoltage = -3.0;
+    wristLeftMotorConfig.MotorOutput.DutyCycleNeutralDeadband = 0.01;
     wristLeftMotorConfig.TorqueCurrent.PeakForwardTorqueCurrent = 40.0;
     wristLeftMotorConfig.TorqueCurrent.PeakReverseTorqueCurrent = -40.0;
 
@@ -141,10 +145,8 @@ public class ArmIOTalonFX implements ArmIO {
     ParentDevice.optimizeBusUtilizationForAll(
         m_elbowLeftMotor, m_elbowRightFollowerMotor, m_wristLeftMotor, m_wristRightFollowerMotor);
 
-    m_elbowControl =
-        new MotionMagicVoltage(0.0, true, 0.0, 0, false, false, false).withUpdateFreqHz(0.0);
-    m_wristControl =
-        new MotionMagicVoltage(0.0, true, 0.0, 0, false, false, false).withUpdateFreqHz(0.0);
+    m_elbowControl = new PositionVoltage(0.0, 0.0, true, 0.0, 0, false, false, false);
+    m_wristControl = new MotionMagicVoltage(0.0, true, 0.0, 0, false, false, false);
   }
 
   @Override

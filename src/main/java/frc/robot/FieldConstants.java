@@ -1,6 +1,8 @@
 package frc.robot;
 
 import com.pathplanner.lib.util.GeometryUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
@@ -8,6 +10,8 @@ import edu.wpi.first.math.util.Units;
 public class FieldConstants {
   public static final double kFieldLength = Constants.fieldLayout.getFieldLength();
   public static final double kFieldWidth = Constants.fieldLayout.getFieldWidth();
+  public static final Pose2d trapPose =
+      GeometryUtil.flipFieldPose(new Pose2d(11.896, 4.658, new Rotation2d(-2.093)));
 
   public static class NotePositions {
     private static final double kCenterlineX = kFieldLength / 2.0;

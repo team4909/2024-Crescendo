@@ -11,20 +11,23 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.PoseEstimation;
+import frc.robot.lights.Lights;
 import org.littletonrobotics.junction.Logger;
 
 public class DriveToPose extends Command {
 
   private final Drivetrain m_drivetrain;
+  private final Lights m_lights;
   private final ProfiledPIDController m_translationController, m_thetaController;
   private Translation2d m_lastSetpointTranslation;
   private Pose2d m_pose;
   private Pose2d m_goalPose;
 
-  public DriveToPose(Pose2d pose, Drivetrain drivetrain) {
+  public DriveToPose(Pose2d pose, Drivetrain drivetrain, Lights lights) {
     m_pose = pose;
     m_translationController =
         new ProfiledPIDController(2.0, 0.0, 0.0, new TrapezoidProfile.Constraints(3.5, 2.2));
@@ -32,11 +35,13 @@ public class DriveToPose extends Command {
         new ProfiledPIDController(
             5.0, 0.0, 0.0, new TrapezoidProfile.Constraints(2 * Math.PI, 4 * Math.PI));
     this.m_drivetrain = drivetrain;
-    addRequirements(drivetrain);
+    this.m_lights = lights;
+    addRequirements(drivetrain, lights);
   }
 
   @Override
   public void initialize() {
+    m_lights.setBlink(Color.kWhite);
     m_goalPose =
         Constants.onRedAllianceSupplier.getAsBoolean()
             ? GeometryUtil.flipFieldPose(m_pose)

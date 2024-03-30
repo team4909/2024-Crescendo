@@ -17,6 +17,7 @@ import frc.robot.PoseEstimation.AimingParameters;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.climber.Climber;
+import frc.robot.drivetrain.DriveToPose;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.WheelRadiusCharacterization;
 import frc.robot.drivetrain.WheelRadiusCharacterization.Direction;
@@ -231,10 +232,12 @@ public class Robot extends LoggedRobot {
     m_driverController.a().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
     m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));
-
-    // m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
-    m_driverController.y().whileTrue(Commands.parallel(m_climber.windWinch()));
-
+    m_driverController
+        .x()
+        .whileTrue(Superstructure.trapRoutine(m_arm, m_climber, m_shooter, m_feeder));
+    m_driverController
+        .y()
+        .whileTrue(new DriveToPose(FieldConstants.trapPose, m_drivetrain, m_lights));
     m_driverController.povRight().onTrue(m_shooter.trapShot());
 
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
