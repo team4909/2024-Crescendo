@@ -12,6 +12,10 @@ public class FieldConstants {
   public static final double kFieldWidth = Constants.fieldLayout.getFieldWidth();
   public static final Pose2d trapPose =
       GeometryUtil.flipFieldPose(new Pose2d(11.896, 4.658, new Rotation2d(-2.093)));
+  public static final Translation2d stashPosition =
+      FieldConstants.Speaker.centerSpeakerOpening
+          .toTranslation2d()
+          .interpolate(new Translation2d(Units.inchesToMeters(72.455), kFieldWidth), 0.5);
 
   public static class NotePositions {
     private static final double kCenterlineX = kFieldLength / 2.0;

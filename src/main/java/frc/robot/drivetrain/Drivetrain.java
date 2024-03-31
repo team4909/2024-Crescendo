@@ -58,7 +58,7 @@ public class Drivetrain extends SubsystemBase {
   public static final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
   private static final LoggedTunableNumber inRangeRadius =
-      new LoggedTunableNumber("Drivetrain/InRangeRadius", 2.10);
+      new LoggedTunableNumber("Drivetrain/InRangeRadius", 5.0);
   private static final LoggedTunableNumber inRangeTolerance =
       new LoggedTunableNumber("Drivetrain/InRangeTolerance", 0.25);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);

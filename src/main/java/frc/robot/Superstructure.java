@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.pathplanner.lib.util.GeometryUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -7,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
+import frc.robot.arm.Arm.Joint;
 import frc.robot.climber.Climber;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
@@ -56,15 +59,26 @@ public class Superstructure {
             shooter.runShooter(),
             // arm.aim(
             //     () -> PoseEstimation.getInstance().getAimingParameters().aimingJointIndex(),
-            //     () ->
-            // PoseEstimation.getInstance().getAimingParameters().armAngle().getRadians()),
+            //     () -> PoseEstimation.getInstance().getAimingParameters().armAngle()),
             lights.showReadyToShootStatus(
-                drivetrain
-                    .atHeadingGoal
-                    .and(shooter.readyToShoot)
-                    .and(drivetrain.atHeadingGoal)
-                    .and(arm.atGoal)))
+                drivetrain.atHeadingGoal.and(shooter.readyToShoot).and(arm.atGoal)))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+  }
+
+  public static Command aimAtStash(Drivetrain drivetrain, Shooter shooter, Arm arm, Lights lights) {
+    return Commands.parallel(
+        Commands.startEnd(
+            () ->
+                drivetrain.setHeadingGoal(
+                    () ->
+                        GeometryUtil.flipFieldPosition(FieldConstants.stashPosition)
+                            .minus(PoseEstimation.getInstance().getPose().getTranslation())
+                            .getAngle()),
+            drivetrain::clearHeadingGoal),
+        shooter.stashShot(),
+        arm.aim(() -> Joint.kElbow, () -> Rotation2d.fromDegrees(0.0)),
+        lights.showReadyToShootStatus(
+            drivetrain.atHeadingGoal.and(drivetrain.atHeadingGoal).and(arm.atGoal)));
   }
 
   public static Command trapRoutine(Arm arm, Climber climber, Shooter shooter, Feeder feeder) {

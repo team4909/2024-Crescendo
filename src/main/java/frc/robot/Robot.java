@@ -216,7 +216,12 @@ public class Robot extends LoggedRobot {
         .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
     m_driverController
         .leftTrigger()
+        .and(m_drivetrain.inRangeOfGoal)
         .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_arm, m_lights));
+    m_driverController
+        .leftTrigger()
+        .and(m_drivetrain.inRangeOfGoal.negate())
+        .whileTrue(Superstructure.aimAtStash(m_drivetrain, m_shooter, m_arm, m_lights));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_operatorController

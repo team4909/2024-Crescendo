@@ -17,7 +17,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  public static final double kShooterStepUp = Constants.kIsViper ? 0.0 : 0.0;
+  public static final double kShooterStepUp = Constants.kIsViper ? 1.0 : 1.0;
   public static final double kFarShotVelocityRpm = 5800.0;
   private final double kTrapShot = 400.0;
   private final double kAmpShot = 5000.0;
@@ -119,6 +119,15 @@ public class Shooter extends SubsystemBase {
     return this.run(() -> setRollersSetpointRpm(kTrapShot))
         .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
         .withName("Trap Shot (Shooter)");
+  }
+
+  public Command stashShot() {
+    return this.run(
+            () -> {
+              m_io.setTopRollerVoltage(12.0);
+              m_io.setBottomRollerVoltage(12.0);
+            })
+        .withName("Stash Shot (Shooter)");
   }
 
   public Command ampShot() {

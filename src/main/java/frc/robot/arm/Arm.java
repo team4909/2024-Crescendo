@@ -9,6 +9,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -21,7 +22,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.lib.LoggedTunableNumber;
 import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
-import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -177,17 +177,23 @@ public class Arm extends SubsystemBase {
   }
 
   // Joint Index: 0 = elbow, 1 = wrist
-  public Command aim(IntSupplier jointIndexSupplier, DoubleSupplier angleSupplier) {
+  public Command aim(Supplier<Joint> jointIndexSupplier, Supplier<Rotation2d> angleSupplier) {
     return storeInitialAngles()
         .andThen(
             this.run(
                 () -> {
-                  if (jointIndexSupplier.getAsInt() == 0)
+                  if (jointIndexSupplier.get() == Joint.kElbow)
                     runSetpoint(
-                        angleSupplier.getAsDouble(), ArmSetpoints.kStowed.wristAngle, 0.0, 0.0);
-                  else if (jointIndexSupplier.getAsInt() == 1)
+                        angleSupplier.get().getRadians(),
+                        ArmSetpoints.kStowed.wristAngle,
+                        0.0,
+                        0.0);
+                  else if (jointIndexSupplier.get() == Joint.kWrist)
                     runSetpoint(
-                        ArmSetpoints.kStowed.elbowAngle, angleSupplier.getAsDouble(), 0.0, 0.0);
+                        ArmSetpoints.kStowed.elbowAngle,
+                        angleSupplier.get().getRadians(),
+                        0.0,
+                        0.0);
                   else throw new IllegalArgumentException("Invalid joint index.");
                 }))
         .withName("Aim (Arm)");
@@ -214,7 +220,7 @@ public class Arm extends SubsystemBase {
         };
     return Commands.run(
             () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
-        .alongWith(aim(() -> 0, () -> state.currentPos))
+        .alongWith(aim(() -> Joint.kElbow, () -> Rotation2d.fromRadians(state.currentPos)))
         .finallyDo(() -> holdSetpoint().schedule());
   }
 
@@ -225,7 +231,7 @@ public class Arm extends SubsystemBase {
         };
     return Commands.run(
             () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
-        .alongWith(aim(() -> 1, () -> state.currentPos))
+        .alongWith(aim(() -> Joint.kWrist, () -> Rotation2d.fromRadians(state.currentPos)))
         .finallyDo(() -> holdSetpoint().schedule());
   }
 
@@ -293,7 +299,7 @@ public class Arm extends SubsystemBase {
         this, m_io::setWristCurrent, () -> Units.rotationsToRadians(m_inputs.wristVelocityRps));
   }
 
-  public static enum ArmSetpoints {
+  public enum ArmSetpoints {
     kStowed(-0.548, 2.485, 0.15, 0.0),
     kAmp(1.49 + 0.0873, Units.degreesToRadians(230), 0.0, 0.0),
     kClimb(1.633, -2.371, 0.0, 0.0),
@@ -311,5 +317,10 @@ public class Arm extends SubsystemBase {
       this.elbowDelay = elbowDelay;
       this.wristDelay = wristDelay;
     }
+  }
+
+  public enum Joint {
+    kElbow,
+    kWrist
   }
 }

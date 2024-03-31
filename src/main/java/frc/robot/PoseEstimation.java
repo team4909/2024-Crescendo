@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.arm.Arm.Joint;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.vision.Vision.VisionUpdate;
 import java.util.function.BooleanSupplier;
@@ -43,7 +44,7 @@ public class PoseEstimation {
       Rotation2d armAngle,
       double effectiveDistance,
       double driveFeedVelocity,
-      int aimingJointIndex) {}
+      Joint aimingJointIndex) {}
 
   public PoseEstimation() {
     m_poseEstimator =
@@ -137,9 +138,11 @@ public class PoseEstimation {
         m_robotVelocity.dx * vehicleToGoalDirection.getSin() / targetDistance
             - m_robotVelocity.dy * vehicleToGoalDirection.getCos() / targetDistance;
 
-    int jointToAim = targetDistance < jointSwitchDistanceMeters ? 1 : 0;
+    Joint jointToAim = targetDistance < jointSwitchDistanceMeters ? Joint.kWrist : Joint.kElbow;
     double armAngle =
-        jointToAim == 1 ? wristAngleMap.get(targetDistance) : elbowAngleMap.get(targetDistance);
+        jointToAim == Joint.kWrist
+            ? wristAngleMap.get(targetDistance)
+            : elbowAngleMap.get(targetDistance);
 
     m_lastAimingParameters =
         new AimingParameters(
