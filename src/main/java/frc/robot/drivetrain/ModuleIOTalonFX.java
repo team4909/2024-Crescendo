@@ -27,6 +27,7 @@ import java.util.Queue;
 
 public class ModuleIOTalonFX implements ModuleIO {
 
+  private final int kConfigAttempts = 3;
   private final double kDrivekP = 0.15;
   private final double kDrivekS = 0.13;
   private final double kDrivekV = 0.72;
@@ -97,7 +98,6 @@ public class ModuleIOTalonFX implements ModuleIO {
     azimuthEncoderConfig.MagnetSensor.SensorDirection =
         SensorDirectionValue.CounterClockwise_Positive;
     azimuthEncoderConfig.MagnetSensor.MagnetOffset = m_absoluteEncoderMagnetOffset;
-    m_azimuthEncoder.getConfigurator().apply(azimuthEncoderConfig);
 
     final TalonFXConfiguration driveMotorConfig = new TalonFXConfiguration();
     driveMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
@@ -108,7 +108,6 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveMotorConfig.CurrentLimits.StatorCurrentLimit = kSlipCurrent;
     driveMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     driveMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    m_driveMotor.getConfigurator().apply(driveMotorConfig);
     m_driveMotor.setPosition(0.0);
 
     final TalonFXConfiguration steerMotorConfig = new TalonFXConfiguration();
@@ -126,7 +125,16 @@ public class ModuleIOTalonFX implements ModuleIO {
     steerMotorConfig.Slot0.kP = kSteerkP;
     steerMotorConfig.Slot0.kD = kSteerkD;
     steerMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    m_steerMotor.getConfigurator().apply(steerMotorConfig);
+
+    for (int i = 0; i < kConfigAttempts; i++) {
+      boolean errorPresent = m_driveMotor.getConfigurator().apply(driveMotorConfig, 0.1).isOK();
+      errorPresent =
+          errorPresent && (m_steerMotor.getConfigurator().apply(steerMotorConfig, 0.1).isOK());
+      errorPresent =
+          errorPresent
+              && (m_azimuthEncoder.getConfigurator().apply(azimuthEncoderConfig, 0.1).isOK());
+      if (!errorPresent) break;
+    }
 
     m_drivePositionSignal = m_driveMotor.getPosition();
     m_driveVelocitySignal = m_driveMotor.getVelocity();
