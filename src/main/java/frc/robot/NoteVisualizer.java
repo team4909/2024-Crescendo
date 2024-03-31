@@ -27,7 +27,7 @@ public class NoteVisualizer {
 
   public static void showStagedNotes() {
     if (m_notes.isEmpty()) {
-      Logger.recordOutput("NoteVisualizer/StagedNotes");
+      Logger.recordOutput("NoteVisualizer/StagedNotes", new Pose3d[] {});
     }
     // Show auto notes
     Stream<Translation2d> presentNotes = m_notes.stream().filter(Objects::nonNull);
@@ -48,7 +48,7 @@ public class NoteVisualizer {
     if (m_hasNote) {
       Logger.recordOutput("NoteVisualizer/HeldNote", getNotePose());
     } else {
-      Logger.recordOutput("NoteVisualizer/HeldNote", new Pose3d());
+      Logger.recordOutput("NoteVisualizer/HeldNote", new Pose3d[] {});
     }
   }
 
@@ -100,7 +100,8 @@ public class NoteVisualizer {
                                     startPose.interpolate(endPose, timer.get() / duration)
                                   }))
                       .until(() -> timer.hasElapsed(duration))
-                      .finallyDo(() -> Logger.recordOutput("NoteVisualizer/ShotNotes"));
+                      .finallyDo(
+                          () -> Logger.recordOutput("NoteVisualizer/ShotNotes", new Pose3d[] {}));
                 },
                 Set.of())
             .withName("Note Shot Visualization")
