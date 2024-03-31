@@ -307,7 +307,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledInit() {
-    m_lights.startGreenFlow().until(DriverStation::isEnabled).schedule();
+    m_lights.startGreenLarson().until(DriverStation::isEnabled).schedule();
   }
 
   @Override

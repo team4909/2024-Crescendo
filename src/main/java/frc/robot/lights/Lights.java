@@ -3,8 +3,8 @@ package frc.robot.lights;
 import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
 import com.ctre.phoenix.led.CANdleConfiguration;
-import com.ctre.phoenix.led.ColorFlowAnimation;
-import com.ctre.phoenix.led.ColorFlowAnimation.Direction;
+import com.ctre.phoenix.led.LarsonAnimation;
+import com.ctre.phoenix.led.LarsonAnimation.BounceMode;
 import com.ctre.phoenix.led.RainbowAnimation;
 import com.ctre.phoenix.led.StrobeAnimation;
 import edu.wpi.first.wpilibj.util.Color;
@@ -30,7 +30,7 @@ public class Lights extends SubsystemBase {
     config.disableWhenLOS = true;
     config.brightnessScalar = 1;
     m_ledController.configAllSettings(config);
-    setDefaultCommand(startRainbow());
+    setDefaultCommand(idle());
   }
 
   @Override
@@ -41,25 +41,32 @@ public class Lights extends SubsystemBase {
     Logger.recordOutput("CANdle/Temperature", m_ledController.getTemperature());
   }
 
+  public Command idle() {
+    return this.runOnce(() -> m_ledController.setLEDs(0, 0, 0))
+        .andThen(this.run(() -> {}))
+        .ignoringDisable(true);
+  }
+
   public Command startRainbow() {
     return this.runOnce(() -> m_ledController.animate(new RainbowAnimation(1.0, 0.1, kLedCount)))
         .andThen(this.run(() -> {}))
         .ignoringDisable(true);
   }
 
-  public Command startGreenFlow() {
+  public Command startGreenLarson() {
     final ColorRGB color = colorToRGB(Color.kGreen);
     return this.runOnce(
             () ->
                 m_ledController.animate(
-                    new ColorFlowAnimation(
+                    new LarsonAnimation(
                         color.red,
                         color.green,
                         color.blue,
                         0,
                         0.1,
                         kLedCount,
-                        Direction.Forward,
+                        BounceMode.Front,
+                        5,
                         kCandleLedOffset)))
         .andThen(this.run(() -> {}))
         .ignoringDisable(true);
