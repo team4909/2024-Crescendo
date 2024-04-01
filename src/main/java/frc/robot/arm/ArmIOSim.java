@@ -47,6 +47,8 @@ public class ArmIOSim implements ArmIO {
 
   public void updateInputs(ArmIOInputs inputs) {
 
+    m_elbowSim.setInputVoltage(m_elbowAppliedVolts);
+    m_wristSim.setInputVoltage(m_wristAppliedVolts);
     m_elbowSim.update(0.02);
     m_wristSim.update(0.02);
 
@@ -79,7 +81,6 @@ public class ArmIOSim implements ArmIO {
     m_elbowAppliedVolts =
         m_elbowFeedback.calculate(m_currentElbowAngleRot, angleRot)
             + m_elbowFeedforward.calculate(Units.rotationsToRadians(angleRot), 0.0);
-    m_elbowSim.setInputVoltage(m_elbowAppliedVolts);
   }
 
   @Override
@@ -88,8 +89,6 @@ public class ArmIOSim implements ArmIO {
     m_wristAppliedVolts =
         m_wristFeedback.calculate(m_currentWristAngleRot, angleRot)
             + m_wristFeedforward.calculate(Units.rotationsToRadians(angleRot), 0.0);
-
-    m_wristSim.setInputVoltage(m_wristAppliedVolts);
   }
 
   @Override
