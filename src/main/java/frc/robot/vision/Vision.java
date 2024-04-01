@@ -49,7 +49,7 @@ public class Vision {
   // #region Set these to false to disable vision measurements;
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
-  private final boolean kIgnoreVisionInSim = false;
+  private final boolean kIgnoreVisionInSim = true;
   private final boolean kIgnoreVisionInAuto = false;
   // #endregion
   private final VisionIO[] io;

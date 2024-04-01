@@ -4,6 +4,8 @@ import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
 import com.choreo.lib.ChoreoTrajectory;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -15,6 +17,8 @@ import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
 import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
+import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 public class Autos {
 
@@ -26,6 +30,10 @@ public class Autos {
   private final Intake m_intake;
   private final Arm m_arm;
   private final Lights m_lights;
+
+  private final PIDController m_translationController = new PIDController(3.0, 0.0, 0.0);
+  private final PIDController m_rotationController = new PIDController(3.0, 0.0, 0.0);
+  private boolean shootingWhileMoving = false;
 
   public Autos(
       Drivetrain drivetrain,
@@ -75,6 +83,23 @@ public class Autos {
         .withName("Six Piece");
   }
 
+  public Command centerlineDisrupt() {
+    return Commands.sequence(
+            resetPose("CenterlineDisrupt"),
+            toggleShootingWhileMoving(),
+            Commands.deadline(
+                getPathFollowingCommand(
+                    "CenterlineDisrupt.1",
+                    shootWhileMovingControlFunction(() -> shootingWhileMoving)),
+                aimAndShoot().andThen(toggleShootingWhileMoving())))
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+        .withName("Centerline Disrupt");
+  }
+
+  private Command toggleShootingWhileMoving() {
+    return Commands.runOnce(() -> shootingWhileMoving = !shootingWhileMoving);
+  }
+
   private Command getPathFollowingCommand(
       String trajectoryName, ChoreoControlFunction controlFunction) {
     return Choreo.choreoSwerveCommand(
@@ -90,9 +115,28 @@ public class Autos {
     return getPathFollowingCommand(
         trajectoryName,
         Choreo.choreoSwerveController(
-            new PIDController(3.0, 0.0, 0.0),
-            new PIDController(3.0, 0.0, 0.0),
-            new PIDController(3.0, 0.0, 0.0)));
+            m_translationController, m_translationController, m_rotationController));
+  }
+
+  private ChoreoControlFunction shootWhileMovingControlFunction(BooleanSupplier shootingOnTheMove) {
+    return (pose, referenceState) -> {
+      double xFF = referenceState.velocityX;
+      double yFF = referenceState.velocityY;
+      double rotationFF = referenceState.angularVelocity;
+
+      double xFeedback = m_translationController.calculate(pose.getX(), referenceState.x);
+      double yFeedback = m_translationController.calculate(pose.getY(), referenceState.y);
+      double rotationFeedback =
+          m_rotationController.calculate(pose.getRotation().getRadians(), referenceState.heading);
+      double omegaRadiansPerSecond =
+          shootingOnTheMove.getAsBoolean() ? 0.0 : rotationFF + rotationFeedback;
+      Rotation2d robotRotation =
+          shootingOnTheMove.getAsBoolean()
+              ? PoseEstimation.getInstance().getAimingParameters().driveHeading()
+              : pose.getRotation();
+      return ChassisSpeeds.fromFieldRelativeSpeeds(
+          xFF + xFeedback, yFF + yFeedback, omegaRadiansPerSecond, robotRotation);
+    };
   }
 
   private Command resetPose(String trajectoryName) {
@@ -112,7 +156,24 @@ public class Autos {
 
   private Command aim() {
     return Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_arm, m_lights)
-        .alongWith(m_drivetrain.blankDrive());
+        .alongWith(
+            Commands.defer(
+                () -> {
+                  if (shootingWhileMoving) {
+                    return Commands.startEnd(
+                        () ->
+                            m_drivetrain.setHeadingGoal(
+                                () ->
+                                    PoseEstimation.getInstance()
+                                        .getAimingParameters()
+                                        .driveHeading()),
+                        m_drivetrain::clearHeadingGoal);
+                  } else {
+                    return m_drivetrain.blankDrive();
+                  }
+                },
+                Set.of()))
+        .withName("Aim");
   }
 
   private Command aimAndShoot() {
@@ -135,12 +196,14 @@ public class Autos {
                 .repeatedly())
         .beforeStarting(() -> state.timeoutTimer.start())
         .andThen(Commands.print("WARNING: Aim and shoot timed out").onlyIf(state.hasTimedOut))
+        .andThen(m_arm.stop())
         .finallyDo(
             () -> {
               state.timeoutTimer.stop();
               state.timeoutTimer.reset();
               state.hasShot = false;
-            });
+            })
+        .withName("Aim and Shoot");
   }
 
   private Command feedShooter() {

@@ -197,6 +197,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption("Start Signal Logger", Commands.runOnce(SignalLogger::start));
     m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));
     m_autoChooser.addOption("6 Piece", autos.sixPiece());
+    m_autoChooser.addOption("Centerline Disrupt", autos.centerlineDisrupt());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),
