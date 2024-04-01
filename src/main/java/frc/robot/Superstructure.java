@@ -1,6 +1,5 @@
 package frc.robot;
 
-import com.pathplanner.lib.util.GeometryUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,7 +19,6 @@ import frc.robot.shooter.Shooter;
 /** Class of factories for commands that combine multiple subsystems. */
 public class Superstructure {
   public static Command sensorIntake(Feeder feeder, Intake intake) {
-    // In sim just wait 5 seconds since we don't have a sensor
     final Command feedUntilHasNote =
         Commands.either(
             feeder.feed().until(intake.hasIntookPieceSim),
@@ -57,9 +55,9 @@ public class Superstructure {
                         () -> PoseEstimation.getInstance().getAimingParameters().driveHeading()),
                 drivetrain::clearHeadingGoal),
             shooter.runShooter(),
-            // arm.aim(
-            //     () -> PoseEstimation.getInstance().getAimingParameters().aimingJointIndex(),
-            //     () -> PoseEstimation.getInstance().getAimingParameters().armAngle()),
+            arm.aim(
+                () -> PoseEstimation.getInstance().getAimingParameters().aimingJointIndex(),
+                () -> PoseEstimation.getInstance().getAimingParameters().armAngle()),
             lights.showReadyToShootStatus(
                 drivetrain.atHeadingGoal.and(shooter.readyToShoot).and(arm.atGoal)))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
@@ -71,7 +69,8 @@ public class Superstructure {
             () ->
                 drivetrain.setHeadingGoal(
                     () ->
-                        GeometryUtil.flipFieldPosition(FieldConstants.stashPosition)
+                        FieldConstants.stashPositionSupplier
+                            .get()
                             .minus(PoseEstimation.getInstance().getPose().getTranslation())
                             .getAngle()),
             drivetrain::clearHeadingGoal),
