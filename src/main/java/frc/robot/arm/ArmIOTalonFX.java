@@ -100,13 +100,13 @@ public class ArmIOTalonFX implements ArmIO {
 
     final TalonFXConfiguration elbowRightMotorConfig = new TalonFXConfiguration();
     elbowRightMotorConfig.CurrentLimits = currentLimitsConfig;
-    elbowRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    elbowRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_elbowRightFollowerMotor.getConfigurator().apply(elbowRightMotorConfig, 1.0);
     m_elbowRightFollowerMotor.setControl(new Follower(m_elbowLeftMotor.getDeviceID(), true));
 
     final TalonFXConfiguration wristRightMotorConfig = new TalonFXConfiguration();
     wristRightMotorConfig.CurrentLimits = currentLimitsConfig;
-    wristRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    wristRightMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     m_wristRightFollowerMotor.getConfigurator().apply(wristRightMotorConfig, 1.0);
     m_wristRightFollowerMotor.setControl(new Follower(m_wristLeftMotor.getDeviceID(), true));
 

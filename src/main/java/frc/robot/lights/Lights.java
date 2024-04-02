@@ -6,7 +6,9 @@ import com.ctre.phoenix.led.CANdleConfiguration;
 import com.ctre.phoenix.led.LarsonAnimation;
 import com.ctre.phoenix.led.LarsonAnimation.BounceMode;
 import com.ctre.phoenix.led.RainbowAnimation;
+import com.ctre.phoenix.led.SingleFadeAnimation;
 import com.ctre.phoenix.led.StrobeAnimation;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -42,8 +44,11 @@ public class Lights extends SubsystemBase {
   }
 
   public Command idle() {
-    return this.runOnce(() -> m_ledController.setLEDs(0, 0, 0))
-        .andThen(this.run(() -> {}))
+    return Commands.either(
+            startGreenLarson().until(DriverStation::isEnabled),
+            this.runOnce(() -> m_ledController.animate(new SingleFadeAnimation(0, 0, 0, 0, 0, 0)))
+                .andThen(this.run(() -> {})),
+            DriverStation::isDisabled)
         .ignoringDisable(true);
   }
 
@@ -63,10 +68,10 @@ public class Lights extends SubsystemBase {
                         color.green,
                         color.blue,
                         0,
-                        0.1,
-                        kLedCount,
-                        BounceMode.Front,
-                        5,
+                        0.0,
+                        kLedCount - kCandleLedOffset,
+                        BounceMode.Center,
+                        7,
                         kCandleLedOffset)))
         .andThen(this.run(() -> {}))
         .ignoringDisable(true);

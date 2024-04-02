@@ -9,7 +9,7 @@ public class Climber extends SubsystemBase {
   public static final double kWinchReduction = 20.0;
   private final ClimberIO m_io;
   private final ClimberIOInputsAutoLogged m_inputs = new ClimberIOInputsAutoLogged();
-  private final double kTrapLimit = 10.0;
+  private final double kTrapLimitRot = 11.0;
 
   public Climber(ClimberIO climberIO) {
     m_io = climberIO;
@@ -50,14 +50,14 @@ public class Climber extends SubsystemBase {
     return Commands.parallel(
             this.run(
                 () -> {
-                  if (m_inputs.leftWinchPositionRot <= kTrapLimit) m_io.setLeftVoltage(12.0);
+                  if (m_inputs.leftWinchPositionRot <= kTrapLimitRot) m_io.setLeftVoltage(12.0);
                   else m_io.setLeftVoltage(0.0);
-                  if (m_inputs.leftWinchPositionRot <= kTrapLimit) m_io.setRightVoltage(12.0);
+                  if (m_inputs.leftWinchPositionRot <= kTrapLimitRot) m_io.setRightVoltage(12.0);
                   else m_io.setRightVoltage(0.0);
                 }))
         .until(
             () ->
-                m_inputs.leftWinchPositionRot > kTrapLimit
-                    && m_inputs.leftWinchPositionRot > kTrapLimit);
+                m_inputs.leftWinchPositionRot > kTrapLimitRot
+                    && m_inputs.leftWinchPositionRot > kTrapLimitRot);
   }
 }

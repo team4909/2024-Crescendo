@@ -22,7 +22,7 @@ public class PoseEstimation {
   private final SwerveDrivePoseEstimator m_poseEstimator;
   private final BooleanSupplier lookaheadDisable = () -> false;
   private final double kLookaheadSeconds = 0.35;
-  private final double jointSwitchDistanceMeters = 2.35;
+  private final double jointSwitchDistanceMeters = 3.0;
   private Twist2d m_robotVelocity = new Twist2d();
   private AimingParameters m_lastAimingParameters = null;
 

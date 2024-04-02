@@ -345,9 +345,7 @@ public class Drivetrain extends SubsystemBase {
 
   @AutoLogOutput(key = "Drivetrain/InRangeOfGoal")
   public boolean inRange() {
-    return MathUtil.isNear(
-        inRangeRadius.get(),
-        PoseEstimation.getInstance().getAimingParameters().effectiveDistance(),
-        inRangeTolerance.get());
+    return PoseEstimation.getInstance().getAimingParameters().effectiveDistance()
+        < inRangeRadius.get();
   }
 }

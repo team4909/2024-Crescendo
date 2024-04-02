@@ -209,7 +209,6 @@ public class Robot extends LoggedRobot {
         .or(m_feeder.hasNote)
         .onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
     m_feeder.hasNote.whileTrue(m_lights.startBlink(Color.kOrangeRed));
-    m_drivetrain.inRangeOfGoal.whileTrue(m_lights.startBlink(Color.kBlue));
 
     m_driverController
         .rightTrigger()
@@ -218,11 +217,13 @@ public class Robot extends LoggedRobot {
     m_driverController
         .leftTrigger()
         .and(m_drivetrain.inRangeOfGoal)
-        .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_arm, m_lights));
+        .whileTrue(Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_arm, m_lights))
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
     m_driverController
         .leftTrigger()
         .and(m_drivetrain.inRangeOfGoal.negate())
-        .whileTrue(Superstructure.aimAtStash(m_drivetrain, m_shooter, m_arm, m_lights));
+        .whileTrue(Superstructure.aimAtStash(m_drivetrain, m_shooter, m_arm, m_lights))
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_operatorController
@@ -240,7 +241,7 @@ public class Robot extends LoggedRobot {
     m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));
     m_driverController
         .x()
-        .whileTrue(Superstructure.trapRoutine(m_arm, m_climber, m_shooter, m_feeder));
+        .whileTrue(Superstructure.trapRoutine(m_arm, m_climber, m_shooter, m_lights));
     m_driverController
         .y()
         .whileTrue(new DriveToPose(FieldConstants.trapPose, m_drivetrain, m_lights));
@@ -312,9 +313,7 @@ public class Robot extends LoggedRobot {
   public void teleopPeriodic() {}
 
   @Override
-  public void disabledInit() {
-    m_lights.startGreenLarson().until(DriverStation::isEnabled).schedule();
-  }
+  public void disabledInit() {}
 
   @Override
   public void disabledPeriodic() {}
