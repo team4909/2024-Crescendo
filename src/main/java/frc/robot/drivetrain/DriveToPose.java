@@ -116,9 +116,9 @@ public class DriveToPose extends Command {
     Logger.recordOutput("DriveToPose/ThetaMeasured", currentPose.getRotation().getRadians());
     Logger.recordOutput("DriveToPose/ThetaSetpoint", m_thetaController.getSetpoint().position);
     Logger.recordOutput(
-        "DriveToPoseSetpoint/Setpoint",
+        "DriveToPose/Setpoint",
         new Pose2d(
             m_lastSetpointTranslation, new Rotation2d(m_thetaController.getSetpoint().position)));
-    Logger.recordOutput("DriveToPoseSetpoint/Goal", m_goalPose);
+    Logger.recordOutput("DriveToPose/Goal", m_goalPose);
   }
 }

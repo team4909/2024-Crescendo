@@ -57,10 +57,8 @@ public class Drivetrain extends SubsystemBase {
       new SwerveDriveKinematics(m_modulePositions);
   public static final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
-  private static final LoggedTunableNumber inRangeRadius =
+  private static final LoggedTunableNumber speakerRange =
       new LoggedTunableNumber("Drivetrain/InRangeRadius", 5.0);
-  private static final LoggedTunableNumber inRangeTolerance =
-      new LoggedTunableNumber("Drivetrain/InRangeTolerance", 0.25);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.1;
@@ -346,6 +344,6 @@ public class Drivetrain extends SubsystemBase {
   @AutoLogOutput(key = "Drivetrain/InRangeOfGoal")
   public boolean inRange() {
     return PoseEstimation.getInstance().getAimingParameters().effectiveDistance()
-        < inRangeRadius.get();
+        <= speakerRange.get();
   }
 }
