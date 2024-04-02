@@ -308,7 +308,7 @@ public class Arm extends SubsystemBase {
     kAmp(1.49 + 0.0873, Units.degreesToRadians(230), 0.0, 0.0),
     kClimb(1.633, -2.371, 0.0, 0.0),
     kTrap(Units.degreesToRadians(53.0), Units.degreesToRadians(80.0), 0.0, 0.0),
-    kStash(Units.degreesToRadians(0.0), Units.degreesToRadians(180.0), 0.0, 0.0);
+    kStash(Units.degreesToRadians(10.0), Units.degreesToRadians(170.0), 0.0, 0.0);
 
     public final double elbowAngle;
     public final double wristAngle;
