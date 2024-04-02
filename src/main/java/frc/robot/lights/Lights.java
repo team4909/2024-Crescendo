@@ -47,7 +47,8 @@ public class Lights extends SubsystemBase {
     return Commands.either(
             startGreenLarson().until(DriverStation::isEnabled),
             this.runOnce(() -> m_ledController.animate(new SingleFadeAnimation(0, 0, 0, 0, 0, 0)))
-                .andThen(this.run(() -> {})),
+                .andThen(this.run(() -> {}))
+                .until(DriverStation::isDisabled),
             DriverStation::isDisabled)
         .ignoringDisable(true);
   }
