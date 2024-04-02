@@ -24,15 +24,15 @@ public class Shooter extends SubsystemBase {
   private final double kReadyToShootToleranceRps = 3.0;
 
   // Denominator for gains here are in rotations
-  public static final double topRollerkS = 0.081727;
-  public static final double topRollerkV = 0.11753;
-  public static final double topRollerkA = 0.015313;
-  public static final double bottomRollerkS = 0.11496;
-  public static final double bottomRollerkV = 0.11868;
-  public static final double bottomRollerkA = 0.0141;
+  public static final double topRollerkS = 0.15945;
+  public static final double topRollerkV = 0.11596;
+  public static final double topRollerkA = 0.013645;
+  public static final double bottomRollerkS = 0.11589;
+  public static final double bottomRollerkV = 0.11618;
+  public static final double bottomRollerkA = 0.015157;
 
-  public static final double topRollerkP = 0.17726;
-  public static final double bottomRollerkP = 0.17918;
+  public static final double topRollerkP = 0.176;
+  public static final double bottomRollerkP = 0.176;
 
   private final SysIdRoutine m_sysIdRoutine;
   private final ShooterIO m_io;
