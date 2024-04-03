@@ -9,7 +9,7 @@ public class Climber extends SubsystemBase {
   public static final double kWinchReduction = 20.0;
   private final ClimberIO m_io;
   private final ClimberIOInputsAutoLogged m_inputs = new ClimberIOInputsAutoLogged();
-  private final double kTrapLimitRot = 11.0;
+  private final double kTrapLimitRot = 10.5;
 
   public Climber(ClimberIO climberIO) {
     m_io = climberIO;

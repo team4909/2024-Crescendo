@@ -6,7 +6,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -197,6 +196,7 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption("Start Signal Logger", Commands.runOnce(SignalLogger::start));
     m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));
     m_autoChooser.addOption("6 Piece", autos.sixPiece());
+    m_autoChooser.addOption("3 Note Source Side w/ Vision", autos.threePieceSourceSide());
     m_autoChooser.addOption("Centerline Disrupt", autos.centerlineDisrupt());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
@@ -208,12 +208,12 @@ public class Robot extends LoggedRobot {
         .hasIntookPieceSim
         .or(m_feeder.hasNote)
         .onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
-    m_feeder.hasNote.whileTrue(m_lights.startBlink(Color.kOrangeRed));
+    m_feeder.hasNote.onTrue(m_lights.noteBlink());
 
     m_driverController
         .rightTrigger()
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.shoot()))
-        .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
+        .onFalse(Commands.runOnce(m_shooter.getCurrentCommand()::cancel));
     m_driverController
         .leftTrigger()
         .and(m_drivetrain.inRangeOfGoal)
@@ -236,16 +236,16 @@ public class Robot extends LoggedRobot {
         .onFalse(m_arm.holdSetpoint());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
-    m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
-    m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));
+    m_operatorController.rightStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStash));
+    m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
+    m_driverController.x().whileTrue(Commands.parallel(m_climber.windWinch()));
     m_driverController
-        .x()
-        .whileTrue(Superstructure.trapRoutine(m_arm, m_climber, m_shooter, m_lights));
+        .b()
+        .whileTrue(Superstructure.autoTrap(m_arm, m_climber, m_shooter, m_lights));
     m_driverController
         .y()
         .whileTrue(new DriveToPose(FieldConstants.trapPose, m_drivetrain, m_lights));
     m_driverController.povRight().onTrue(m_shooter.trapShot());
-
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
     m_operatorController
         .leftTrigger()
@@ -313,7 +313,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void disabledInit() {
-    m_lights.getCurrentCommand().cancel();
+    if (m_lights.getCurrentCommand() != null) m_lights.getCurrentCommand().cancel();
   }
 
   @Override

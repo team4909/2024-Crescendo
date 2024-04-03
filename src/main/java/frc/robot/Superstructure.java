@@ -82,11 +82,12 @@ public class Superstructure {
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }
 
-  public static Command trapRoutine(Arm arm, Climber climber, Shooter shooter, Lights lights) {
+  public static Command autoTrap(Arm arm, Climber climber, Shooter shooter, Lights lights) {
     return Commands.sequence(
-        new ScheduleCommand(arm.goToSetpoint(ArmSetpoints.kTrap)),
-        climber.goToTrapLimit(),
-        new ScheduleCommand(lights.startBlink(Color.kGreen)),
-        new ScheduleCommand(shooter.trapShot()));
+            new ScheduleCommand(arm.goToSetpoint(ArmSetpoints.kTrap)),
+            climber.goToTrapLimit(),
+            new ScheduleCommand(lights.startBlink(Color.kGreen)),
+            new ScheduleCommand(shooter.trapShot()))
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }
 }

@@ -83,6 +83,18 @@ public class Autos {
         .withName("Six Piece");
   }
 
+  public Command threePieceSourceSide() {
+    return Commands.sequence(
+            resetPose("3PieceSourceSide"),
+            aimAndShoot(),
+            intake().deadlineWith(getPathFollowingCommand("3PieceSourceSide.1")),
+            aimAndShoot(),
+            intake().deadlineWith(getPathFollowingCommand("3PieceSourceSide.2")),
+            aimAndShoot())
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+        .withName("Three Piece Source Side");
+  }
+
   public Command centerlineDisrupt() {
     return Commands.sequence(
             resetPose("CenterlineDisrupt"),

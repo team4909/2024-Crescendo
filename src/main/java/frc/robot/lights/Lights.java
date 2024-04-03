@@ -47,8 +47,7 @@ public class Lights extends SubsystemBase {
     return Commands.either(
             startGreenLarson().until(DriverStation::isEnabled),
             this.runOnce(() -> m_ledController.animate(new SingleFadeAnimation(0, 0, 0, 0, 0, 0)))
-                .andThen(this.run(() -> {}))
-                .until(DriverStation::isDisabled),
+                .andThen(this.run(() -> {})),
             DriverStation::isDisabled)
         .ignoringDisable(true);
   }
@@ -80,6 +79,12 @@ public class Lights extends SubsystemBase {
 
   public Command startBlink(Color color) {
     return Commands.sequence(this.runOnce(() -> setBlink(color)), this.run(() -> {}))
+        .ignoringDisable(true);
+  }
+
+  public Command noteBlink() {
+    return Commands.sequence(
+            this.runOnce(() -> setBlink(Color.kOrange)), this.run(() -> {}).withTimeout(2.0))
         .ignoringDisable(true);
   }
 
