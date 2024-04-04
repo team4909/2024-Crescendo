@@ -1,5 +1,6 @@
 package frc.robot.intake;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.BaseTalon;
@@ -65,7 +66,7 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
-    inputs.allMotorsConnected =
+    inputs.rollerMotorsConnected =
         BaseStatusSignal.refreshAll(
                 m_topRollerVelocitySignal,
                 m_topRollerAppliedVoltageSignal,
@@ -74,6 +75,7 @@ public class IntakeIOTalonFX implements IntakeIO {
                 m_bottomRollerAppliedVoltageSignal,
                 m_bottomRollerCurrentSignal)
             .isOK();
+    inputs.centeringMotorConnected = m_centeringMotors.getLastError() == ErrorCode.OK;
 
     inputs.topRollerVelocityRpm = m_topRollerVelocitySignal.getValue() * 60.0;
     inputs.topRollerAppliedVolts = m_topRollerAppliedVoltageSignal.getValue();

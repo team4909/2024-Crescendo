@@ -87,9 +87,11 @@ public class Autos {
     return Commands.sequence(
             resetPose("3PieceSourceSide"),
             aimAndShoot(),
-            intake().deadlineWith(getPathFollowingCommand("3PieceSourceSide.1")),
+            intake().raceWith(getPathFollowingCommand("3PieceSourceSide.1")),
+            getPathFollowingCommand("3PieceSourceSide.2"),
             aimAndShoot(),
-            intake().deadlineWith(getPathFollowingCommand("3PieceSourceSide.2")),
+            intake().raceWith(getPathFollowingCommand("3PieceSourceSide.3")),
+            getPathFollowingCommand("3PieceSourceSide.4"),
             aimAndShoot())
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Three Piece Source Side");
@@ -115,12 +117,13 @@ public class Autos {
   private Command getPathFollowingCommand(
       String trajectoryName, ChoreoControlFunction controlFunction) {
     return Choreo.choreoSwerveCommand(
-        Choreo.getTrajectory(trajectoryName),
-        PoseEstimation.getInstance()::getPose,
-        controlFunction,
-        m_drivetrain::runVelocity,
-        Constants.onRedAllianceSupplier,
-        m_drivetrain);
+            Choreo.getTrajectory(trajectoryName),
+            PoseEstimation.getInstance()::getPose,
+            controlFunction,
+            m_drivetrain::runVelocity,
+            Constants.onRedAllianceSupplier,
+            m_drivetrain)
+        .andThen(Commands.waitSeconds(3.0));
   }
 
   private Command getPathFollowingCommand(String trajectoryName) {

@@ -21,7 +21,7 @@ public class Shooter extends SubsystemBase {
   public static final double kFarShotVelocityRpm = 5800.0;
   private final double kTrapShot = 400.0;
   private final double kAmpShot = 5000.0;
-  private final double kReadyToShootToleranceRps = 3.0;
+  private final double kReadyToShootToleranceRps = 5.0;
 
   // Denominator for gains here are in rotations
   public static final double topRollerkS = 0.15945;

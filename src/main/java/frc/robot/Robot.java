@@ -236,7 +236,10 @@ public class Robot extends LoggedRobot {
         .onFalse(m_arm.holdSetpoint());
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
-    m_operatorController.rightStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStash));
+    m_operatorController
+        .rightStick()
+        .whileTrue(m_arm.goToSetpoint(ArmSetpoints.kStash))
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
     m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
     m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));
     m_driverController
@@ -259,6 +262,7 @@ public class Robot extends LoggedRobot {
         .onTrue(Commands.parallel(m_arm.aimWrist(2.083), m_shooter.runShooter()))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
+    m_driverController.povDown().whileTrue(m_feeder.feed().alongWith(m_intake.spit()));
     m_operatorController.y().whileTrue(m_shooter.runShooter());
     m_operatorController
         .leftBumper()

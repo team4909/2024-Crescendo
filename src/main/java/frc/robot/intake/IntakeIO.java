@@ -16,7 +16,8 @@ public interface IntakeIO {
     public double centeringBagMotorsAppliedVolts = 0.0;
     public double centeringBagMotorsCurrentAmps = 0.0;
 
-    public boolean allMotorsConnected = false;
+    public boolean rollerMotorsConnected = false;
+    public boolean centeringMotorConnected = false;
   }
 
   public default void updateInputs(IntakeIOInputs inputs) {}
