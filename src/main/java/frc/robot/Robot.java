@@ -213,7 +213,7 @@ public class Robot extends LoggedRobot {
     m_driverController
         .rightTrigger()
         .whileTrue(Commands.parallel(m_intake.intake(), m_feeder.shoot()))
-        .onFalse(Commands.runOnce(m_shooter.getCurrentCommand()::cancel));
+        .onFalse(Commands.runOnce(() -> m_shooter.getCurrentCommand().cancel()));
     m_driverController
         .leftTrigger()
         .and(m_drivetrain.inRangeOfGoal)
@@ -237,10 +237,10 @@ public class Robot extends LoggedRobot {
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_operatorController.rightStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kStash));
-    m_driverController.x().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
-    m_driverController.x().whileTrue(Commands.parallel(m_climber.windWinch()));
+    m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
+    m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));
     m_driverController
-        .b()
+        .x()
         .whileTrue(Superstructure.autoTrap(m_arm, m_climber, m_shooter, m_lights));
     m_driverController
         .y()

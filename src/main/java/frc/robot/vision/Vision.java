@@ -165,9 +165,9 @@ public class Vision {
     final Vector<N3> rejectMeasurement =
         VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     final boolean moving =
-        Math.abs(PoseEstimation.getInstance().getFieldVelocity().dx) >= 0.01
-            || Math.abs(PoseEstimation.getInstance().getFieldVelocity().dy) >= 0.01
-            || Math.abs(PoseEstimation.getInstance().getFieldVelocity().dtheta) >= 0.01;
+        Math.abs(PoseEstimation.getInstance().getFieldVelocity().dx) >= 1.5
+            || Math.abs(PoseEstimation.getInstance().getFieldVelocity().dy) >= 1.5
+            || Math.abs(PoseEstimation.getInstance().getFieldVelocity().dtheta) >= 1.5;
     if ((Constants.kIsSim && kIgnoreVisionInSim)
         || (DriverStation.isAutonomous() && (kIgnoreVisionInAuto || moving)))
       return rejectMeasurement;

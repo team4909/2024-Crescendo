@@ -84,7 +84,7 @@ public class Lights extends SubsystemBase {
 
   public Command noteBlink() {
     return Commands.sequence(
-            this.runOnce(() -> setBlink(Color.kOrange)), this.run(() -> {}).withTimeout(2.0))
+            this.runOnce(() -> setBlink(Color.kOrangeRed)), this.run(() -> {}).withTimeout(2.0))
         .ignoringDisable(true);
   }
 
