@@ -203,11 +203,7 @@ public class Autos {
             aim().until(() -> state.hasShot),
             Commands.sequence(feedShooter(), Commands.runOnce(() -> state.hasShot = true))
                 .onlyIf(
-                    m_drivetrain
-                        .atHeadingGoal
-                        .and(m_shooter.readyToShoot)
-                        .and(m_arm.atGoal)
-                        .or(state.hasTimedOut))
+                    m_drivetrain.atHeadingGoal.and(m_shooter.readyToShoot).or(state.hasTimedOut))
                 .repeatedly())
         .beforeStarting(() -> state.timeoutTimer.start())
         .andThen(Commands.print("WARNING: Aim and shoot timed out").onlyIf(state.hasTimedOut))
