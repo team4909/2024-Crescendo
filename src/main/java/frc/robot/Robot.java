@@ -195,6 +195,7 @@ public class Robot extends LoggedRobot {
 
     m_autoChooser.addOption("Start Signal Logger", Commands.runOnce(SignalLogger::start));
     m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));
+    m_autoChooser.addOption("Sub Shot", autos.subShot());
     m_autoChooser.addOption("6 Piece", autos.sixPiece());
     m_autoChooser.addOption("3 Note Source Side w/ Vision", autos.threePieceSourceSide());
     m_autoChooser.addOption("Centerline Disrupt", autos.centerlineDisrupt());
@@ -249,6 +250,7 @@ public class Robot extends LoggedRobot {
         .y()
         .whileTrue(new DriveToPose(FieldConstants.trapPose, m_drivetrain, m_lights));
     m_driverController.povRight().onTrue(m_shooter.trapShot());
+    m_driverController.povLeft().whileTrue(m_shooter.trapAssist());
     m_driverController.leftBumper().whileTrue(Superstructure.sensorIntake(m_feeder, m_intake));
     m_operatorController
         .leftTrigger()

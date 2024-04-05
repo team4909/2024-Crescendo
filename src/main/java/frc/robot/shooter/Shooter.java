@@ -121,6 +121,15 @@ public class Shooter extends SubsystemBase {
         .withName("Trap Shot (Shooter)");
   }
 
+  public Command trapAssist() {
+    return this.run(
+            () -> {
+              m_io.setTopRollerVelocity(kTrapShot / 60.0);
+              m_io.setBottomRollerVelocity(-kTrapShot / 60.0);
+            })
+        .withName("Trap Assist");
+  }
+
   public Command stashShot() {
     return this.run(
             () -> {

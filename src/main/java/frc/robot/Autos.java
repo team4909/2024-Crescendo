@@ -50,6 +50,13 @@ public class Autos {
     m_lights = lights;
   }
 
+  public Command subShot() {
+    return Commands.parallel(
+            m_arm.aimWrist(Arm.kSubwooferWristAngleRad),
+            shoot(true).beforeStarting(Commands.waitSeconds(2.0)))
+        .withName("Sub Shot");
+  }
+
   public Command centerlineTwoPiece() {
     return Commands.sequence(
             resetPose("Centerline Auto"),
