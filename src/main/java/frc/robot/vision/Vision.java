@@ -144,7 +144,7 @@ public class Vision {
     }
 
     Logger.recordOutput(
-        "Vision/AllEstimatedPoses",
+        "Vision/InvalidEstimatedPoses",
         m_allEstimatedPosesToLog.stream().map(applyPoseOffset).toArray(Pose3d[]::new));
     Logger.recordOutput(
         "Vision/ValidEstimatedPoses",
