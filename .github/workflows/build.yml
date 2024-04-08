@@ -16,3 +16,5 @@ jobs:
         run: chmod +x gradlew
       - name: Build robot code
         run: ./gradlew build
+      - name: Check formatting
+        run: ./gradlew spotlessCheck
