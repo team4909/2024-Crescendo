@@ -1,5 +1,6 @@
 package frc.robot.lights;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
 import com.ctre.phoenix.led.CANdleConfiguration;
@@ -41,6 +42,7 @@ public class Lights extends SubsystemBase {
     Logger.recordOutput("CANdle/5VRailVoltage", m_ledController.get5VRailVoltage());
     Logger.recordOutput("CANdle/Current", m_ledController.getCurrent());
     Logger.recordOutput("CANdle/Temperature", m_ledController.getTemperature());
+    Logger.recordOutput("CANdle/Connected", m_ledController.getLastError() == ErrorCode.OK);
   }
 
   public Command idle() {
