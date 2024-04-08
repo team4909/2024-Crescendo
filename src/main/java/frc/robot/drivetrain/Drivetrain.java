@@ -57,7 +57,7 @@ public class Drivetrain extends SubsystemBase {
       new SwerveDriveKinematics(m_modulePositions);
   public static final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
-  private static final LoggedTunableNumber speakerRange =
+  private static final LoggedTunableNumber speakerRangeMeters =
       new LoggedTunableNumber("Drivetrain/InRangeRadius", 5.0);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
@@ -145,8 +145,8 @@ public class Drivetrain extends SubsystemBase {
     }
 
     if (DriverStation.isDisabled()) {
-      Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-      Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+      Logger.recordOutput("Drivetrain/SwerveStates/Setpoints", new SwerveModuleState[] {});
+      Logger.recordOutput("Drivetrain/SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
       for (Module module : m_modules) module.stop();
     }
 
@@ -201,8 +201,8 @@ public class Drivetrain extends SubsystemBase {
           m_modules[moduleIndex].setSetpoint(setpointStates[moduleIndex]);
     }
 
-    Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
-    Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
+    Logger.recordOutput("Drivetrain/SwerveStates/Setpoints", setpointStates);
+    Logger.recordOutput("Drivetrain/SwerveStates/SetpointsOptimized", optimizedSetpointStates);
   }
 
   public void runWheelRadiusCharacterization(double characterizationInput) {
@@ -313,12 +313,12 @@ public class Drivetrain extends SubsystemBase {
         targetPose -> Logger.recordOutput("Drivetrain/TrajectorySetpoint", targetPose));
   }
 
-  @AutoLogOutput(key = "SwerveStates/StatesMeasured")
+  @AutoLogOutput(key = "Drivetrain/SwerveStates/StatesMeasured")
   private SwerveModuleState[] getModuleStates() {
     return Arrays.stream(m_modules).map(Module::getState).toArray(SwerveModuleState[]::new);
   }
 
-  @AutoLogOutput(key = "SwerveStates/PositionsMeasured")
+  @AutoLogOutput(key = "Drivetrain/SwerveStates/PositionsMeasured")
   private SwerveModulePosition[] getModulePositions() {
     return Arrays.stream(m_modules).map(Module::getPosition).toArray(SwerveModulePosition[]::new);
   }
@@ -344,6 +344,6 @@ public class Drivetrain extends SubsystemBase {
   @AutoLogOutput(key = "Drivetrain/InRangeOfGoal")
   public boolean inRange() {
     return PoseEstimation.getInstance().getAimingParameters().effectiveDistance()
-        <= speakerRange.get();
+        <= speakerRangeMeters.get();
   }
 }

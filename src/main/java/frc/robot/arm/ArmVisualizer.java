@@ -46,7 +46,7 @@ public class ArmVisualizer {
   public void update(double elbowAngleRad, double wristAngleRad) {
     m_elbowLigament.setAngle(Units.radiansToDegrees(elbowAngleRad) - kShoulderAngleDegrees);
     m_wristLigament.setAngle(Units.radiansToDegrees(wristAngleRad - elbowAngleRad));
-    Logger.recordOutput("Mechanism2d/" + m_logKey, m_mechanism);
+    Logger.recordOutput("Arm/Mechanism2d/" + m_logKey, m_mechanism);
 
     m_elbowPose =
         new Pose3d(origin.getX(), 0.0, origin.getY(), new Rotation3d(0.0, -elbowAngleRad, 0.0));
@@ -55,7 +55,7 @@ public class ArmVisualizer {
             new Transform3d(
                 new Translation3d(ArmConstants.kElbowLengthMeters, 0.0, 0.0),
                 new Rotation3d(0.0, -(wristAngleRad - elbowAngleRad), 0.0)));
-    Logger.recordOutput("Mechanism3d/" + m_logKey, m_elbowPose, m_wristPose);
+    Logger.recordOutput("Arm/Mechanism3d/" + m_logKey, m_elbowPose, m_wristPose);
   }
 
   public Pose3d getWristPose() {
