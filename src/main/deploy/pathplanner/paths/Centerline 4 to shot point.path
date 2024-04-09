@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.220329239171783,
-        "y": 1.0906197179259107
+        "x": 5.091835361817993,
+        "y": 0.5557362183607982
       },
       "isLocked": false,
       "linkedName": "Centerline4"
@@ -20,8 +20,8 @@
         "y": 3.3091489994467262
       },
       "prevControl": {
-        "x": 4.1148072171774785,
-        "y": 1.504780349665863
+        "x": 4.263105913385225,
+        "y": 0.0
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,7 +31,7 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 0.25,
-      "rotationDegrees": -70.0,
+      "rotationDegrees": -33.545806856999825,
       "rotateFast": false
     }
   ],

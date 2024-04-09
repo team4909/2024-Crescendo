@@ -221,7 +221,7 @@ public class Arm extends SubsystemBase {
     return Commands.run(
             () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
         .alongWith(aim(() -> Joint.kElbow, () -> Rotation2d.fromRadians(state.currentPos)))
-        .finallyDo(() -> holdSetpoint().schedule());
+        .withName("Aim Elbow for Tuning");
   }
 
   public Command aimWristForTuning(DoubleSupplier driveEffort) {
@@ -232,7 +232,7 @@ public class Arm extends SubsystemBase {
     return Commands.run(
             () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
         .alongWith(aim(() -> Joint.kWrist, () -> Rotation2d.fromRadians(state.currentPos)))
-        .finallyDo(() -> holdSetpoint().schedule());
+        .withName("Aim Wrist For Tuning");
   }
 
   public Command holdSetpoint() {
@@ -304,7 +304,7 @@ public class Arm extends SubsystemBase {
   }
 
   public enum ArmSetpoints {
-    kStowed(-0.548, 2.485, 0.15, 0.0),
+    kStowed(Units.degreesToRadians(-31), Units.degreesToRadians(142), 0.15, 0.0),
     kAmp(1.49 + 0.0873 + Units.degreesToRadians(3.0), Units.degreesToRadians(228), 0.0, 0.0),
     kClimb(1.633, -2.371, 0.0, 0.0),
     kTrap(Units.degreesToRadians(53.0), Units.degreesToRadians(80.0), 0.0, 0.0),

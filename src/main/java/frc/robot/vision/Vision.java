@@ -50,7 +50,7 @@ public class Vision {
   private final boolean kTrustVisionXY = true;
   private final boolean kTrustVisionTheta = true;
   private final boolean kIgnoreVisionInSim = true;
-  private final boolean kIgnoreVisionInAuto = false;
+  private final boolean kIgnoreVisionInAuto = Constants.kIsViper ? true : false;
   // #endregion
   private final VisionIO[] io;
   private final VisionIOInputs[] m_inputs;

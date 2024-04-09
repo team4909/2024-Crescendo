@@ -229,12 +229,10 @@ public class Robot extends LoggedRobot {
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_operatorController
         .a()
-        .whileTrue(m_arm.aimElbowForTuning(() -> -m_operatorController.getLeftY()))
-        .onFalse(m_arm.holdSetpoint());
+        .toggleOnTrue(m_arm.aimElbowForTuning(() -> -m_operatorController.getLeftY()));
     m_operatorController
         .b()
-        .whileTrue(m_arm.aimWristForTuning(() -> -m_operatorController.getLeftY()))
-        .onFalse(m_arm.holdSetpoint());
+        .toggleOnTrue(m_arm.aimWristForTuning(() -> -m_operatorController.getLeftY()));
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_operatorController
