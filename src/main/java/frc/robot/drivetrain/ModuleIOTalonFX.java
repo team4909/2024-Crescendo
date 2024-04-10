@@ -68,7 +68,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(4, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(3, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(12, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.37353515625 : 0.070556640625;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.37353515625 : 0.05029296875;
         break;
       case 1: // FR
         m_driveMotor = new TalonFX(6, Constants.kDrivetrainCanBus);
@@ -80,13 +80,13 @@ public class ModuleIOTalonFX implements ModuleIO {
         m_driveMotor = new TalonFX(2, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(1, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(11, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.275634765625 : 0.08740234375;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.275634765625 : 0.089599609375;
         break;
       case 3: // BR
         m_driveMotor = new TalonFX(7, Constants.kDrivetrainCanBus);
         m_steerMotor = new TalonFX(8, Constants.kDrivetrainCanBus);
         m_azimuthEncoder = new CANcoder(14, Constants.kDrivetrainCanBus);
-        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.314208984375 : -0.436767578125;
+        m_absoluteEncoderMagnetOffset = Constants.kIsViper ? 0.314208984375 : -0.43701171875;
         break;
       default:
         throw new RuntimeException("Invalid module index");
