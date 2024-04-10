@@ -79,6 +79,7 @@ public class Shooter extends SubsystemBase {
 
   @AutoLogOutput(key = "Shooter/RollersAtSetpoint")
   private boolean getRollersAtSetpoint() {
+    if (m_lastSetpoint == 0) return false;
     return MathUtil.isNear(
             m_lastSetpoint, m_inputs.bottomRollerVelocityRps, kReadyToShootToleranceRps)
         && MathUtil.isNear(

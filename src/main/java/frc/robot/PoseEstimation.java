@@ -22,7 +22,7 @@ public class PoseEstimation {
   private final SwerveDrivePoseEstimator m_poseEstimator;
   private final BooleanSupplier lookaheadDisable = () -> false;
   private final double kLookaheadSeconds = 0.35;
-  private final double jointSwitchDistanceMeters = 3.0;
+  private final double jointSwitchDistanceMeters = Double.POSITIVE_INFINITY;
   private Twist2d m_robotVelocity = new Twist2d();
   private AimingParameters m_lastAimingParameters = null;
 
@@ -79,9 +79,9 @@ public class PoseEstimation {
 
   @AutoLogOutput(key = "PoseEstimation/EstimatedPose")
   public Pose2d getPose() {
-    final Pose2d estimatedPosition = m_poseEstimator.getEstimatedPosition();
-    return estimatedPosition.transformBy(
-        new Transform2d(Constants.poseOffset.toTranslation2d(), new Rotation2d()));
+    return m_poseEstimator
+        .getEstimatedPosition()
+        .transformBy(new Transform2d(Constants.poseOffset.toTranslation2d(), new Rotation2d()));
   }
 
   @AutoLogOutput(key = "PoseEstimation/FieldVelocity")

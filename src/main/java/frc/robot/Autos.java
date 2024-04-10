@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.arm.Arm;
+import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
@@ -51,9 +52,8 @@ public class Autos {
   }
 
   public Command subShot() {
-    return Commands.parallel(
-            m_arm.aimWrist(Arm.kSubwooferWristAngleRad),
-            shoot(true).beforeStarting(Commands.waitSeconds(2.0)))
+    return shoot(false)
+        .deadlineWith(m_arm.aimWrist(Arm.kSubwooferWristAngleRad))
         .withName("Sub Shot");
   }
 
@@ -93,15 +93,48 @@ public class Autos {
   public Command threePieceSourceSide() {
     return Commands.sequence(
             resetPose("3PieceSourceSide"),
-            aimAndShoot(),
-            intake().raceWith(getPathFollowingCommand("3PieceSourceSide.1")),
+            subShot(),
+            intake()
+                .raceWith(
+                    getPathFollowingCommand("3PieceSourceSide.1"),
+                    m_arm.goToSetpoint(ArmSetpoints.kStowed)),
             getPathFollowingCommand("3PieceSourceSide.2"),
-            aimAndShoot(),
+            shoot(false),
             intake().raceWith(getPathFollowingCommand("3PieceSourceSide.3")),
             getPathFollowingCommand("3PieceSourceSide.4"),
-            aimAndShoot())
+            shoot(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Three Piece Source Side");
+  }
+
+  public Command threePieceSourceSideLower() {
+    return Commands.sequence(
+            resetPose("3PieceSourceSideLower"),
+            subShot(),
+            intake()
+                .raceWith(
+                    getPathFollowingCommand("3PieceSourceSideLower.1"),
+                    m_arm.goToSetpoint(ArmSetpoints.kStowed)),
+            getPathFollowingCommand("3PieceSourceSideLower.2"),
+            shoot(false),
+            intake().raceWith(getPathFollowingCommand("3PieceSourceSideLower.3")),
+            getPathFollowingCommand("3PieceSourceSideLower.4"),
+            shoot(false))
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+        .withName("Three Piece Source Side Lower");
+  }
+
+  public Command ampSide() {
+    return Commands.sequence(
+            resetPose("AmpSide2Piece"),
+            subShot(),
+            intake()
+                .raceWith(
+                    getPathFollowingCommand("AmpSide2Piece.1"),
+                    m_arm.goToSetpoint(ArmSetpoints.kStowed)),
+            getPathFollowingCommand("3PieceSourceSideLower.2")
+                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
+        .withName("Amp Side 1.5 Piece");
   }
 
   public Command centerlineDisrupt() {
@@ -130,7 +163,7 @@ public class Autos {
             m_drivetrain::runVelocity,
             Constants.onRedAllianceSupplier,
             m_drivetrain)
-        .andThen(Commands.waitSeconds(3.0));
+        .andThen(Commands.waitSeconds(0.5));
   }
 
   private Command getPathFollowingCommand(String trajectoryName) {

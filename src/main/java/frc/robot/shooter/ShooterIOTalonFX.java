@@ -3,6 +3,7 @@ package frc.robot.shooter;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
@@ -30,22 +31,27 @@ public class ShooterIOTalonFX implements ShooterIO {
     final MotionMagicConfigs motionMagicConfigs =
         new MotionMagicConfigs()
             .withMotionMagicAcceleration(Shooter.kFarShotVelocityRpm * (1 / 0.25));
+    final CurrentLimitsConfigs currentLimitConfigs =
+        new CurrentLimitsConfigs().withSupplyCurrentLimit(60.0).withSupplyCurrentLimitEnable(true);
     final TalonFXConfiguration topRollerMotorConfig = new TalonFXConfiguration();
+
     topRollerMotorConfig.Slot0.kS = Shooter.topRollerkS;
     topRollerMotorConfig.Slot0.kV = Shooter.topRollerkV;
     topRollerMotorConfig.Slot0.kA = Shooter.topRollerkA;
     topRollerMotorConfig.Slot0.kP = Shooter.topRollerkP;
     topRollerMotorConfig.MotionMagic = motionMagicConfigs;
+    topRollerMotorConfig.CurrentLimits = currentLimitConfigs;
     topRollerMotorConfig.Feedback.SensorToMechanismRatio = Shooter.kShooterStepUp;
-    m_topRoller.getConfigurator().apply(topRollerMotorConfig);
+    m_topRoller.getConfigurator().apply(topRollerMotorConfig, 1.0);
     final TalonFXConfiguration bottomRollerMotorConfig = new TalonFXConfiguration();
     bottomRollerMotorConfig.Slot0.kS = Shooter.bottomRollerkS;
     bottomRollerMotorConfig.Slot0.kV = Shooter.bottomRollerkV;
     bottomRollerMotorConfig.Slot0.kA = Shooter.bottomRollerkA;
     bottomRollerMotorConfig.Slot0.kP = Shooter.bottomRollerkP;
     bottomRollerMotorConfig.MotionMagic = motionMagicConfigs;
+    bottomRollerMotorConfig.CurrentLimits = currentLimitConfigs;
     bottomRollerMotorConfig.Feedback.SensorToMechanismRatio = Shooter.kShooterStepUp;
-    m_bottomRoller.getConfigurator().apply(bottomRollerMotorConfig);
+    m_bottomRoller.getConfigurator().apply(bottomRollerMotorConfig, 1.0);
 
     m_topRollerPositionSignal = m_topRoller.getPosition();
     m_topRollerVelocitySignal = m_topRoller.getVelocity();
