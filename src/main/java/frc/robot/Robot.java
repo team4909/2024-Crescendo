@@ -61,13 +61,10 @@ public class Robot extends LoggedRobot {
     SignalLogger.enableAutoLogging(false);
     switch (Constants.kCurrentMode) {
       case kReal:
-        if (RobotBase.isSimulation()) {
-          System.out.println("Wrong robot mode.");
-          System.exit(1);
-        }
+        if (RobotBase.isSimulation()) throw new RuntimeException("Wrong robot mode.");
         Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs"));
         Logger.addDataReceiver(new NT4Publisher());
-        PortForwarder.add(5800, "photonvision.local", 5800);
+        PortForwarder.add(5800, "10.49.9.17", 5800);
         break;
       case kSim:
         Logger.addDataReceiver(new WPILOGWriter());
