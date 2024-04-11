@@ -6,6 +6,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -95,7 +96,7 @@ public class Robot extends LoggedRobot {
                 : Subsystems.createTalonFXClimber();
         m_shooter = Subsystems.createTalonFXShooter();
         m_feeder = Subsystems.createTalonFXFeeder();
-        m_gamePieceDetection = Subsystems.createBlankGamePieceDetection();
+        m_gamePieceDetection = Subsystems.createLimelightGamePieceDetection();
         break;
       case kSim:
         m_drivetrain = Subsystems.createSimDrivetrain();
@@ -122,7 +123,9 @@ public class Robot extends LoggedRobot {
     NoteVisualizer.setWristPoseSupplier(m_arm.wristPoseSupplier);
     NoteVisualizer.resetNotes();
     NoteVisualizer.showStagedNotes();
-    final Autos autos = new Autos(m_drivetrain, m_shooter, m_feeder, m_intake, m_arm, m_lights);
+    final Autos autos =
+        new Autos(
+            m_drivetrain, m_shooter, m_feeder, m_intake, m_arm, m_lights, m_gamePieceDetection);
     NamedCommands.registerCommand("intake", m_intake.intake());
     NamedCommands.registerCommand("intakeOff", m_intake.idle());
     NamedCommands.registerCommand("enableShooter", new ScheduleCommand(m_shooter.runShooter()));
@@ -208,6 +211,10 @@ public class Robot extends LoggedRobot {
         .or(m_feeder.hasNote)
         .onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
     m_feeder.hasNote.onTrue(m_lights.noteBlink());
+    m_gamePieceDetection
+        .hasValidTarget
+        .and(() -> DriverStation.isAutonomous())
+        .onTrue(m_lights.startBlink(Color.kBlue));
 
     m_driverController
         .rightTrigger()

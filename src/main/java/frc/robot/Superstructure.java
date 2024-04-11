@@ -75,7 +75,7 @@ public class Superstructure {
                                 .getAngle()
                                 .rotateBy(new Rotation2d(Math.PI))),
                 drivetrain::clearHeadingGoal),
-            shooter.stashShot(),
+            shooter.feederShot(),
             arm.goToSetpoint(ArmSetpoints.kStash),
             lights.showReadyToShootStatus(
                 drivetrain.atHeadingGoal.and(drivetrain.atHeadingGoal).and(arm.atGoal)))

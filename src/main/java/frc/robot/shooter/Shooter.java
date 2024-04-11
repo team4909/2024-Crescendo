@@ -131,13 +131,8 @@ public class Shooter extends SubsystemBase {
         .withName("Trap Assist");
   }
 
-  public Command stashShot() {
-    return this.run(
-            () -> {
-              m_io.setTopRollerVoltage(12.0);
-              m_io.setBottomRollerVoltage(12.0);
-            })
-        .withName("Stash Shot (Shooter)");
+  public Command feederShot() {
+    return this.run(() -> setRollersSetpointRpm(3500.0)).withName("Feeder Shot (Shooter)");
   }
 
   public Command ampShot() {

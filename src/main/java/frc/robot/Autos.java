@@ -4,6 +4,7 @@ import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
 import com.choreo.lib.ChoreoTrajectory;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
@@ -18,8 +19,9 @@ import frc.robot.feeder.Feeder;
 import frc.robot.intake.Intake;
 import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
+import frc.robot.vision.GamePieceDetection;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
+import org.littletonrobotics.junction.Logger;
 
 public class Autos {
 
@@ -31,10 +33,11 @@ public class Autos {
   private final Intake m_intake;
   private final Arm m_arm;
   private final Lights m_lights;
+  private final GamePieceDetection m_gamePieceDetection;
 
   private final PIDController m_translationController = new PIDController(3.0, 0.0, 0.0);
-  private final PIDController m_rotationController = new PIDController(3.0, 0.0, 0.0);
-  private boolean shootingWhileMoving = false;
+  private final PIDController m_yControllerGamePieceError = new PIDController(0.1, 0.0, 0.0);
+  private final PIDController m_rotationController = new PIDController(5.0, 0.0, 0.0);
 
   public Autos(
       Drivetrain drivetrain,
@@ -42,13 +45,15 @@ public class Autos {
       Feeder feeder,
       Intake intake,
       Arm arm,
-      Lights lights) {
+      Lights lights,
+      GamePieceDetection gamePieceDetection) {
     m_drivetrain = drivetrain;
     m_shooter = shooter;
     m_feeder = feeder;
     m_intake = intake;
     m_arm = arm;
     m_lights = lights;
+    m_gamePieceDetection = gamePieceDetection;
   }
 
   public Command subShot() {
@@ -137,27 +142,12 @@ public class Autos {
         .withName("Amp Side 1.5 Piece");
   }
 
-  public Command centerlineDisrupt() {
-    return Commands.sequence(
-            resetPose("CenterlineDisrupt"),
-            toggleShootingWhileMoving(),
-            Commands.deadline(
-                getPathFollowingCommand(
-                    "CenterlineDisrupt.1",
-                    shootWhileMovingControlFunction(() -> shootingWhileMoving)),
-                aimAndShoot().andThen(toggleShootingWhileMoving())))
-        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
-        .withName("Centerline Disrupt");
-  }
-
-  private Command toggleShootingWhileMoving() {
-    return Commands.runOnce(() -> shootingWhileMoving = !shootingWhileMoving);
-  }
-
   private Command getPathFollowingCommand(
       String trajectoryName, ChoreoControlFunction controlFunction) {
+    final ChoreoTrajectory trajectory = Choreo.getTrajectory(trajectoryName);
+    Logger.recordOutput("Drivetrain/Trajectory", trajectory.getPoses());
     return Choreo.choreoSwerveCommand(
-            Choreo.getTrajectory(trajectoryName),
+            trajectory,
             PoseEstimation.getInstance()::getPose,
             controlFunction,
             m_drivetrain::runVelocity,
@@ -169,28 +159,32 @@ public class Autos {
   private Command getPathFollowingCommand(String trajectoryName) {
     return getPathFollowingCommand(
         trajectoryName,
-        Choreo.choreoSwerveController(
+        choreoSwerveController(
             m_translationController, m_translationController, m_rotationController));
   }
 
-  private ChoreoControlFunction shootWhileMovingControlFunction(BooleanSupplier shootingOnTheMove) {
+  public ChoreoControlFunction choreoSwerveController(
+      PIDController xController, PIDController yController, PIDController rotationController) {
+    rotationController.enableContinuousInput(-Math.PI, Math.PI);
     return (pose, referenceState) -> {
+      Logger.recordOutput(
+          "Drivetrain/TrajectorySetpoint",
+          new Pose2d(referenceState.x, referenceState.y, new Rotation2d(referenceState.heading)));
       double xFF = referenceState.velocityX;
       double yFF = referenceState.velocityY;
       double rotationFF = referenceState.angularVelocity;
 
-      double xFeedback = m_translationController.calculate(pose.getX(), referenceState.x);
-      double yFeedback = m_translationController.calculate(pose.getY(), referenceState.y);
+      double xFeedback = xController.calculate(pose.getX(), referenceState.x);
+      double yFeedback =
+          m_gamePieceDetection.hasValidTarget.getAsBoolean()
+              ? m_yControllerGamePieceError.calculate(
+                  m_gamePieceDetection.horizontalErrorDeg.getAsDouble(), 0.0)
+              : yController.calculate(pose.getY(), referenceState.y);
       double rotationFeedback =
-          m_rotationController.calculate(pose.getRotation().getRadians(), referenceState.heading);
-      double omegaRadiansPerSecond =
-          shootingOnTheMove.getAsBoolean() ? 0.0 : rotationFF + rotationFeedback;
-      Rotation2d robotRotation =
-          shootingOnTheMove.getAsBoolean()
-              ? PoseEstimation.getInstance().getAimingParameters().driveHeading()
-              : pose.getRotation();
+          rotationController.calculate(pose.getRotation().getRadians(), referenceState.heading);
+
       return ChassisSpeeds.fromFieldRelativeSpeeds(
-          xFF + xFeedback, yFF + yFeedback, omegaRadiansPerSecond, robotRotation);
+          xFF + xFeedback, yFF + yFeedback, rotationFF + rotationFeedback, pose.getRotation());
     };
   }
 
@@ -214,18 +208,7 @@ public class Autos {
         .alongWith(
             Commands.defer(
                 () -> {
-                  if (shootingWhileMoving) {
-                    return Commands.startEnd(
-                        () ->
-                            m_drivetrain.setHeadingGoal(
-                                () ->
-                                    PoseEstimation.getInstance()
-                                        .getAimingParameters()
-                                        .driveHeading()),
-                        m_drivetrain::clearHeadingGoal);
-                  } else {
-                    return m_drivetrain.blankDrive();
-                  }
+                  return m_drivetrain.blankDrive();
                 },
                 Set.of()))
         .withName("Aim");
