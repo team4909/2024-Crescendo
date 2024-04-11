@@ -199,13 +199,6 @@ public class Arm extends SubsystemBase {
         .withName("Aim (Arm)");
   }
 
-  public Command aimElbow(double elbowAngleRad) {
-    return storeInitialAngles()
-        .andThen(
-            this.run(() -> runSetpoint(elbowAngleRad, ArmSetpoints.kStowed.wristAngle, 0.0, 0.0)))
-        .withName("Aim Elbow");
-  }
-
   public Command aimWrist(double wristAngleRad) {
     return storeInitialAngles()
         .andThen(
