@@ -197,9 +197,9 @@ public class Robot extends LoggedRobot {
     m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));
     m_autoChooser.addOption("Sub Shot", autos.subShot());
     m_autoChooser.addOption("6 Piece", autos.sixPiece());
-    m_autoChooser.addOption("3 Note Source Side Uppexr", autos.threePieceSourceSide());
+    m_autoChooser.addOption("3 Note Source Side Upper", autos.threePieceSourceSide());
     m_autoChooser.addOption("3 Note Source Side Lower", autos.threePieceSourceSideLower());
-    m_autoChooser.addOption("Amp Side 1.5 Piece", autos.ampSide());
+    m_autoChooser.addOption("3 Note Amp Side", autos.threePieceAmpSide());
     m_drivetrain.setDefaultCommand(
         m_drivetrain.joystickDrive(
             () -> -m_driverController.getLeftY(),

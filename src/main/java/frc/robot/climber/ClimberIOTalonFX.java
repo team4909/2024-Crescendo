@@ -49,12 +49,12 @@ public class ClimberIOTalonFX implements ClimberIO {
     m_leftWinchPositionSignal = m_leftWinchMotor.getPosition();
     m_leftWinchVelocitySignal = m_leftWinchMotor.getVelocity();
     m_leftWinchAppliedVoltageSignal = m_leftWinchMotor.getMotorVoltage();
-    m_leftWinchCurrentSignal = m_leftWinchMotor.getStatorCurrent();
+    m_leftWinchCurrentSignal = m_leftWinchMotor.getSupplyCurrent();
 
     m_rightWinchPositionSignal = m_rightWinchMotor.getPosition();
     m_rightWinchVelocitySignal = m_rightWinchMotor.getVelocity();
     m_rightWinchAppliedVoltageSignal = m_rightWinchMotor.getMotorVoltage();
-    m_rightWinchCurrentSignal = m_rightWinchMotor.getStatorCurrent();
+    m_rightWinchCurrentSignal = m_rightWinchMotor.getSupplyCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,

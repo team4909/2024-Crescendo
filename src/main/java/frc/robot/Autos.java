@@ -35,7 +35,7 @@ public class Autos {
   private final Lights m_lights;
   private final GamePieceDetection m_gamePieceDetection;
 
-  private final PIDController m_translationController = new PIDController(3.0, 0.0, 0.0);
+  private final PIDController m_translationController = new PIDController(5.0, 0.0, 0.0);
   private final PIDController m_yControllerGamePieceError = new PIDController(0.1, 0.0, 0.0);
   private final PIDController m_rotationController = new PIDController(5.0, 0.0, 0.0);
 
@@ -129,17 +129,21 @@ public class Autos {
         .withName("Three Piece Source Side Lower");
   }
 
-  public Command ampSide() {
+  public Command threePieceAmpSide() {
     return Commands.sequence(
-            resetPose("AmpSide2Piece"),
+            resetPose("3PieceAmpSide"),
             subShot(),
             intake()
                 .raceWith(
-                    getPathFollowingCommand("AmpSide2Piece.1"),
+                    getPathFollowingCommand("3PieceAmpSide.1"),
                     m_arm.goToSetpoint(ArmSetpoints.kStowed)),
-            getPathFollowingCommand("3PieceSourceSideLower.2")
-                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
-        .withName("Amp Side 1.5 Piece");
+            getPathFollowingCommand("3PieceAmpSide.2"),
+            shoot(false),
+            intake().raceWith(getPathFollowingCommand("3PieceAmpSide.3")),
+            getPathFollowingCommand("3PieceAmpSide.4"),
+            shoot(false))
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+        .withName("Three Piece Amp Side");
   }
 
   private Command getPathFollowingCommand(

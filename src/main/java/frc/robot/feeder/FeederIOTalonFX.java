@@ -38,7 +38,7 @@ public class FeederIOTalonFX implements FeederIO {
     m_rollerPositionSignal = m_feederMotor.getPosition();
     m_rollerVelocitySignal = m_feederMotor.getVelocity();
     m_rollerAppliedVoltageSignal = m_feederMotor.getMotorVoltage();
-    m_rollerCurrentSignal = m_feederMotor.getStatorCurrent();
+    m_rollerCurrentSignal = m_feederMotor.getSupplyCurrent();
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0, m_rollerVelocitySignal, m_rollerAppliedVoltageSignal, m_rollerCurrentSignal);
     m_feederMotor.optimizeBusUtilization();

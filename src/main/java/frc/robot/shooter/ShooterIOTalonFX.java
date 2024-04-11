@@ -56,11 +56,11 @@ public class ShooterIOTalonFX implements ShooterIO {
     m_topRollerPositionSignal = m_topRoller.getPosition();
     m_topRollerVelocitySignal = m_topRoller.getVelocity();
     m_topRollerAppliedVoltageSignal = m_topRoller.getMotorVoltage();
-    m_topRollerCurrentSignal = m_topRoller.getStatorCurrent();
+    m_topRollerCurrentSignal = m_topRoller.getSupplyCurrent();
     m_bottomRollerPositionSignal = m_bottomRoller.getPosition();
     m_bottomRollerVelocitySignal = m_bottomRoller.getVelocity();
     m_bottomRollerAppliedVoltageSignal = m_bottomRoller.getMotorVoltage();
-    m_bottomRollerCurrentSignal = m_bottomRoller.getStatorCurrent();
+    m_bottomRollerCurrentSignal = m_bottomRoller.getSupplyCurrent();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         100.0,
