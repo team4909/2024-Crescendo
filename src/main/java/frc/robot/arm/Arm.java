@@ -176,19 +176,18 @@ public class Arm extends SubsystemBase {
                 VecBuilder.fill(m_inputs.elbowPositionRot, m_inputs.wristPositionRot));
   }
 
-  // Joint Index: 0 = elbow, 1 = wrist
-  public Command aim(Supplier<Joint> jointIndexSupplier, Supplier<Rotation2d> angleSupplier) {
+  public Command aim(Supplier<Joint> jointSupplier, Supplier<Rotation2d> angleSupplier) {
     return storeInitialAngles()
         .andThen(
             this.run(
                 () -> {
-                  if (jointIndexSupplier.get() == Joint.kElbow)
+                  if (jointSupplier.get() == Joint.kElbow)
                     runSetpoint(
                         angleSupplier.get().getRadians(),
                         ArmSetpoints.kStowed.wristAngle,
                         0.0,
                         0.0);
-                  else if (jointIndexSupplier.get() == Joint.kWrist)
+                  else if (jointSupplier.get() == Joint.kWrist)
                     runSetpoint(
                         ArmSetpoints.kStowed.elbowAngle,
                         angleSupplier.get().getRadians(),
@@ -212,7 +211,7 @@ public class Arm extends SubsystemBase {
           double currentPos = ArmSetpoints.kStowed.elbowAngle;
         };
     return Commands.run(
-            () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
+            () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.02)
         .alongWith(aim(() -> Joint.kElbow, () -> Rotation2d.fromRadians(state.currentPos)))
         .withName("Aim Elbow for Tuning");
   }
@@ -223,7 +222,7 @@ public class Arm extends SubsystemBase {
           double currentPos = ArmSetpoints.kStowed.wristAngle;
         };
     return Commands.run(
-            () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.05)
+            () -> state.currentPos += MathUtil.applyDeadband(driveEffort.getAsDouble(), 0.1) * 0.02)
         .alongWith(aim(() -> Joint.kWrist, () -> Rotation2d.fromRadians(state.currentPos)))
         .withName("Aim Wrist For Tuning");
   }
