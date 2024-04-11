@@ -60,7 +60,7 @@ public class Module {
     setpointVelocityRPS *= Math.max(0.0, Math.cos(angleError));
 
     double azimuthVelocityRPS = Units.radiansToRotations(m_inputs.steerVelocityRadPerSec);
-    double driveRateBackOut = azimuthVelocityRPS *= kCouplingRatio;
+    double driveRateBackOut = azimuthVelocityRPS * kCouplingRatio;
     setpointVelocityRPS += driveRateBackOut;
 
     m_io.setSteerRotations(optimizedState.angle.getRotations());
