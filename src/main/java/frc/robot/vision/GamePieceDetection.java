@@ -6,7 +6,7 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class GamePieceDetection {
-  private final double kMinimumTargetAreaPercent = 1.7;
+  private final double kMinimumTargetAreaPercent = 0.8;
   private final GamePieceDetectionIO m_io;
   private final GamePieceDetectionIOInputsAutoLogged m_inputs =
       new GamePieceDetectionIOInputsAutoLogged();
@@ -20,7 +20,7 @@ public class GamePieceDetection {
   public final DoubleSupplier horizontalErrorDeg =
       () ->
           m_inputs.targetHorizontalOffsetDegrees
-              * (Constants.onRedAllianceSupplier.getAsBoolean() ? -1 : 1);
+              * (Constants.onRedAllianceSupplier.getAsBoolean() ? 1 : -1);
 
   public GamePieceDetection(GamePieceDetectionIO io) {
     m_io = io;

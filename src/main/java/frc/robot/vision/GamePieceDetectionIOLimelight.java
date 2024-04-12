@@ -22,7 +22,7 @@ public class GamePieceDetectionIOLimelight implements GamePieceDetectionIO {
     inputs.targetArea = m_limelightTable.getEntry("ta").getDouble(0.0);
     inputs.targetHorizontalOffsetDegrees = m_limelightTable.getEntry("tx").getDouble(0.0);
     inputs.targetVerticalOffsetDegrees = m_limelightTable.getEntry("ty").getDouble(0.0);
-    inputs.fps = (int) m_limelightTable.getEntry("hw").getDoubleArray(new double[] {0.0})[0];
+    inputs.fps = (int) m_limelightTable.getEntry("hw").getDoubleArray(new double[] {0.0})[3];
 
     double currentHeartbeatValue = m_limelightTable.getEntry("hb").getDouble(0.0);
     if (m_lastHeartbeatValue != currentHeartbeatValue) {
