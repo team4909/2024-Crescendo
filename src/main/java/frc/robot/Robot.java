@@ -214,7 +214,8 @@ public class Robot extends LoggedRobot {
     m_gamePieceDetection
         .hasValidTarget
         .and(() -> DriverStation.isAutonomous())
-        .onTrue(m_lights.startBlink(Color.kBlue));
+        .onTrue(m_lights.startBlink(Color.kBlue))
+        .onFalse(m_lights.idle());
 
     m_driverController
         .rightTrigger()
