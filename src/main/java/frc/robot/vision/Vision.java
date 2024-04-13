@@ -42,8 +42,8 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class Vision {
 
   private static final double kTargetLogTimeSecs = 0.1;
-  private final double kXYStdDevCoefficient = 0.1;
-  private final double kThetaStdDevCoefficient = 0.1;
+  private final double kXYStdDevCoefficient = 0.005;
+  private final double kThetaStdDevCoefficient = 0.01;
   private final double kFieldBorderMargin = 0.5;
   private final double kZMargin = 0.75;
   // #region Set these to false to disable vision measurements;
