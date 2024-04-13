@@ -58,7 +58,7 @@ public class Drivetrain extends SubsystemBase {
   public static final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
   private static final LoggedTunableNumber speakerRangeMeters =
-      new LoggedTunableNumber("Drivetrain/InRangeRadius", 5.0);
+      new LoggedTunableNumber("Drivetrain/InRangeRadius", 7.0);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.1;
@@ -92,7 +92,6 @@ public class Drivetrain extends SubsystemBase {
     m_modules[1] = new Module(frontRightModuleIO, 1);
     m_modules[2] = new Module(backLeftModuleIO, 2);
     m_modules[3] = new Module(backRightModuleIO, 3);
-    PhoenixOdometryThread.getInstance().start();
 
     m_sysIdRoutineDrive =
         new SysIdRoutine(
