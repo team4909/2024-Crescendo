@@ -190,8 +190,6 @@ public class Robot extends LoggedRobot {
         "Wrist SysId (Dynamic Forward)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kForward));
     m_autoChooser.addOption(
         "Wrist SysId (Dynamic Reverse)", m_arm.sysIdWristDynamic(SysIdRoutine.Direction.kReverse));
-    m_autoChooser.addOption("elbow static characterization", m_arm.elbowStaticCharacterization());
-    m_autoChooser.addOption("wrist static characterization", m_arm.wristStaticCharacterization());
 
     m_autoChooser.addOption("Start Signal Logger", Commands.runOnce(SignalLogger::start));
     m_autoChooser.addOption("End Signal Logger", Commands.runOnce(SignalLogger::stop));

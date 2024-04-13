@@ -33,17 +33,7 @@ public interface ArmIO {
 
   public default void setWristVoltage(double volts) {}
 
-  public default void setElbowCurrent(double amps) {}
-
-  public default void setWristCurrent(double amps) {}
-
   public default void stop() {}
 
   public default void setBrakeMode(boolean enableBrakeMode) {}
-
-  public default void configLimits(
-      double elbowCruiseVelocityRps,
-      double elbowAccelerationRpsSq,
-      double wristCruiseVelocityRps,
-      double wristAccelerationRpsSq) {}
 }

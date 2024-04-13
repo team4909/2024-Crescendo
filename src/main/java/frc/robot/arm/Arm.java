@@ -19,8 +19,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.lib.LoggedTunableNumber;
-import frc.robot.Constants;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -37,40 +35,12 @@ public class Arm extends SubsystemBase {
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
   private final ArmVisualizer m_goalVisualizer, m_setpointVisualizer, m_measuredVisualizer;
 
-  private static final LoggedTunableNumber elbowCruiseVelocityRadPerSec =
-      new LoggedTunableNumber("Arm/Elbow/CruiseVelocity");
-  private static final LoggedTunableNumber elbowMaxAccelerationRadPerSecSq =
-      new LoggedTunableNumber("Arm/Elbow/MaxAcceleration");
-  private static final LoggedTunableNumber wristCruiseVelocityRadPerSec =
-      new LoggedTunableNumber("Arm/Wrist/CruiseVelocity");
-  private static final LoggedTunableNumber wristMaxAccelerationRadPerSecSq =
-      new LoggedTunableNumber("Arm/Wrist/MaxAcceleration");
-
   private Vector<N2> m_initialAngles;
   private double m_lastElbowSetpoint;
   private double m_lastWristSetpoint;
   public Trigger atGoal = new Trigger(this::jointsAtGoal).debounce(0.1, DebounceType.kBoth);
   public Supplier<Pose3d> wristPoseSupplier;
   private final SysIdRoutine m_sysIdRoutineElbow, m_sysIdRoutineWrist;
-
-  static {
-    switch (Constants.kCurrentMode) {
-      case kReal:
-        elbowCruiseVelocityRadPerSec.initDefault(5.0);
-        elbowMaxAccelerationRadPerSecSq.initDefault(8.0);
-        wristCruiseVelocityRadPerSec.initDefault(4.0);
-        wristMaxAccelerationRadPerSecSq.initDefault(8.0);
-        break;
-      case kSim:
-        elbowCruiseVelocityRadPerSec.initDefault(3.0);
-        elbowMaxAccelerationRadPerSecSq.initDefault(2.0);
-        wristCruiseVelocityRadPerSec.initDefault(5.0);
-        wristMaxAccelerationRadPerSecSq.initDefault(2.0);
-        break;
-      default:
-        break;
-    }
-  }
 
   public Arm(ArmIO io) {
     m_io = io;
@@ -104,16 +74,6 @@ public class Arm extends SubsystemBase {
     Logger.processInputs("ArmInputs", m_inputs);
 
     if (DriverStation.isDisabled()) m_io.stop();
-
-    if (elbowCruiseVelocityRadPerSec.hasChanged(hashCode())
-        || elbowMaxAccelerationRadPerSecSq.hasChanged(hashCode())
-        || wristCruiseVelocityRadPerSec.hasChanged(hashCode())
-        || wristMaxAccelerationRadPerSecSq.hasChanged(hashCode()))
-      m_io.configLimits(
-          elbowCruiseVelocityRadPerSec.get(),
-          elbowMaxAccelerationRadPerSecSq.get(),
-          wristCruiseVelocityRadPerSec.get(),
-          wristMaxAccelerationRadPerSecSq.get());
 
     Logger.recordOutput(
         "Arm/Current Elbow Angle Degrees", Units.rotationsToDegrees(m_inputs.elbowPositionRot));
@@ -283,16 +243,6 @@ public class Arm extends SubsystemBase {
 
   public Command sysIdWristDynamic(SysIdRoutine.Direction direction) {
     return m_sysIdRoutineWrist.dynamic(direction);
-  }
-
-  public Command elbowStaticCharacterization() {
-    return new ArmStaticCharacterization(
-        this, m_io::setElbowCurrent, () -> Units.rotationsToRadians(m_inputs.elbowVelocityRps));
-  }
-
-  public Command wristStaticCharacterization() {
-    return new ArmStaticCharacterization(
-        this, m_io::setWristCurrent, () -> Units.rotationsToRadians(m_inputs.wristVelocityRps));
   }
 
   public enum ArmSetpoints {

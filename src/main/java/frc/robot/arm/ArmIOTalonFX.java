@@ -7,7 +7,6 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -208,16 +207,6 @@ public class ArmIOTalonFX implements ArmIO {
   @Override
   public void setWristVoltage(double volts) {
     m_wristLeftMotor.setVoltage(volts);
-  }
-
-  @Override
-  public void setElbowCurrent(double amps) {
-    m_elbowLeftMotor.setControl(new TorqueCurrentFOC(amps));
-  }
-
-  @Override
-  public void setWristCurrent(double amps) {
-    m_wristLeftMotor.setControl(new TorqueCurrentFOC(amps));
   }
 
   @Override
