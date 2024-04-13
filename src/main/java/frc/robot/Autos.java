@@ -3,9 +3,11 @@ package frc.robot;
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoControlFunction;
 import com.choreo.lib.ChoreoTrajectory;
+import com.choreo.lib.ChoreoTrajectoryState;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,7 +22,6 @@ import frc.robot.intake.Intake;
 import frc.robot.lights.Lights;
 import frc.robot.shooter.Shooter;
 import frc.robot.vision.GamePieceDetection;
-import java.util.Set;
 import org.littletonrobotics.junction.Logger;
 
 public class Autos {
@@ -36,8 +37,8 @@ public class Autos {
   private final GamePieceDetection m_gamePieceDetection;
 
   private final PIDController m_translationController = new PIDController(5.0, 0.0, 0.0);
-  private final PIDController m_yControllerGamePieceError = new PIDController(0.1, 0.0, 0.0);
   private final PIDController m_rotationController = new PIDController(5.0, 0.0, 0.0);
+  private final PIDController m_gamePieceCorrectionController = new PIDController(0.04, 0.0, 0.0);
 
   public Autos(
       Drivetrain drivetrain,
@@ -149,7 +150,6 @@ public class Autos {
   private Command getPathFollowingCommand(
       String trajectoryName, ChoreoControlFunction controlFunction) {
     final ChoreoTrajectory trajectory = Choreo.getTrajectory(trajectoryName);
-    Logger.recordOutput("Drivetrain/Trajectory", trajectory.getPoses());
     return Choreo.choreoSwerveCommand(
             trajectory,
             PoseEstimation.getInstance()::getPose,
@@ -157,7 +157,8 @@ public class Autos {
             m_drivetrain::runVelocity,
             Constants.onRedAllianceSupplier,
             m_drivetrain)
-        .andThen(Commands.waitSeconds(0.5));
+        .andThen(Commands.waitSeconds(0.5))
+        .beforeStarting(() -> Logger.recordOutput("Drivetrain/Trajectory", trajectory.getPoses()));
   }
 
   private Command getPathFollowingCommand(String trajectoryName) {
@@ -167,33 +168,55 @@ public class Autos {
             m_translationController, m_translationController, m_rotationController));
   }
 
-  public ChoreoControlFunction choreoSwerveController(
+  private ChoreoControlFunction choreoSwerveController(
       PIDController xController, PIDController yController, PIDController rotationController) {
     rotationController.enableContinuousInput(-Math.PI, Math.PI);
-    return (pose, referenceState) -> {
+    return (Pose2d pose, ChoreoTrajectoryState referenceState) -> {
       Logger.recordOutput(
           "Drivetrain/TrajectorySetpoint",
           new Pose2d(referenceState.x, referenceState.y, new Rotation2d(referenceState.heading)));
-      double xFF = referenceState.velocityX;
-      double yFF = referenceState.velocityY;
-      double rotationFF = referenceState.angularVelocity;
+      final double xFF = referenceState.velocityX;
+      final double yFF = referenceState.velocityY;
+      final double rotationFF = referenceState.angularVelocity;
 
-      double xFeedback = xController.calculate(pose.getX(), referenceState.x);
-      double yFeedback =
-          m_gamePieceDetection.hasValidTarget.getAsBoolean()
-              ? m_yControllerGamePieceError.calculate(
-                  m_gamePieceDetection.horizontalErrorDeg.getAsDouble(), 0.0)
-              : yController.calculate(pose.getY(), referenceState.y);
-      double rotationFeedback =
+      final double xFeedback = xController.calculate(pose.getX(), referenceState.x);
+      final double yFeedback, yCorrection;
+      if (m_gamePieceDetection.hasValidTarget.getAsBoolean()) {
+        yCorrection =
+            m_gamePieceCorrectionController.calculate(
+                m_gamePieceDetection.horizontalErrorDeg.getAsDouble(), 0.0);
+        yFeedback = 0.0;
+      } else {
+        yCorrection = 0.0;
+        yFeedback = yController.calculate(pose.getY(), referenceState.y);
+      }
+      final double rotationFeedback =
           rotationController.calculate(pose.getRotation().getRadians(), referenceState.heading);
-
-      return ChassisSpeeds.fromFieldRelativeSpeeds(
-          xFF + xFeedback, yFF + yFeedback, rotationFF + rotationFeedback, pose.getRotation());
+      return generateChassisSpeeds(
+          xFF + xFeedback,
+          yFF + yFeedback,
+          rotationFF + rotationFeedback,
+          pose.getRotation(),
+          yCorrection);
     };
   }
 
+  private ChassisSpeeds generateChassisSpeeds(
+      double vxMetersPerSecond,
+      double vyMetersPerSecond,
+      double omegaRadiansPerSecond,
+      Rotation2d robotAngle,
+      double vyRobotRelativeCorrectionMetersPerSecond) {
+    final Translation2d fieldRelativeAdjustedSpeeds =
+        new Translation2d(vxMetersPerSecond, vyMetersPerSecond).rotateBy(robotAngle.unaryMinus());
+    return new ChassisSpeeds(
+        fieldRelativeAdjustedSpeeds.getX(),
+        fieldRelativeAdjustedSpeeds.getY() + vyRobotRelativeCorrectionMetersPerSecond,
+        omegaRadiansPerSecond);
+  }
+
   private Command resetPose(String trajectoryName) {
-    ChoreoTrajectory trajectory = Choreo.getTrajectory(trajectoryName);
+    final ChoreoTrajectory trajectory = Choreo.getTrajectory(trajectoryName);
     return Commands.runOnce(
         () ->
             m_drivetrain.resetPose.accept(
@@ -209,12 +232,7 @@ public class Autos {
 
   private Command aim() {
     return Superstructure.aimAtGoal(m_drivetrain, m_shooter, m_arm, m_lights)
-        .alongWith(
-            Commands.defer(
-                () -> {
-                  return m_drivetrain.blankDrive();
-                },
-                Set.of()))
+        .alongWith(m_drivetrain.blankDrive())
         .withName("Aim");
   }
 
