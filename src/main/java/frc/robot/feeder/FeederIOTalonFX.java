@@ -11,9 +11,11 @@ import frc.robot.Constants;
 import java.time.Duration;
 
 public class FeederIOTalonFX implements FeederIO {
+  private final boolean kUseHighFrequencySensorPolling = true;
   private final TalonFX m_feederMotor;
-  private final DigitalInput m_topNoteSensor;
+  private final DigitalInput m_noteSensor;
   private final DigitalGlitchFilter m_glitchFilter;
+  private final SensorThread m_sensorThread;
 
   private final StatusSignal<Double> m_rollerPositionSignal,
       m_rollerVelocitySignal,
@@ -22,10 +24,11 @@ public class FeederIOTalonFX implements FeederIO {
 
   public FeederIOTalonFX() {
     m_feederMotor = new TalonFX(19, Constants.kSuperstructureCanBus);
-    m_topNoteSensor = new DigitalInput(0);
+    m_noteSensor = new DigitalInput(0);
     m_glitchFilter = new DigitalGlitchFilter();
     m_glitchFilter.setPeriodNanoSeconds(Duration.ofMillis(1).toNanos());
-    m_glitchFilter.add(m_topNoteSensor);
+    m_glitchFilter.add(m_noteSensor);
+    m_sensorThread = new SensorThread(m_noteSensor);
 
     final TalonFXConfiguration feederMotorConfig = new TalonFXConfiguration();
     m_feederMotor.getConfigurator().apply(feederMotorConfig);
@@ -40,8 +43,14 @@ public class FeederIOTalonFX implements FeederIO {
     m_rollerAppliedVoltageSignal = m_feederMotor.getMotorVoltage();
     m_rollerCurrentSignal = m_feederMotor.getSupplyCurrent();
     BaseStatusSignal.setUpdateFrequencyForAll(
-        50.0, m_rollerVelocitySignal, m_rollerAppliedVoltageSignal, m_rollerCurrentSignal);
+        50.0,
+        m_rollerPositionSignal,
+        m_rollerVelocitySignal,
+        m_rollerAppliedVoltageSignal,
+        m_rollerCurrentSignal);
     m_feederMotor.optimizeBusUtilization();
+
+    if (kUseHighFrequencySensorPolling) m_sensorThread.start();
   }
 
   @Override
@@ -58,7 +67,10 @@ public class FeederIOTalonFX implements FeederIO {
     inputs.rollerVelocityRps = m_rollerVelocitySignal.getValue();
     inputs.rollerAppliedVolts = m_rollerAppliedVoltageSignal.getValue();
     inputs.rollerCurrentAmps = m_rollerCurrentSignal.getValue();
-    inputs.topNoteSensorTripped = m_topNoteSensor.get();
+    inputs.topNoteSensorTripped =
+        kUseHighFrequencySensorPolling
+            ? m_sensorThread.getSensorTripped.getAsBoolean()
+            : m_noteSensor.get();
   }
 
   @Override
