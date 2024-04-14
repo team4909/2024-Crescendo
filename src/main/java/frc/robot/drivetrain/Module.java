@@ -15,8 +15,7 @@ public class Module {
       Constants.kIsViper ? (50.0 / 13.0) : (50.0 / 14.0);
   public static final double kDriveRatio = kDriveRatioFirstStage * (16.0 / 28.0) * (45.0 / 15.0);
   public static final double kSteerRatio = 150.0 / 7.0;
-  private final double kWheelDiameterMeters = Units.inchesToMeters(1.73 * 2);
-  private final double kWheelRadiusMeters = kWheelDiameterMeters / 2.0;
+  private final double kWheelRadiusMeters = Units.inchesToMeters(1.73);
   private final double kCouplingRatio = kDriveRatioFirstStage;
 
   private final ModuleIO m_io;
