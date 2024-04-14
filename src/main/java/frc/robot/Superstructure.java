@@ -2,11 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.climber.Climber;
@@ -89,5 +91,13 @@ public class Superstructure {
             new ScheduleCommand(lights.startBlink(Color.kGreen)),
             new ScheduleCommand(shooter.trapShot()))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+  }
+
+  public static Command shortRumble(CommandXboxController controller) {
+    return Commands.sequence(
+            Commands.runOnce(() -> controller.getHID().setRumble(RumbleType.kBothRumble, 0.5)),
+            Commands.waitSeconds(0.3),
+            Commands.runOnce(() -> controller.getHID().setRumble(RumbleType.kBothRumble, 0.0)))
+        .withName("Short Rumble");
   }
 }

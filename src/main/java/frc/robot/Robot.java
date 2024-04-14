@@ -209,6 +209,10 @@ public class Robot extends LoggedRobot {
         .or(m_feeder.hasNote)
         .onTrue(Commands.runOnce(() -> NoteVisualizer.setHasNote(true)));
     m_feeder.hasNote.onTrue(m_lights.noteBlink());
+    m_feeder
+        .hasNote
+        .and(DriverStation::isTeleopEnabled)
+        .onTrue(Superstructure.shortRumble(m_driverController));
     m_gamePieceDetection
         .hasValidTarget
         .and(() -> DriverStation.isAutonomous())
