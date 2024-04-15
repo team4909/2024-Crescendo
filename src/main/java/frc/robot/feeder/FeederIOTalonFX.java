@@ -11,7 +11,6 @@ import frc.robot.Constants;
 import java.time.Duration;
 
 public class FeederIOTalonFX implements FeederIO {
-  private final boolean kUseHighFrequencySensorPolling = true;
   private final TalonFX m_feederMotor;
   private final DigitalInput m_noteSensor;
   private final DigitalGlitchFilter m_glitchFilter;

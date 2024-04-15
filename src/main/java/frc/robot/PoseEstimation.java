@@ -154,6 +154,14 @@ public class PoseEstimation {
     return m_lastAimingParameters;
   }
 
+  public Rotation2d getFeedHeading() {
+    return FieldConstants.stashPositionSupplier
+        .get()
+        .minus(getPose().getTranslation())
+        .getAngle()
+        .rotateBy(new Rotation2d(Math.PI));
+  }
+
   private Pose2d poseInverse(Pose2d pose) {
     Rotation2d rotationInverse = pose.getRotation().unaryMinus();
     return new Pose2d(

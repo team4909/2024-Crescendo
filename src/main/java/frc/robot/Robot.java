@@ -231,7 +231,7 @@ public class Robot extends LoggedRobot {
     m_driverController
         .leftTrigger()
         .and(m_drivetrain.inRangeOfGoal.negate())
-        .whileTrue(Superstructure.aimAtStash(m_drivetrain, m_shooter, m_arm, m_lights))
+        .whileTrue(Superstructure.feedShotHigh(m_drivetrain, m_shooter, m_arm, m_lights))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
@@ -245,7 +245,7 @@ public class Robot extends LoggedRobot {
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_operatorController
         .rightStick()
-        .whileTrue(m_arm.goToSetpoint(ArmSetpoints.kStash))
+        .whileTrue(m_arm.goToSetpoint(ArmSetpoints.kFeedLow))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
     m_driverController.b().onTrue(m_arm.goToSetpoint(ArmSetpoints.kTrap));
     m_driverController.b().whileTrue(Commands.parallel(m_climber.windWinch()));

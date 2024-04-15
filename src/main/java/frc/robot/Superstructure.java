@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.util.Color;
@@ -65,22 +64,28 @@ public class Superstructure {
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }
 
-  public static Command aimAtStash(Drivetrain drivetrain, Shooter shooter, Arm arm, Lights lights) {
+  public static Command feedShotHigh(
+      Drivetrain drivetrain, Shooter shooter, Arm arm, Lights lights) {
     return Commands.parallel(
             Commands.startEnd(
-                () ->
-                    drivetrain.setHeadingGoal(
-                        () ->
-                            FieldConstants.stashPositionSupplier
-                                .get()
-                                .minus(PoseEstimation.getInstance().getPose().getTranslation())
-                                .getAngle()
-                                .rotateBy(new Rotation2d(Math.PI))),
+                () -> drivetrain.setHeadingGoal(PoseEstimation.getInstance()::getFeedHeading),
                 drivetrain::clearHeadingGoal),
             shooter.feederShot(),
-            arm.goToSetpoint(ArmSetpoints.kStash),
+            arm.goToSetpoint(ArmSetpoints.kFeedHigh),
             lights.showReadyToShootStatus(
-                drivetrain.atHeadingGoal.and(drivetrain.atHeadingGoal).and(arm.atGoal)))
+                drivetrain.atHeadingGoal.and(arm.atGoal).and(shooter.readyToShoot)))
+        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+  }
+
+  public static Command feedShotLow(
+      Drivetrain drivetrain, Shooter shooter, Arm arm, Lights lights) {
+    return Commands.parallel(
+            Commands.startEnd(
+                () -> drivetrain.setHeadingGoal(PoseEstimation.getInstance()::getFeedHeading),
+                drivetrain::clearHeadingGoal),
+            shooter.runShooter(),
+            arm.goToSetpoint(ArmSetpoints.kFeedLow),
+            lights.showReadyToShootStatus(drivetrain.atHeadingGoal.and(arm.atGoal)))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
   }
 
