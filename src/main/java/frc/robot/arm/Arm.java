@@ -28,7 +28,6 @@ public class Arm extends SubsystemBase {
 
   public static final double kCatchWristAngleRad = 2.264 - Units.degreesToRadians(5.0);
   public static final double kSubwooferWristAngleRad = 2.083;
-  public static final double kDeployGizmoAngleRad = Units.degreesToRadians(80.0);
   private final double kJointTolerenceDegrees = 2.0;
 
   private final ArmIO m_io;

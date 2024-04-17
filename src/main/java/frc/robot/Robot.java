@@ -233,6 +233,12 @@ public class Robot extends LoggedRobot {
         .and(m_drivetrain.inRangeOfGoal.negate())
         .whileTrue(Superstructure.feedShotHigh(m_drivetrain, m_shooter, m_arm, m_lights))
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
+    m_driverController
+        .leftTrigger()
+        .and(m_driverController.a())
+        .and(m_drivetrain.inRangeOfGoal.negate())
+        .whileTrue(Superstructure.feedShotLow(m_drivetrain, m_shooter, m_arm, m_lights))
+        .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_driverController.start().onTrue(m_drivetrain.zeroGyro());
     m_operatorController
