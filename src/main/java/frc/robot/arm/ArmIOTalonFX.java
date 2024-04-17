@@ -18,7 +18,7 @@ import frc.robot.Constants;
 public class ArmIOTalonFX implements ArmIO {
 
   // Offsets to the horizontal
-  private final double kElbowRelativeEncoderOffsetRad = 0.558;
+  private final double kElbowRelativeEncoderOffsetRad = -0.558;
   private final double kWristRelativeEncoderOffsetRad = 2.5;
   private final TalonFX m_elbowLeftMotor,
       m_elbowRightFollowerMotor,
@@ -47,7 +47,7 @@ public class ArmIOTalonFX implements ArmIO {
     m_wristLeftMotor = new TalonFX(16, Constants.kSuperstructureCanBus);
     m_wristRightFollowerMotor = new TalonFX(18, Constants.kSuperstructureCanBus);
 
-    m_elbowLeftMotor.setPosition(-Units.radiansToRotations(kElbowRelativeEncoderOffsetRad), 1.0);
+    m_elbowLeftMotor.setPosition(Units.radiansToRotations(kElbowRelativeEncoderOffsetRad), 1.0);
     m_wristLeftMotor.setPosition(Units.radiansToRotations(kWristRelativeEncoderOffsetRad), 1.0);
 
     final CurrentLimitsConfigs currentLimitsConfig = new CurrentLimitsConfigs();
