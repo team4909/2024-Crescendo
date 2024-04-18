@@ -42,7 +42,6 @@ public class PhoenixOdometryThread extends Thread {
   private PhoenixOdometryThread() {
     setName("PhoenixOdometryThread");
     setDaemon(true);
-    start();
   }
 
   @Override

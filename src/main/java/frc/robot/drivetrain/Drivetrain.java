@@ -93,6 +93,8 @@ public class Drivetrain extends SubsystemBase {
     m_modules[2] = new Module(backLeftModuleIO, 2);
     m_modules[3] = new Module(backRightModuleIO, 3);
 
+    PhoenixOdometryThread.getInstance().start();
+
     m_sysIdRoutineDrive =
         new SysIdRoutine(
             new SysIdRoutine.Config(
