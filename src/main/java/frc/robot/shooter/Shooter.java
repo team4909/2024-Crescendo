@@ -19,6 +19,7 @@ public class Shooter extends SubsystemBase {
 
   public static final double kShooterStepUp = Constants.kIsViper ? 1.0 : 1.0;
   public static final double kFarShotVelocityRpm = 5800.0;
+  public static final double kRevUpVelocityRpm = 0.75 * kFarShotVelocityRpm;
   private final double kTrapShot = 400.0;
   private final double kAmpShot = 5000.0;
   private final double kReadyToShootToleranceRps = 5.0;
@@ -112,6 +113,12 @@ public class Shooter extends SubsystemBase {
 
   public Command runShooter() {
     return this.run(() -> setRollersSetpointRpm(kFarShotVelocityRpm))
+        .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
+        .withName("Run Shooter (Shooter)");
+  }
+
+  public Command revUpShooter() {
+    return this.run(() -> setRollersSetpointRpm(kRevUpVelocityRpm))
         .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
         .withName("Run Shooter (Shooter)");
   }

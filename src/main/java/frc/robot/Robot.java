@@ -277,7 +277,7 @@ public class Robot extends LoggedRobot {
         .onFalse(m_arm.goToSetpoint(ArmSetpoints.kStowed));
 
     m_driverController.povDown().whileTrue(m_feeder.feed().alongWith(m_intake.spit()));
-    m_operatorController.y().whileTrue(m_shooter.runShooter());
+    m_operatorController.y().whileTrue(m_shooter.revUpShooter());
     m_operatorController
         .leftBumper()
         .onTrue(Superstructure.sensorCatch(m_shooter, m_feeder, m_intake, m_arm))
