@@ -31,7 +31,9 @@ public class PoseEstimation {
 
   static {
     wristAngleMap.put(1.2, 119.3);
-    wristAngleMap.put(2.88, 142.4);
+    wristAngleMap.put(2.13, 139.0);
+    wristAngleMap.put(2.22, 137.1);
+    wristAngleMap.put(2.88, 142.0);
   }
 
   static {

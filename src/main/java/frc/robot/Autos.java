@@ -92,9 +92,11 @@ public class Autos {
                     getPathFollowingCommand("3PieceSourceSide.1", true),
                     m_arm.goToSetpoint(ArmSetpoints.kStowed)),
             getPathFollowingCommand("3PieceSourceSide.2", false),
+            stopIntake(),
             shoot(false),
             intake().raceWith(getPathFollowingCommand("3PieceSourceSide.3", true)),
             getPathFollowingCommand("3PieceSourceSide.4", false),
+            stopIntake(),
             shoot(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Three Piece Source Side");
@@ -109,9 +111,11 @@ public class Autos {
                     getPathFollowingCommand("3PieceSourceSideLower.1", true),
                     m_arm.goToSetpoint(ArmSetpoints.kStowed)),
             getPathFollowingCommand("3PieceSourceSideLower.2", false),
+            stopIntake(),
             shoot(false),
             intake().raceWith(getPathFollowingCommand("3PieceSourceSideLower.3", true)),
             getPathFollowingCommand("3PieceSourceSideLower.4", false),
+            stopIntake(),
             shoot(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Three Piece Source Side Lower");
