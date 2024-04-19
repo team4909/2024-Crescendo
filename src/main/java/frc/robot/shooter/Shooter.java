@@ -90,11 +90,11 @@ public class Shooter extends SubsystemBase {
   public Command sysId() {
     return Commands.sequence(
         m_sysIdRoutine.quasistatic(Direction.kForward),
-        Commands.waitSeconds(10.0),
+        Commands.waitSeconds(15.0),
         m_sysIdRoutine.quasistatic(Direction.kReverse),
-        Commands.waitSeconds(10.0),
+        Commands.waitSeconds(15.0),
         m_sysIdRoutine.dynamic(Direction.kForward),
-        Commands.waitSeconds(10.0),
+        Commands.waitSeconds(15.0),
         m_sysIdRoutine.dynamic(Direction.kReverse));
   }
 
@@ -120,7 +120,7 @@ public class Shooter extends SubsystemBase {
   public Command revUpShooter() {
     return this.run(() -> setRollersSetpointRpm(kRevUpVelocityRpm))
         .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
-        .withName("Run Shooter (Shooter)");
+        .withName("Rev Shooter (Shooter)");
   }
 
   public Command trapShot() {
