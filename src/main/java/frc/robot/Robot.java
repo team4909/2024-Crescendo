@@ -59,7 +59,7 @@ public class Robot extends LoggedRobot {
   public Robot() {
     recordMetadeta();
     DriverStation.silenceJoystickConnectionWarning(true);
-    SignalLogger.enableAutoLogging(false);
+    SignalLogger.enableAutoLogging(true);
     switch (Constants.kCurrentMode) {
       case kReal:
         if (RobotBase.isSimulation()) throw new RuntimeException("Wrong robot mode.");

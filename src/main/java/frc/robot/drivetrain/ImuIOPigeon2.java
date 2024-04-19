@@ -4,9 +4,11 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Pigeon2Configuration;
+import com.ctre.phoenix6.configs.Pigeon2FeaturesConfigs;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants;
 import java.util.Queue;
 
@@ -16,8 +18,11 @@ public class ImuIOPigeon2 implements ImuIO {
   private final StatusSignal<Double> m_yawVelocitySignal = m_imu.getAngularVelocityZWorld();
   private final Queue<Double> m_yawPositionQueue, m_yawTimestampQueue;
 
+  private boolean lastEnabled = false;
+
   public ImuIOPigeon2() {
-    m_imu.getConfigurator().apply(new Pigeon2Configuration());
+    final Pigeon2Configuration imuConfiguration = new Pigeon2Configuration();
+    m_imu.getConfigurator().apply(imuConfiguration);
     m_imu.getConfigurator().setYaw(0.0);
     m_yawSignal.setUpdateFrequency(PhoenixOdometryThread.kOdometryFrequencyHz);
     m_yawVelocitySignal.setUpdateFrequency(100.0);
@@ -43,5 +48,19 @@ public class ImuIOPigeon2 implements ImuIO {
         m_yawTimestampQueue.stream().mapToDouble(Double::valueOf).toArray();
     m_yawPositionQueue.clear();
     m_yawTimestampQueue.clear();
+
+    boolean enabled = DriverStation.isEnabled();
+    if (enabled && !lastEnabled) {
+      m_imu
+          .getConfigurator()
+          .apply(new Pigeon2FeaturesConfigs().withDisableNoMotionCalibration(true));
+    }
+    if (!enabled && lastEnabled) {
+      m_imu
+          .getConfigurator()
+          .apply(new Pigeon2FeaturesConfigs().withDisableNoMotionCalibration(false));
+    }
+
+    lastEnabled = enabled;
   }
 }

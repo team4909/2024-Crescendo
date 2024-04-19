@@ -63,34 +63,21 @@ public class Autos {
         .withName("Sub Shot");
   }
 
-  public Command centerlineTwoPiece() {
-    return Commands.sequence(
-            resetPose("Centerline Auto"),
-            shoot(false),
-            intake().deadlineWith(getPathFollowingCommand("Centerline Auto.1")),
-            getPathFollowingCommand("Centerline Auto.2"),
-            shoot(false),
-            intake().deadlineWith(getPathFollowingCommand("Centerline Auto.3")),
-            getPathFollowingCommand("Centerline Auto.4"),
-            shoot(false))
-        .withName("Centerline 3 Piece");
-  }
-
   public Command sixPiece() {
     return Commands.sequence(
             resetPose("6Piece"),
             aimAndShoot(),
-            intake().deadlineWith(getPathFollowingCommand("6Piece.1")),
+            intake().deadlineWith(getPathFollowingCommand("6Piece.1", false)),
             aimAndShoot(),
-            intake().deadlineWith(getPathFollowingCommand("6Piece.2")),
+            intake().deadlineWith(getPathFollowingCommand("6Piece.2", false)),
             aimAndShoot(),
-            intake().deadlineWith(getPathFollowingCommand("6Piece.3")),
+            intake().deadlineWith(getPathFollowingCommand("6Piece.3", false)),
             aimAndShoot(),
-            intake().deadlineWith(getPathFollowingCommand("6Piece.4")),
-            getPathFollowingCommand("6Piece.5"),
+            intake().deadlineWith(getPathFollowingCommand("6Piece.4", false)),
+            getPathFollowingCommand("6Piece.5", false),
             aimAndShoot(),
-            intake().deadlineWith(getPathFollowingCommand("6Piece.6")),
-            getPathFollowingCommand("6Piece.7"),
+            intake().deadlineWith(getPathFollowingCommand("6Piece.6", false)),
+            getPathFollowingCommand("6Piece.7", false),
             aimAndShoot())
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Six Piece");
@@ -102,12 +89,12 @@ public class Autos {
             subShot(),
             intake()
                 .raceWith(
-                    getPathFollowingCommand("3PieceSourceSide.1"),
+                    getPathFollowingCommand("3PieceSourceSide.1", true),
                     m_arm.goToSetpoint(ArmSetpoints.kStowed)),
-            getPathFollowingCommand("3PieceSourceSide.2"),
+            getPathFollowingCommand("3PieceSourceSide.2", false),
             shoot(false),
-            intake().raceWith(getPathFollowingCommand("3PieceSourceSide.3")),
-            getPathFollowingCommand("3PieceSourceSide.4"),
+            intake().raceWith(getPathFollowingCommand("3PieceSourceSide.3", true)),
+            getPathFollowingCommand("3PieceSourceSide.4", false),
             shoot(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Three Piece Source Side");
@@ -119,12 +106,12 @@ public class Autos {
             subShot(),
             intake()
                 .raceWith(
-                    getPathFollowingCommand("3PieceSourceSideLower.1"),
+                    getPathFollowingCommand("3PieceSourceSideLower.1", true),
                     m_arm.goToSetpoint(ArmSetpoints.kStowed)),
-            getPathFollowingCommand("3PieceSourceSideLower.2"),
+            getPathFollowingCommand("3PieceSourceSideLower.2", false),
             shoot(false),
-            intake().raceWith(getPathFollowingCommand("3PieceSourceSideLower.3")),
-            getPathFollowingCommand("3PieceSourceSideLower.4"),
+            intake().raceWith(getPathFollowingCommand("3PieceSourceSideLower.3", true)),
+            getPathFollowingCommand("3PieceSourceSideLower.4", false),
             shoot(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Three Piece Source Side Lower");
@@ -136,12 +123,12 @@ public class Autos {
             subShot(),
             intake()
                 .raceWith(
-                    getPathFollowingCommand("3PieceAmpSide.1"),
+                    getPathFollowingCommand("3PieceAmpSide.1", true),
                     m_arm.goToSetpoint(ArmSetpoints.kStowed)),
-            getPathFollowingCommand("3PieceAmpSide.2"),
+            getPathFollowingCommand("3PieceAmpSide.2", false),
             shoot(false),
-            intake().raceWith(getPathFollowingCommand("3PieceAmpSide.3")),
-            getPathFollowingCommand("3PieceAmpSide.4"),
+            intake().raceWith(getPathFollowingCommand("3PieceAmpSide.3", true)),
+            getPathFollowingCommand("3PieceAmpSide.4", false),
             shoot(false))
         .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         .withName("Three Piece Amp Side");
@@ -161,15 +148,21 @@ public class Autos {
         .beforeStarting(() -> Logger.recordOutput("Drivetrain/Trajectory", trajectory.getPoses()));
   }
 
-  private Command getPathFollowingCommand(String trajectoryName) {
+  private Command getPathFollowingCommand(String trajectoryName, boolean useGamePieceCorrection) {
     return getPathFollowingCommand(
         trajectoryName,
         choreoSwerveController(
-            m_translationController, m_translationController, m_rotationController));
+            m_translationController,
+            m_translationController,
+            m_rotationController,
+            useGamePieceCorrection));
   }
 
   private ChoreoControlFunction choreoSwerveController(
-      PIDController xController, PIDController yController, PIDController rotationController) {
+      PIDController xController,
+      PIDController yController,
+      PIDController rotationController,
+      boolean useGamePieceCorrection) {
     rotationController.enableContinuousInput(-Math.PI, Math.PI);
     return (Pose2d pose, ChoreoTrajectoryState referenceState) -> {
       Logger.recordOutput(
@@ -181,7 +174,7 @@ public class Autos {
 
       final double xFeedback = xController.calculate(pose.getX(), referenceState.x);
       final double yFeedback, yCorrection;
-      if (m_gamePieceDetection.hasValidTarget.getAsBoolean()) {
+      if (m_gamePieceDetection.hasValidTarget.getAsBoolean() && useGamePieceCorrection) {
         yCorrection =
             m_gamePieceCorrectionController.calculate(
                 m_gamePieceDetection.horizontalErrorDeg.getAsDouble(), 0.0);
@@ -226,8 +219,11 @@ public class Autos {
   }
 
   private Command intake() {
-    return Superstructure.sensorIntake(m_feeder, m_intake)
-        .andThen(m_intake.stop(), m_feeder.stop());
+    return Superstructure.sensorIntake(m_feeder, m_intake).andThen(stopIntake());
+  }
+
+  private Command stopIntake() {
+    return Commands.sequence(m_intake.stop(), m_feeder.stop());
   }
 
   private Command aim() {
