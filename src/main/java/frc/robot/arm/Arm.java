@@ -246,7 +246,7 @@ public class Arm extends SubsystemBase {
 
   public enum ArmSetpoints {
     kStowed(Units.degreesToRadians(-31), Units.degreesToRadians(142), 0.15, 0.0),
-    kAmp(1.49 + 0.0873 + Units.degreesToRadians(3.0), Units.degreesToRadians(228), 0.0, 0.0),
+    kAmp(1.49 + 0.0873 + Units.degreesToRadians(8.0), Units.degreesToRadians(228), 0.0, 0.0),
     kClimb(1.633, -2.371, 0.0, 0.0),
     kTrap(Units.degreesToRadians(53.0), Units.degreesToRadians(80.0), 0.0, 0.0),
     kFeedHigh(Units.degreesToRadians(-31), 2.083, 0.0, 0.0),
