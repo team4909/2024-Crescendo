@@ -7,23 +7,14 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.RobotController;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.BooleanSupplier;
 
 public final class Constants {
   public static final Mode kCurrentMode = Mode.kReal;
-  public static final RobotName kRobot;
 
-  static {
-    final String rioSerialNumber = RobotController.getSerialNumber();
-    if (rioSerialNumber.equals(RobotName.kViper.rioSerialNumber)) kRobot = RobotName.kBlackMamba;
-    else if (rioSerialNumber.equals(RobotName.kBlackMamba.rioSerialNumber))
-      kRobot = RobotName.kBlackMamba;
-    else kRobot = RobotName.kBlackMamba;
-  }
-
+  // Whether or not the current robot is Viper or Black Mamba
   public static final boolean kIsViper = false;
   public static final boolean kIsSim = Constants.kCurrentMode.equals(Mode.kSim);
   public static final String kDrivetrainCanBus = "CANivore1";
@@ -57,16 +48,5 @@ public final class Constants {
     kReal,
     kSim,
     kReplay
-  }
-
-  public static enum RobotName {
-    kViper("032380FD"),
-    kBlackMamba("032243C9");
-
-    public final String rioSerialNumber;
-
-    private RobotName(String rioSerialNumber) {
-      this.rioSerialNumber = rioSerialNumber;
-    }
   }
 }
