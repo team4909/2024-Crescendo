@@ -126,7 +126,7 @@ public class Vision {
                         .ifPresent(
                             tagPose ->
                                 m_lastDetectionTimeIds.put(
-                                    target.getFiducialId(), Timer.getFPGATimestamp()));
+                                    target.getFiducialId(), Timer.getFPGATimestamp())); //shouldn't this be the timestamp of capture on the photonvision processor and not our timestamp
                   });
               m_allEstimatedPosesToLog.add(estimatedPose);
               m_newVisionUpdates.add(

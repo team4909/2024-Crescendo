@@ -17,6 +17,7 @@ import frc.robot.PoseEstimation.AimingParameters;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.climber.Climber;
+import frc.robot.drivetrain.DriveToNote;
 import frc.robot.drivetrain.DriveToPose;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.WheelRadiusCharacterization;
@@ -247,6 +248,7 @@ public class Robot extends LoggedRobot {
     m_operatorController
         .b()
         .toggleOnTrue(m_arm.aimWristForTuning(() -> -m_operatorController.getLeftY()));
+    m_operatorController.povDown().whileTrue(new DriveToNote(m_drivetrain, m_lights, m_gamePieceDetection, m_intake));
     m_driverController.rightBumper().whileTrue(Superstructure.spit(m_shooter, m_feeder, m_intake));
     m_operatorController.leftStick().onTrue(m_arm.goToSetpoint(ArmSetpoints.kClimb));
     m_operatorController
