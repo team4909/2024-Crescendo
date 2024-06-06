@@ -32,4 +32,12 @@ public class GamePieceDetection {
     Logger.recordOutput("GamePieceDetection/ValidTarget", hasValidTarget.getAsBoolean());
     Logger.recordOutput("GamePieceDetection/HorizontalErrorDeg", horizontalErrorDeg.getAsDouble());
   }
+
+  public double getHorizontalOffsetDeg() {
+    return horizontalErrorDeg.getAsDouble();
+  }
+
+  public double getVerticalOffsetDeg() {
+    return m_inputs.targetVerticalOffsetDegrees;
+  }
 }

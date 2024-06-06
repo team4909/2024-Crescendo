@@ -17,6 +17,7 @@ import frc.robot.PoseEstimation.AimingParameters;
 import frc.robot.arm.Arm;
 import frc.robot.arm.Arm.ArmSetpoints;
 import frc.robot.climber.Climber;
+import frc.robot.drivetrain.DriveToNote;
 import frc.robot.drivetrain.DriveToPose;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.WheelRadiusCharacterization;

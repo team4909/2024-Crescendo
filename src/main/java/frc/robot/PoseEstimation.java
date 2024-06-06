@@ -16,6 +16,7 @@ import frc.robot.vision.Vision.VisionUpdate;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 
+// why is this in our code? Shou;dn't this be in a library we use?
 public class PoseEstimation {
 
   private static PoseEstimation m_instance;
