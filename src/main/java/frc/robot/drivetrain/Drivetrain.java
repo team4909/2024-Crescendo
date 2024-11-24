@@ -46,8 +46,8 @@ public class Drivetrain extends SubsystemBase {
 
   private static final double kTrackwidthMeters = Units.inchesToMeters(20.75);
   private static double kWheelbaseMeters = Units.inchesToMeters(15.75);
-  
-  // @todo What order are these in? Is it Front Left then Clockwise
+
+  // Front left, front right, back left, back right
   private static final Translation2d[] m_modulePositions =
       new Translation2d[] {
         new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
@@ -159,7 +159,8 @@ public class Drivetrain extends SubsystemBase {
       SwerveModulePosition[] newModulePositions = new SwerveModulePosition[m_modules.length];
       SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
       for (int moduleIndex = 0; moduleIndex < m_modules.length; moduleIndex++) {
-        newModulePositions[moduleIndex] = m_modules[moduleIndex].getOdometryPositions()[updateIndex];
+        newModulePositions[moduleIndex] =
+            m_modules[moduleIndex].getOdometryPositions()[updateIndex];
         moduleDeltas[moduleIndex] =
             new SwerveModulePosition(
                 newModulePositions[moduleIndex].distanceMeters
@@ -172,7 +173,8 @@ public class Drivetrain extends SubsystemBase {
       if (m_imuInputs.connected) {
         m_gyroRotation = m_imuInputs.odometryYawPositions[updateIndex];
       } else {
-        //when does this code run? Was this added when we had the pidgeon issue at worlds?
+        // When the gyro is not connected, we can simulate the robot's heading using the module
+        // states through the rotational component of the derived chassis speeds
         final Twist2d twist = swerveKinematics.toTwist2d(moduleDeltas);
         m_gyroRotation = m_gyroRotation.plus(new Rotation2d(twist.dtheta));
       }
@@ -247,8 +249,7 @@ public class Drivetrain extends SubsystemBase {
    * drive, no path following)
    */
   public Command blankDrive() {
-    return this.run(() -> 
-    runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0)));
+    return this.run(() -> runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0)));
   }
 
   public Command zeroGyro() {
