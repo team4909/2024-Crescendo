@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.82,
-        "y": 6.83
+        "x": 2.7272273347965497,
+        "y": 6.911245275482004
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.478494160289644,
-        "y": 7.1328920181305
+        "x": 3.385721495086194,
+        "y": 7.214137293612504
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "WallSpike"
     },
     {
       "anchor": {

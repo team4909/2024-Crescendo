@@ -3,6 +3,7 @@ package frc.robot.drivetrain;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.GeometryUtil;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -20,7 +21,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -33,7 +33,6 @@ import frc.robot.PoseEstimation;
 import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -44,10 +43,11 @@ import org.littletonrobotics.junction.Logger;
 public class Drivetrain extends SubsystemBase {
 
   public static final Lock odometryLock = new ReentrantLock();
-  public final BooleanSupplier onRedAllianceSupplier;
 
   private static final double kTrackwidthMeters = Units.inchesToMeters(20.75);
   private static double kWheelbaseMeters = Units.inchesToMeters(15.75);
+
+  // Front left, front right, back left, back right
   private static final Translation2d[] m_modulePositions =
       new Translation2d[] {
         new Translation2d(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0),
@@ -57,12 +57,11 @@ public class Drivetrain extends SubsystemBase {
       };
   public static final SwerveDriveKinematics swerveKinematics =
       new SwerveDriveKinematics(m_modulePositions);
+
   public static final double kDriveBaseRadius =
       Math.hypot(kTrackwidthMeters / 2.0, kWheelbaseMeters / 2.0);
-  private static final LoggedTunableNumber inRangeRadius =
-      new LoggedTunableNumber("Drivetrain/InRangeRadius", 2.10);
-  private static final LoggedTunableNumber inRangeTolerance =
-      new LoggedTunableNumber("Drivetrain/InRangeTolerance", 0.25);
+  private static final LoggedTunableNumber speakerRangeMeters =
+      new LoggedTunableNumber("Drivetrain/InRangeRadius", 7.0);
   private final double kMaxLinearSpeedMetersPerSecond = Units.feetToMeters(16);
   private final double kMaxAngularSpeedRadPerSec = 2 * Math.PI;
   private final double kDeadband = 0.1;
@@ -96,19 +95,16 @@ public class Drivetrain extends SubsystemBase {
     m_modules[1] = new Module(frontRightModuleIO, 1);
     m_modules[2] = new Module(backLeftModuleIO, 2);
     m_modules[3] = new Module(backRightModuleIO, 3);
+
     PhoenixOdometryThread.getInstance().start();
 
-    onRedAllianceSupplier =
-        () ->
-            DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == Alliance.Red;
     m_sysIdRoutineDrive =
         new SysIdRoutine(
             new SysIdRoutine.Config(
                 null,
                 null,
                 null,
-                (state) -> Logger.recordOutput("Drivetrain/SysIdState", state.toString())),
+                (state) -> SignalLogger.writeString("Drivetrain/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> {
                   for (Module module : m_modules) {
@@ -153,11 +149,9 @@ public class Drivetrain extends SubsystemBase {
     }
 
     if (DriverStation.isDisabled()) {
-      Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-      Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
-      for (Module module : m_modules) {
-        module.stop();
-      }
+      Logger.recordOutput("Drivetrain/SwerveStates/Setpoints", new SwerveModuleState[] {});
+      Logger.recordOutput("Drivetrain/SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+      for (Module module : m_modules) module.stop();
     }
 
     final double[] sampleTimestamps = m_modules[0].getOdometryTimestamps();
@@ -179,6 +173,8 @@ public class Drivetrain extends SubsystemBase {
       if (m_imuInputs.connected) {
         m_gyroRotation = m_imuInputs.odometryYawPositions[updateIndex];
       } else {
+        // When the gyro is not connected, we can simulate the robot's heading using the module
+        // states through the rotational component of the derived chassis speeds
         final Twist2d twist = swerveKinematics.toTwist2d(moduleDeltas);
         m_gyroRotation = m_gyroRotation.plus(new Rotation2d(twist.dtheta));
       }
@@ -211,8 +207,16 @@ public class Drivetrain extends SubsystemBase {
           m_modules[moduleIndex].setSetpoint(setpointStates[moduleIndex]);
     }
 
-    Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
-    Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
+    Logger.recordOutput("Drivetrain/SwerveStates/Setpoints", setpointStates);
+    Logger.recordOutput("Drivetrain/SwerveStates/SetpointsOptimized", optimizedSetpointStates);
+  }
+
+  public void runWheelRadiusCharacterization(double characterizationInput) {
+    runVelocity(new ChassisSpeeds(0.0, 0.0, characterizationInput));
+  }
+
+  public double[] getWheelRadiusCharacterizationPosition() {
+    return Arrays.stream(m_modules).mapToDouble(Module::getDrivePositionRad).toArray();
   }
 
   public Command joystickDrive(
@@ -240,13 +244,21 @@ public class Drivetrain extends SubsystemBase {
         .withName("Joystick Drive");
   }
 
+  /**
+   * This allows us to run auto-aim in auto when no other driving commands are active (no joystick
+   * drive, no path following)
+   */
+  public Command blankDrive() {
+    return this.run(() -> runVelocity(new ChassisSpeeds(0.0, 0.0, 0.0)));
+  }
+
   public Command zeroGyro() {
     return Commands.runOnce(
             () ->
                 resetPose.accept(
                     new Pose2d(
                         PoseEstimation.getInstance().getPose().getTranslation(),
-                        onRedAllianceSupplier.getAsBoolean()
+                        Constants.onRedAllianceSupplier.getAsBoolean()
                             ? GeometryUtil.flipFieldRotation(new Rotation2d())
                             : new Rotation2d())))
         .ignoringDisable(true);
@@ -293,30 +305,26 @@ public class Drivetrain extends SubsystemBase {
         () -> swerveKinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
         new HolonomicPathFollowerConfig(
-            new PIDConstants(5.0, 0.0, 0.0),
-            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(3.0, 0.0, 0.0),
+            new PIDConstants(3.0, 0.0, 0.0),
             kMaxLinearSpeedMetersPerSecond,
             kDriveBaseRadius,
             new ReplanningConfig()),
-        onRedAllianceSupplier,
+        Constants.onRedAllianceSupplier,
         this);
     PathPlannerLogging.setLogActivePathCallback(
-        (activePath) -> {
-          Logger.recordOutput(
-              "Drivetrain/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
-        });
+        activePath ->
+            Logger.recordOutput("Drivetrain/Trajectory", activePath.toArray(Pose2d[]::new)));
     PathPlannerLogging.setLogTargetPoseCallback(
-        (targetPose) -> {
-          Logger.recordOutput("Drivetrain/TrajectorySetpoint", targetPose);
-        });
+        targetPose -> Logger.recordOutput("Drivetrain/TrajectorySetpoint", targetPose));
   }
 
-  @AutoLogOutput(key = "SwerveStates/StatesMeasured")
+  @AutoLogOutput(key = "Drivetrain/SwerveStates/StatesMeasured")
   private SwerveModuleState[] getModuleStates() {
     return Arrays.stream(m_modules).map(Module::getState).toArray(SwerveModuleState[]::new);
   }
 
-  @AutoLogOutput(key = "SwerveStates/PositionsMeasured")
+  @AutoLogOutput(key = "Drivetrain/SwerveStates/PositionsMeasured")
   private SwerveModulePosition[] getModulePositions() {
     return Arrays.stream(m_modules).map(Module::getPosition).toArray(SwerveModulePosition[]::new);
   }
@@ -331,19 +339,17 @@ public class Drivetrain extends SubsystemBase {
 
   public void clearHeadingGoal() {
     m_headingController = null;
-    Logger.recordOutput("HeadingController/Setpoint", new Pose2d());
+    Logger.recordOutput("Drivetrain/HeadingController/Setpoint", new Pose2d());
   }
 
-  @AutoLogOutput(key = "Drivetrain/AtHeadingGoal")
+  @AutoLogOutput(key = "Drivetrain/HeadingController/AtGoal")
   public boolean atHeadingGoal() {
     return m_headingController != null && m_headingController.atGoal();
   }
 
   @AutoLogOutput(key = "Drivetrain/InRangeOfGoal")
   public boolean inRange() {
-    return MathUtil.isNear(
-        inRangeRadius.get(),
-        PoseEstimation.getInstance().getAimingParameters().effectiveDistance(),
-        inRangeTolerance.get());
+    return PoseEstimation.getInstance().getAimingParameters().effectiveDistance()
+        <= speakerRangeMeters.get();
   }
 }

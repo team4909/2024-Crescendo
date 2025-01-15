@@ -2,61 +2,58 @@ package frc.robot.shooter;
 
 import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import com.ctre.phoenix6.SignalLogger;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Shooter extends SubsystemBase {
 
-  private final double kFarShotVelocityRpm = 5600.0;
-  private final double kAmpshot = 5000.0;
-  private final double kReadyToShootToleranceRps = 3.0;
+  public static final double kShooterStepUp = Constants.kIsViper ? 1.0 : 1.0;
+  public static final double kFarShotVelocityRpm = 5800.0;
+  public static final double kRevUpVelocityRpm = 0.75 * kFarShotVelocityRpm;
+  private final double kTrapShot = 400.0;
+  private final double kAmpShot = 5000.0;
+  private final double kReadyToShootToleranceRps = 5.0;
 
   // Denominator for gains here are in rotations
-  public static final double topRollerkS = 0.18039;
-  public static final double topRollerkV = 0.11968;
-  public static final double topRollerkA = 0.0089044;
-  public static final double bottomRollerkS = 0.19936;
-  public static final double bottomRollerkV = 0.12041;
-  public static final double bottomRollerkA = 0.0071461;
+  public static final double topRollerkS = 0.15945;
+  public static final double topRollerkV = 0.11596;
+  public static final double topRollerkA = 0.013645;
+  public static final double bottomRollerkS = 0.11589;
+  public static final double bottomRollerkV = 0.11618;
+  public static final double bottomRollerkA = 0.015157;
 
-  private final double topRollerkP = 0.13085;
-  private final double bottomRollerkP = 0.11992;
+  public static final double topRollerkP = 0.176;
+  public static final double bottomRollerkP = 0.176;
 
-  private final PIDController m_topRollerController, m_bottomRollerController;
-  private final SimpleMotorFeedforward m_topRollerFeedforward, m_bottomRollerFeedforward;
   private final SysIdRoutine m_sysIdRoutine;
-
   private final ShooterIO m_io;
   private final ShooterIOInputsAutoLogged m_inputs = new ShooterIOInputsAutoLogged();
 
   public final Trigger readyToShoot =
-      new Trigger(() -> getRollersAtSetpoint()).debounce(0.1, DebounceType.kBoth);
+      new Trigger(this::getRollersAtSetpoint).debounce(0.1, DebounceType.kBoth);
+
+  private double m_lastSetpoint;
 
   public Shooter(ShooterIO io) {
     m_io = io;
 
-    m_topRollerFeedforward = new SimpleMotorFeedforward(topRollerkS, topRollerkV, topRollerkA);
-    m_topRollerController = new PIDController(topRollerkP, 0.0, 0.0);
-    m_bottomRollerFeedforward =
-        new SimpleMotorFeedforward(bottomRollerkS, bottomRollerkV, bottomRollerkA);
-    m_bottomRollerController = new PIDController(bottomRollerkP, 0.0, 0.0);
-
-    m_topRollerController.setTolerance(kReadyToShootToleranceRps);
-    m_bottomRollerController.setTolerance(kReadyToShootToleranceRps);
     m_sysIdRoutine =
         new SysIdRoutine(
             new SysIdRoutine.Config(
                 null,
                 null,
                 null,
-                state -> Logger.recordOutput("Shooter/SysIdState", state.toString())),
+                state -> SignalLogger.writeString("Shooter/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 voltage -> {
                   m_io.setTopRollerVoltage(voltage.in(Volts));
@@ -71,34 +68,34 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("ShooterInputs", m_inputs);
-    Logger.recordOutput(
-        "Shooter/Command", getCurrentCommand() == null ? "" : getCurrentCommand().getName());
   }
 
   private void setRollersSetpointRpm(double velocityRpm) {
     double goalVelocityRps = velocityRpm / 60.0;
     Logger.recordOutput("Shooter/Goal Roller RPS", goalVelocityRps);
-    double topRollerFeedforwardOutput = m_topRollerFeedforward.calculate(goalVelocityRps);
-    double bottomRollerFeedforwardOutput = m_bottomRollerFeedforward.calculate(goalVelocityRps);
-    double topRollerFeedbackOutput =
-        m_topRollerController.calculate(m_inputs.topRollerVelocityRps, goalVelocityRps);
-    double bottomRollerFeedbackOutput =
-        m_bottomRollerController.calculate(m_inputs.bottomRollerVelocityRps, goalVelocityRps);
-    m_io.setTopRollerVoltage(topRollerFeedforwardOutput + topRollerFeedbackOutput);
-    m_io.setBottomRollerVoltage(bottomRollerFeedforwardOutput + bottomRollerFeedbackOutput);
+    m_lastSetpoint = goalVelocityRps;
+    m_io.setTopRollerVelocity(goalVelocityRps);
+    m_io.setBottomRollerVelocity(goalVelocityRps);
   }
 
   @AutoLogOutput(key = "Shooter/RollersAtSetpoint")
   private boolean getRollersAtSetpoint() {
-    return m_bottomRollerController.atSetpoint() && m_topRollerController.atSetpoint();
+    if (m_lastSetpoint == 0) return false;
+    return MathUtil.isNear(
+            m_lastSetpoint, m_inputs.bottomRollerVelocityRps, kReadyToShootToleranceRps)
+        && MathUtil.isNear(
+            m_lastSetpoint, m_inputs.topRollerVelocityRps, kReadyToShootToleranceRps);
   }
 
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
-  }
-
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
+  public Command sysId() {
+    return Commands.sequence(
+        m_sysIdRoutine.quasistatic(Direction.kForward),
+        Commands.waitSeconds(15.0),
+        m_sysIdRoutine.quasistatic(Direction.kReverse),
+        Commands.waitSeconds(15.0),
+        m_sysIdRoutine.dynamic(Direction.kForward),
+        Commands.waitSeconds(15.0),
+        m_sysIdRoutine.dynamic(Direction.kReverse));
   }
 
   public Command idle() {
@@ -107,7 +104,7 @@ public class Shooter extends SubsystemBase {
               m_io.setTopRollerVoltage(0.0);
               m_io.setBottomRollerVoltage(0.0);
             })
-        .withName("Idle");
+        .withName("Idle (Shooter)");
   }
 
   public Command stop() {
@@ -115,20 +112,38 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command runShooter() {
+    return this.run(() -> setRollersSetpointRpm(kFarShotVelocityRpm))
+        .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
+        .withName("Run Shooter (Shooter)");
+  }
+
+  public Command revUpShooter() {
+    return this.run(() -> setRollersSetpointRpm(kRevUpVelocityRpm))
+        .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
+        .withName("Rev Shooter (Shooter)");
+  }
+
+  public Command trapShot() {
+    return this.run(() -> setRollersSetpointRpm(kTrapShot))
+        .finallyDo(() -> Logger.recordOutput("Shooter/Goal Roller RPS", 0.0))
+        .withName("Trap Shot (Shooter)");
+  }
+
+  public Command trapAssist() {
     return this.run(
             () -> {
-              setRollersSetpointRpm(kFarShotVelocityRpm);
+              m_io.setTopRollerVelocity(kTrapShot / 60.0);
+              m_io.setBottomRollerVelocity(-kTrapShot / 60.0);
             })
-        .finallyDo(
-            () -> {
-              Logger.recordOutput("Shooter/Goal Roller RPS", 0.0);
-              m_topRollerController.reset();
-              m_bottomRollerController.reset();
-            });
+        .withName("Trap Assist");
+  }
+
+  public Command feederShot() {
+    return this.run(() -> setRollersSetpointRpm(3500.0)).withName("Feeder Shot (Shooter)");
   }
 
   public Command ampShot() {
-    return this.run(() -> setRollersSetpointRpm(kAmpshot));
+    return this.run(() -> setRollersSetpointRpm(kAmpShot));
   }
 
   public Command catchNote() {
@@ -137,7 +152,7 @@ public class Shooter extends SubsystemBase {
               m_io.setTopRollerVoltage(-9.0);
               m_io.setBottomRollerVoltage(-9.0);
             })
-        .withName("Catch Note");
+        .withName("Catch (Shooter)");
   }
 
   public Command spit() {
@@ -146,12 +161,6 @@ public class Shooter extends SubsystemBase {
               m_io.setTopRollerVoltage(-6.0);
               m_io.setBottomRollerVoltage(-6.0);
             })
-        .withName("Spit");
-  }
-
-  public Command shootWithFeederDelay() {
-    return this.run(() -> setRollersSetpointRpm(kFarShotVelocityRpm))
-        .until(() -> getRollersAtSetpoint())
-        .andThen(runShooter());
+        .withName("Spit (Shooter)");
   }
 }

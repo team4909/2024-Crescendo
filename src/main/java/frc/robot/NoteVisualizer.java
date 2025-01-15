@@ -27,7 +27,7 @@ public class NoteVisualizer {
 
   public static void showStagedNotes() {
     if (m_notes.isEmpty()) {
-      Logger.recordOutput("NoteVisualizer/StagedNotes");
+      Logger.recordOutput("NoteVisualizer/StagedNotes", new Pose3d[] {});
     }
     // Show auto notes
     Stream<Translation2d> presentNotes = m_notes.stream().filter(Objects::nonNull);
@@ -46,9 +46,9 @@ public class NoteVisualizer {
 
   public static void showHeldNotes() {
     if (m_hasNote) {
-      Logger.recordOutput("NoteVisualizer/HeldNotes", new Pose3d[] {getNotePose()});
+      Logger.recordOutput("NoteVisualizer/HeldNote", getNotePose());
     } else {
-      Logger.recordOutput("NoteVisualizer/HeldNotes", new Pose3d());
+      Logger.recordOutput("NoteVisualizer/HeldNote", new Pose3d[] {});
     }
   }
 
@@ -63,7 +63,7 @@ public class NoteVisualizer {
 
   public static void resetNotes() {
     m_notes.clear();
-    for (Translation2d note : FieldPositions.NotePositions.noteTranslations) m_notes.add(note);
+    for (Translation2d note : FieldConstants.NotePositions.noteTranslations) m_notes.add(note);
   }
 
   public static Command shoot() {
@@ -74,7 +74,7 @@ public class NoteVisualizer {
                   m_hasNote = false;
                   final Pose3d startPose = getNotePose();
                   final Translation3d speakerTranslation =
-                      FieldPositions.Speaker.centerSpeakerOpening;
+                      FieldConstants.Speaker.centerSpeakerOpening;
                   final Pose3d endPose;
                   if (Constants.onRedAllianceSupplier.getAsBoolean()) {
                     double flippedX =
@@ -100,9 +100,11 @@ public class NoteVisualizer {
                                     startPose.interpolate(endPose, timer.get() / duration)
                                   }))
                       .until(() -> timer.hasElapsed(duration))
-                      .finallyDo(() -> Logger.recordOutput("NoteVisualizer/ShotNotes"));
+                      .finallyDo(
+                          () -> Logger.recordOutput("NoteVisualizer/ShotNotes", new Pose3d[] {}));
                 },
                 Set.of())
+            .withName("Note Shot Visualization")
             .ignoringDisable(true));
   }
 
@@ -111,14 +113,11 @@ public class NoteVisualizer {
   }
 
   private static Pose3d getNotePose() {
-    if (m_wristPoseSupplier == null) {
-      return new Pose3d();
-    }
     Pose3d wristPose = m_wristPoseSupplier.get();
     Transform3d noteTransform =
         new Transform3d(
                 wristPose.getX(), wristPose.getY(), wristPose.getZ(), wristPose.getRotation())
-            .plus(new Transform3d(0.0, 0.0, 0.0, new Rotation3d()));
+            .plus(new Transform3d(0.1, 0.0, 0.0, new Rotation3d()));
     return new Pose3d(PoseEstimation.getInstance().getPose()).transformBy(noteTransform);
   }
 }

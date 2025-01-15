@@ -6,30 +6,34 @@ public interface ArmIO {
 
   @AutoLog
   public static class ArmIOInputs {
-    public double elbowAbsolutePositionRad = 0.0;
-    public boolean elbowAbsoluteEncoderConnected = false;
-    public double elbowEncoderRaw = 0.0;
-    public double elbowRelativePositionRad = 0.0;
-    public double elbowVelocityRadPerSec = 0.0;
+    public double elbowPositionRot = 0.0;
+    public double elbowPositionSetpointRot = 0.0;
+    public double elbowVelocityRps = 0.0;
     public double elbowAppliedVolts = 0.0;
-    public double[] elbowCurrentAmps = new double[] {};
+    public double elbowTorqueCurrentAmps = 0.0;
+    public double[] elbowStatorCurrentAmps = new double[] {};
 
-    public double wristAbsolutePositionRad = 0.0;
-    public boolean wristAbsoluteEncoderConnected = false;
-    public double wristEncoderRaw = 0.0;
-    public double wristRelativePositionRad = 0.0;
-    public double wristVelocityRadPerSec = 0.0;
+    public double wristPositionRot = 0.0;
+    public double wristPositionSetpointRot = 0.0;
+    public double wristVelocityRps = 0.0;
     public double wristAppliedVolts = 0.0;
-    public double[] wristCurrentAmps = new double[] {};
+    public double wristTorqueCurrentAmps = 0.0;
+    public double[] wristStatorCurrentAmps = new double[] {};
 
     public boolean allMotorsConnected = false;
   }
 
   public default void updateInputs(ArmIOInputs inputs) {}
 
+  public default void setElbowRotations(double angleRot) {}
+
+  public default void setWristRotations(double angleRot) {}
+
   public default void setElbowVoltage(double volts) {}
 
   public default void setWristVoltage(double volts) {}
+
+  public default void stop() {}
 
   public default void setBrakeMode(boolean enableBrakeMode) {}
 }

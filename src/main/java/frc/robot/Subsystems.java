@@ -11,6 +11,7 @@ import frc.robot.arm.ArmIOTalonFX;
 import frc.robot.climber.Climber;
 import frc.robot.climber.ClimberIO;
 import frc.robot.climber.ClimberIOSparkMAX;
+import frc.robot.climber.ClimberIOTalonFX;
 import frc.robot.drivetrain.Drivetrain;
 import frc.robot.drivetrain.ImuIO;
 import frc.robot.drivetrain.ImuIOPigeon2;
@@ -24,12 +25,15 @@ import frc.robot.intake.Intake;
 import frc.robot.intake.IntakeIO;
 import frc.robot.intake.IntakeIOSim;
 import frc.robot.intake.IntakeIOSparkMAX;
+import frc.robot.intake.IntakeIOTalonFX;
 import frc.robot.shooter.Shooter;
 import frc.robot.shooter.ShooterIO;
 import frc.robot.shooter.ShooterIOSim;
 import frc.robot.shooter.ShooterIOTalonFX;
+import frc.robot.vision.GamePieceDetection;
+import frc.robot.vision.GamePieceDetectionIO;
+import frc.robot.vision.GamePieceDetectionIOLimelight;
 import frc.robot.vision.Vision;
-import frc.robot.vision.VisionIO;
 import frc.robot.vision.VisionIOPhotonVision;
 
 public class Subsystems {
@@ -83,8 +87,12 @@ public class Subsystems {
                     Units.degreesToRadians(-150.0)))));
   }
 
-  public static Vision createBlankFourCameraVision() {
-    return new Vision(new VisionIO() {}, new VisionIO() {}, new VisionIO() {}, new VisionIO() {});
+  public static Vision createBlankVision() {
+    return new Vision();
+  }
+
+  public static Intake createTalonFXIntake() {
+    return new Intake(new IntakeIOTalonFX());
   }
 
   public static Intake createSparkMAXIntake() {
@@ -115,6 +123,10 @@ public class Subsystems {
     return new Climber(new ClimberIOSparkMAX());
   }
 
+  public static Climber createTalonFXClimber() {
+    return new Climber(new ClimberIOTalonFX());
+  }
+
   public static Climber createBlankClimber() {
     return new Climber(new ClimberIO() {});
   }
@@ -141,5 +153,13 @@ public class Subsystems {
 
   public static Feeder createBlankFeeder() {
     return new Feeder(new FeederIO() {});
+  }
+
+  public static GamePieceDetection createLimelightGamePieceDetection() {
+    return new GamePieceDetection(new GamePieceDetectionIOLimelight() {});
+  }
+
+  public static GamePieceDetection createBlankGamePieceDetection() {
+    return new GamePieceDetection(new GamePieceDetectionIO() {});
   }
 }
